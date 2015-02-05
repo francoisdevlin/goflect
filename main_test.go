@@ -32,12 +32,19 @@ func TestSqliteTableCreate(t *testing.T) {
 	}
 	service.Insert(&Foo{A: "First", B: 1})
 	service.Insert(&Foo{A: "First", B: 1})
-	service.Insert(&Foo{A: "First", B: 1})
+	service.Insert(&Foo{A: "First", B: 2})
 	service.Insert(&Foo{A: "First", B: 1})
 
 	next := service.ReadAll(&Foo{})
 
 	temp := Foo{}
+	for next(&temp) {
+		fmt.Println(temp)
+	}
+
+	next = service.ReadAllWhere(&Foo{}, map[string]interface{}{
+		"B": 1,
+	})
 	for next(&temp) {
 		fmt.Println(temp)
 	}

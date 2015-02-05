@@ -209,7 +209,12 @@ func (service SqliteRecordService) Insert(record interface{}) {
 }
 
 func (service SqliteRecordService) ReadAll(record interface{}) func(record interface{}) bool {
-	message := ListSQLiteRecord(record)
+	conditions := make(map[string]interface{})
+	return service.ReadAllWhere(record, conditions)
+}
+
+func (service SqliteRecordService) ReadAllWhere(record interface{}, conditions map[string]interface{}) func(record interface{}) bool {
+	message := ListSQLiteRecordWhere(record, conditions)
 	rows, _ := service.Conn.Query(message)
 
 	output := func(r interface{}) bool {
@@ -311,23 +316,32 @@ func InsertSQLiteRecord(record interface{}) (statement string) {
 			continue
 		}
 		fieldVal := val.FieldByName(field.Name)
-		//statement += " \"" + fieldVal.String() + "\""
 		statement += " " + wrap(fieldVal, field)
 		if i != len(fields)-1 {
 			statement += ","
 		}
 	}
 	statement += " )"
-	//lookup := sqliteLookupMap()
 	return statement
 }
 
 func ListSQLiteRecord(record interface{}) (statement string) {
+	conditions := make(map[string]interface{})
+	return ListSQLiteRecordWhere(record, conditions)
+}
+func ListSQLiteRecordWhere(record interface{}, conditions map[string]interface{}) (statement string) {
 	typ := reflect.TypeOf(record)
 	// if a pointer to a struct is passed, get the type of the dereferenced object
 	if typ.Kind() == reflect.Ptr {
 		typ = typ.Elem()
 	}
+
+	val := reflect.ValueOf(record)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+
+	segments := make([]string, 0)
 
 	fields := GetInfo(record)
 	statement = ""
@@ -337,8 +351,19 @@ func ListSQLiteRecord(record interface{}) (statement string) {
 		if i != len(fields)-1 {
 			statement += ","
 		}
+		if conditional, present := conditions[field.Name]; present {
+			condVal := reflect.ValueOf(conditional)
+			if condVal.Kind() == reflect.Ptr {
+				condVal = condVal.Elem()
+			}
+			segments = append(segments, fmt.Sprintf("%v = %v", field.Name, wrap(condVal, field)))
+		}
 	}
 	statement += " FROM " + typ.Name()
+
+	if len(segments) > 0 {
+		statement += " WHERE " + strings.Join(segments, " AND ")
+	}
 
 	return statement
 }
