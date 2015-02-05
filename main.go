@@ -181,10 +181,22 @@ func sqliteLookupMap() map[reflect.Kind]string {
 	return lookup
 }
 
+/**
+This is yet another take on the active record pattern.
+**/
 type RecordService interface {
 	Insert(record interface{})
 	ReadAll(record interface{}) func(record interface{}) bool
+	ReadAllWhere(record interface{}, conditions map[string]interface{}) func(record interface{}) bool
 	ReadAllNominal(record interface{}) func(record *Nominal) bool
+	ReadAllNominalWhere(record interface{}, conditions map[string]interface{}) func(record *Nominal) bool
+	Get(id int64, record interface{})
+	GetNominal(id int64) (output Nominal)
+	GetByNominal(name string, record interface{})
+	GetNominalByNominal(name string) (output Nominal)
+	Update(record interface{})
+	Delete(record interface{})
+	DeleteById(Id int64)
 }
 
 type SqliteRecordService struct {
@@ -253,6 +265,21 @@ func CreateSQLiteTable(record interface{}) (statement string) {
 	return statement
 }
 
+func wrap(fieldVal reflect.Value, field Info) string {
+	output := ""
+	switch {
+	case field.Kind == reflect.Int:
+	case field.Kind == reflect.Int8:
+	case field.Kind == reflect.Int16:
+	case field.Kind == reflect.Int32:
+	case field.Kind == reflect.Int64:
+		output = "" + strconv.FormatInt(fieldVal.Int(), 10) + ""
+	case true:
+		output = "\"" + fieldVal.String() + "\""
+	}
+	return output
+}
+
 func InsertSQLiteRecord(record interface{}) (statement string) {
 	typ := reflect.TypeOf(record)
 	// if a pointer to a struct is passed, get the type of the dereferenced object
@@ -284,7 +311,8 @@ func InsertSQLiteRecord(record interface{}) (statement string) {
 			continue
 		}
 		fieldVal := val.FieldByName(field.Name)
-		statement += " \"" + fieldVal.String() + "\""
+		//statement += " \"" + fieldVal.String() + "\""
+		statement += " " + wrap(fieldVal, field)
 		if i != len(fields)-1 {
 			statement += ","
 		}

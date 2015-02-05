@@ -15,7 +15,7 @@ func prepConn() *sql.DB {
 type Foo struct {
 	Id int64  `sql:"primary,autoincrement"`
 	A  string `sql:"unique,nominal"`
-	B  string `desc:"This is a human readable description"`
+	B  int64  `desc:"This is a human readable description"`
 }
 
 /*****
@@ -30,10 +30,10 @@ func TestSqliteTableCreate(t *testing.T) {
 	if err != nil {
 		fmt.Println("Miss creating table")
 	}
-	service.Insert(&Foo{A: "First", B: "Second"})
-	service.Insert(&Foo{A: "First", B: "Second"})
-	service.Insert(&Foo{A: "First", B: "Second"})
-	service.Insert(&Foo{A: "First", B: "Second"})
+	service.Insert(&Foo{A: "First", B: 1})
+	service.Insert(&Foo{A: "First", B: 1})
+	service.Insert(&Foo{A: "First", B: 1})
+	service.Insert(&Foo{A: "First", B: 1})
 
 	next := service.ReadAll(&Foo{})
 
