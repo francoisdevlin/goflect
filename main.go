@@ -22,17 +22,12 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
 )
-
-type Foo struct {
-	Id int64  `sql:"primary,autoincrement"`
-	A  string `sql:"unique"`
-	B  string `desc:"This is a human readable description"`
-}
 
 type FieldInfo struct {
 	Name string
@@ -250,8 +245,57 @@ func InsertSQLiteRecord(record interface{}) (statement string) {
 	return statement
 }
 
+func ListSQLiteRecord(record interface{}) (statement string) {
+	typ := reflect.TypeOf(record)
+	// if a pointer to a struct is passed, get the type of the dereferenced object
+	if typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
+	}
+
+	fields := GetInfo(record)
+	statement = ""
+	statement += "SELECT "
+	for i, field := range fields {
+		statement += " " + field.Name
+		if i != len(fields)-1 {
+			statement += ","
+		}
+	}
+	statement += " FROM " + typ.Name()
+
+	return statement
+}
+
+func NextRow(rows *sql.Rows, record interface{}) bool {
+	next := rows.Next()
+	if next {
+		fields := GetInfo(record)
+		val := reflect.ValueOf(record)
+		if val.Kind() == reflect.Ptr {
+			val = val.Elem()
+		}
+
+		vals := make([]interface{}, len(fields))
+		addrs := make([]interface{}, len(fields))
+		for i, _ := range vals {
+			addrs[i] = &vals[i]
+		}
+		rows.Scan(addrs...)
+		for i, field := range fields {
+			fieldVal := val.FieldByName(field.Name)
+			if field.Kind == reflect.String {
+				fieldVal.Set(reflect.ValueOf(string(vals[i].([]uint8))))
+			} else {
+				fieldVal.Set(reflect.ValueOf(vals[i]))
+			}
+		}
+
+	}
+	return next
+}
+
 func main() {
 	//GetRecords([]int{1, 2, 3}, &[]int{})
-	CreateSQLiteTable(&Foo{})
+	//CreateSQLiteTable(&Foo{})
 	fmt.Println("Hello")
 }

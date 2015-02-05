@@ -17,6 +17,12 @@ func prepConn() *sql.DB {
 	return c
 }
 
+type Foo struct {
+	Id int64  `sql:"primary,autoincrement"`
+	A  string `sql:"unique"`
+	B  string `desc:"This is a human readable description"`
+}
+
 /*****
  * Begin The Tests
   ****/
@@ -36,14 +42,16 @@ func TestSqliteTableCreate(t *testing.T) {
 	_, err = c.Exec(message)
 	message = InsertSQLiteRecord(&Foo{A: "First", B: "Second"})
 	_, err = c.Exec(message)
-	rows, err := c.Query("SELECT id, A, B from Foo")
+	message = ListSQLiteRecord(&Foo{})
+	fmt.Println(message)
+	rows, err := c.Query(message)
 
 	if err != nil {
 		fmt.Println("Query Error", err)
 	} else {
-		for rows.Next() {
-			temp := &Foo{}
-			rows.Scan(&temp.Id, &temp.A, &temp.B)
+		temp := Foo{}
+		for NextRow(rows, &temp) {
+			//rows.Scan(&temp.Id, &temp.A, &temp.B)
 			fmt.Println(temp)
 		}
 	}
