@@ -7,11 +7,6 @@ import (
 	"testing"
 )
 
-func prepConn() *sql.DB {
-	c, _ := sql.Open("sqlite3", ":memory:")
-	return c
-}
-
 type Foo struct {
 	Id int64  `sql:"primary,autoincrement"`
 	A  string `sql:"unique,nominal"`
@@ -22,13 +17,25 @@ type Foo struct {
  * Begin The Tests
   ****/
 func TestSqliteTableCreate(t *testing.T) {
-	fmt.Println("Hello Test")
+	c, _ := sql.Open("sqlite3", ":memory:")
+	message := CreateSQLiteTable(&Foo{})
+	_, err := c.Exec(message)
+	if err != nil {
+		t.Error("Miss creating table")
+	}
+	_, err = c.Exec(message)
+	if err != nil {
+		t.Error("Miss recreating creating table")
+	}
+}
+
+func TestBasicTableOps(t *testing.T) {
 	c, _ := sql.Open("sqlite3", ":memory:")
 	service := SqliteRecordService{c}
 	message := CreateSQLiteTable(&Foo{})
 	_, err := c.Exec(message)
 	if err != nil {
-		fmt.Println("Miss creating table")
+		t.Error("Miss creating table")
 	}
 	service.Insert(&Foo{A: "First", B: 1})
 	service.Insert(&Foo{A: "First", B: 1})
@@ -60,5 +67,4 @@ func TestSqliteTableCreate(t *testing.T) {
 	for nextNom(&tempNom) {
 		fmt.Println(tempNom)
 	}
-
 }

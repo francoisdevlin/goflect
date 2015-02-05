@@ -99,7 +99,7 @@ func CreateSQLiteTable(record interface{}) (statement string) {
 	fields := GetInfo(record)
 	lookup := sqliteLookupMap()
 	statement = ""
-	statement += "CREATE TABLE " + typ.Name() + "("
+	statement += "CREATE TABLE IF NOT EXISTS " + typ.Name() + "("
 	for i, field := range fields {
 		kind, present := lookup[field.Kind]
 		if !present {
