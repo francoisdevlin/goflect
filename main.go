@@ -213,6 +213,32 @@ func (service SqliteRecordService) ReadAll(record interface{}) func(record inter
 	return service.ReadAllWhere(record, conditions)
 }
 
+func (service SqliteRecordService) Get(id int64, record interface{}) {
+	fields := GetInfo(record)
+	conditions := make(map[string]interface{})
+	for _, field := range fields {
+		if field.IsPrimary {
+			conditions[field.Name] = id
+		}
+	}
+	next := service.ReadAllWhere(record, conditions)
+	for next(record) {
+	} //The last call closes the result set, important!
+}
+
+func (service SqliteRecordService) GetByNominal(name string, record interface{}) {
+	fields := GetInfo(record)
+	conditions := make(map[string]interface{})
+	for _, field := range fields {
+		if field.IsNominal {
+			conditions[field.Name] = name
+		}
+	}
+	next := service.ReadAllWhere(record, conditions)
+	for next(record) {
+	} //The last call closes the result set, important!
+}
+
 func (service SqliteRecordService) ReadAllWhere(record interface{}, conditions map[string]interface{}) func(record interface{}) bool {
 	message := ListSQLiteRecordWhere(record, conditions)
 	rows, _ := service.Conn.Query(message)

@@ -33,7 +33,7 @@ func TestSqliteTableCreate(t *testing.T) {
 	service.Insert(&Foo{A: "First", B: 1})
 	service.Insert(&Foo{A: "First", B: 1})
 	service.Insert(&Foo{A: "First", B: 2})
-	service.Insert(&Foo{A: "First", B: 1})
+	service.Insert(&Foo{A: "Bacon", B: 1})
 
 	next := service.ReadAll(&Foo{})
 
@@ -48,6 +48,12 @@ func TestSqliteTableCreate(t *testing.T) {
 	for next(&temp) {
 		fmt.Println(temp)
 	}
+
+	service.Get(1, &temp)
+	fmt.Println(temp)
+
+	service.GetByNominal("Bacon", &temp)
+	fmt.Println(temp)
 
 	nextNom := service.ReadAllNominal(&Foo{})
 	tempNom := Nominal{}
