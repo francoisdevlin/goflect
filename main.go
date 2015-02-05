@@ -15,6 +15,11 @@
 //Curses Interface
 //SQLite table creation
 //SQLite record maniputalor
+// * Create
+// * READ 1
+// * READ WHERE (Excel autofilter)
+// * Update 1
+// * Delete 1
 //MySQL table creation
 //MySQL record maniputalor
 //Standard REST endpoints
@@ -43,11 +48,6 @@ type SqlInfo struct {
 	IsNominal       bool
 }
 
-type Nominal struct {
-	Id   int64
-	Name string
-}
-
 type ValidatorInfo struct {
 	IsRequired bool
 	MaxValue   string
@@ -68,6 +68,11 @@ type Info struct {
 	SqlInfo
 	ValidatorInfo
 	UiInfo
+}
+
+type Nominal struct {
+	Id   int64
+	Name string
 }
 
 type FieldDescription interface {
@@ -174,6 +179,43 @@ func sqliteLookupMap() map[reflect.Kind]string {
 		reflect.Float64: "real",
 	}
 	return lookup
+}
+
+type RecordService interface {
+	Insert(record interface{})
+	ReadAll(record interface{}) func(record interface{}) bool
+	ReadAllNominal(record interface{}) func(record *Nominal) bool
+}
+
+type SqliteRecordService struct {
+	Conn *sql.DB
+}
+
+func (service SqliteRecordService) Insert(record interface{}) {
+	message := InsertSQLiteRecord(record)
+	_, _ = service.Conn.Exec(message)
+}
+
+func (service SqliteRecordService) ReadAll(record interface{}) func(record interface{}) bool {
+	message := ListSQLiteRecord(record)
+	rows, _ := service.Conn.Query(message)
+
+	output := func(r interface{}) bool {
+		return NextRow(rows, r)
+	}
+
+	return output
+}
+
+func (service SqliteRecordService) ReadAllNominal(record interface{}) func(record *Nominal) bool {
+	message := ListSQLiteNominal(record)
+	rows, _ := service.Conn.Query(message)
+
+	output := func(r *Nominal) bool {
+		return NextRow(rows, r)
+	}
+
+	return output
 }
 
 func CreateSQLiteTable(record interface{}) (statement string) {

@@ -24,42 +24,28 @@ type Foo struct {
 func TestSqliteTableCreate(t *testing.T) {
 	fmt.Println("Hello Test")
 	c, _ := sql.Open("sqlite3", ":memory:")
+	service := SqliteRecordService{c}
 	message := CreateSQLiteTable(&Foo{})
 	_, err := c.Exec(message)
 	if err != nil {
 		fmt.Println("Miss creating table")
 	}
-	message = InsertSQLiteRecord(&Foo{A: "First", B: "Second"})
-	_, err = c.Exec(message)
-	message = InsertSQLiteRecord(&Foo{A: "First", B: "Second"})
-	_, err = c.Exec(message)
-	message = InsertSQLiteRecord(&Foo{A: "First", B: "Second"})
-	_, err = c.Exec(message)
-	message = InsertSQLiteRecord(&Foo{A: "First", B: "Second"})
-	_, err = c.Exec(message)
-	message = ListSQLiteRecord(&Foo{})
-	//fmt.Println(message)
-	rows, err := c.Query(message)
+	service.Insert(&Foo{A: "First", B: "Second"})
+	service.Insert(&Foo{A: "First", B: "Second"})
+	service.Insert(&Foo{A: "First", B: "Second"})
+	service.Insert(&Foo{A: "First", B: "Second"})
 
-	if err != nil {
-		fmt.Println("Query Error", err)
-	} else {
-		temp := Foo{}
-		for NextRow(rows, &temp) {
-			fmt.Println(temp)
-		}
+	next := service.ReadAll(&Foo{})
+
+	temp := Foo{}
+	for next(&temp) {
+		fmt.Println(temp)
 	}
 
-	message = ListSQLiteNominal(&Foo{})
-	rows, err = c.Query(message)
-
-	if err != nil {
-		fmt.Println("Query Error", err)
-	} else {
-		temp := Nominal{}
-		for NextRow(rows, &temp) {
-			fmt.Println(temp)
-		}
+	nextNom := service.ReadAllNominal(&Foo{})
+	tempNom := Nominal{}
+	for nextNom(&tempNom) {
+		fmt.Println(tempNom)
 	}
 
 }
