@@ -40,6 +40,12 @@ type SqlInfo struct {
 	IsUnique        bool
 	IsNullable      bool
 	IsIndexed       bool
+	IsNominal       bool
+}
+
+type Nominal struct {
+	Id   int64
+	Name string
 }
 
 type ValidatorInfo struct {
@@ -87,6 +93,7 @@ func (field reflectValue) GetFieldSqlInfo() (output SqlInfo) {
 	output.IsUnique = strings.Contains(tags, "unique") || strings.Contains(tags, "primary")
 	output.IsNullable = !strings.Contains(tags, "not-null") || output.IsUnique
 	output.IsIndexed = strings.Contains(tags, "index") || output.IsUnique
+	output.IsNominal = strings.Contains(tags, "nominal")
 
 	return output
 }
@@ -262,6 +269,28 @@ func ListSQLiteRecord(record interface{}) (statement string) {
 		}
 	}
 	statement += " FROM " + typ.Name()
+
+	return statement
+}
+
+func ListSQLiteNominal(record interface{}) (statement string) {
+	typ := reflect.TypeOf(record)
+	// if a pointer to a struct is passed, get the type of the dereferenced object
+	if typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
+	}
+
+	fields := GetInfo(record)
+	id, nominal := "", ""
+	for _, field := range fields {
+		if field.IsPrimary {
+			id = field.Name
+		}
+		if field.IsNominal {
+			nominal = field.Name
+		}
+	}
+	statement = fmt.Sprintf("SELECT %v, %v FROM %v", id, nominal, typ.Name())
 
 	return statement
 }
