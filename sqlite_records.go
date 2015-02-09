@@ -126,14 +126,20 @@ func CreateSQLiteTable(record interface{}) (statement string) {
 
 func wrap(fieldVal reflect.Value, field Info) string {
 	output := ""
-	switch {
-	case field.Kind == reflect.Int:
-	case field.Kind == reflect.Int8:
-	case field.Kind == reflect.Int16:
-	case field.Kind == reflect.Int32:
-	case field.Kind == reflect.Int64:
+	switch field.Kind {
+	case reflect.Bool:
+		if fieldVal.Bool() {
+			output = "1"
+		} else {
+			output = "0"
+		}
+		//output = "" + strconv.FormatBool(fieldVal.Bool()) + ""
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		output = "" + strconv.FormatInt(fieldVal.Int(), 10) + ""
-	case true:
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		output = "" + strconv.FormatInt(fieldVal.Int(), 10) + ""
+		//break
+	default:
 		output = "\"" + fieldVal.String() + "\""
 	}
 	return output
@@ -179,10 +185,6 @@ func InsertSQLiteRecord(record interface{}) (statement string) {
 	return statement
 }
 
-func ListSQLiteRecord(record interface{}) (statement string) {
-	conditions := make(map[string]interface{})
-	return ListSQLiteRecordWhere(record, conditions)
-}
 func ListSQLiteRecordWhere(record interface{}, conditions map[string]interface{}) (statement string) {
 	typ := reflect.TypeOf(record)
 	// if a pointer to a struct is passed, get the type of the dereferenced object
@@ -261,10 +263,18 @@ func NextRow(rows *sql.Rows, record interface{}) bool {
 		rows.Scan(addrs...)
 		for i, field := range fields {
 			fieldVal := val.FieldByName(field.Name)
-			if field.Kind == reflect.String {
-				fieldVal.Set(reflect.ValueOf(string(vals[i].([]uint8))))
-			} else {
+			switch field.Kind {
+			case reflect.Bool:
+				fieldVal.Set(reflect.ValueOf(vals[i].(int64) != 0))
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+				fieldVal.Set(reflect.ValueOf(uint64(vals[i].(int64))))
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 				fieldVal.Set(reflect.ValueOf(vals[i]))
+			default:
+				fieldVal.Set(reflect.ValueOf(string(vals[i].([]uint8))))
+			}
+			if field.Kind == reflect.String {
+			} else {
 			}
 		}
 
