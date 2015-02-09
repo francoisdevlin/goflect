@@ -89,16 +89,17 @@ func TestBasicTableOpsBar(t *testing.T) {
 	if err != nil {
 		t.Error("Miss creating table")
 	}
-	service.Insert(&Bar{A: "First", B: true})
-	service.Insert(&Bar{A: "Second", B: true})
-	service.Insert(&Bar{A: "Third", B: false})
-	service.Insert(&Bar{A: "Fourth", B: true})
+	//service.Insert(&Bar{A: "First", B: true})
+	service.Insert((MockRecord(1, &Bar{})))
+	service.Insert((MockRecord(2, &Bar{})))
+	service.Insert((MockRecord(3, &Bar{})))
+	service.Insert((MockRecord(4, &Bar{})))
 
 	temp := Bar{}
 	service.Get(1, &temp)
 
 	//fmt.Println(temp.Id, temp.A, temp.B)
-	if (temp != Bar{Id: 1, A: "First", B: true}) {
+	if (temp != Bar{Id: 1, A: "1st", B: true}) {
 		t.Error("Error on first record equality")
 	}
 
