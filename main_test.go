@@ -43,15 +43,17 @@ func TestBasicTableOpsFoo(t *testing.T) {
 	if err != nil {
 		t.Error("Miss creating table")
 	}
-	service.Insert(&Foo{A: "First", B: 1})
-	service.Insert(&Foo{A: "Second", B: 2})
-	service.Insert(&Foo{A: "Third", B: 3})
-	service.Insert(&Foo{A: "Fourth", B: 4})
+
+	mocker := MockerStruct{SkipId: true}
+	service.Insert((mocker.Mock(1, &Foo{})))
+	service.Insert((mocker.Mock(2, &Foo{})))
+	service.Insert((mocker.Mock(3, &Foo{})))
+	service.Insert((mocker.Mock(4, &Foo{})))
 
 	temp := Foo{}
 	service.Get(1, &temp)
 
-	if (temp != Foo{Id: 1, A: "First", B: 1}) {
+	if (temp != Foo{Id: 1, A: "1st", B: 1}) {
 		t.Error("Error Retrieving Record")
 	}
 
@@ -67,12 +69,12 @@ func TestBasicTableOpsFoo(t *testing.T) {
 	})
 
 	for next(&temp) {
-		if temp.A != "First" {
+		if temp.A != "1st" {
 			t.Error(fmt.Sprintf("Error with ID lookup, Id: %v A: %v", temp.Id, temp.A))
 		}
 	}
 
-	service.GetByNominal("Second", &temp)
+	service.GetByNominal("2nd", &temp)
 
 	for next(&temp) {
 		if temp.B != 2 {
@@ -89,42 +91,31 @@ func TestBasicTableOpsBar(t *testing.T) {
 	if err != nil {
 		t.Error("Miss creating table")
 	}
-	//service.Insert(&Bar{A: "First", B: true})
-	service.Insert((MockRecord(1, &Bar{})))
-	service.Insert((MockRecord(2, &Bar{})))
-	service.Insert((MockRecord(3, &Bar{})))
-	service.Insert((MockRecord(4, &Bar{})))
 
-	temp := Bar{}
-	service.Get(1, &temp)
+	mocker := MockerStruct{SkipId: true}
+	service.Insert((mocker.Mock(1, &Bar{})))
+	service.Insert((mocker.Mock(2, &Bar{})))
+	service.Insert((mocker.Mock(3, &Bar{})))
+	service.Insert((mocker.Mock(4, &Bar{})))
 
-	//fmt.Println(temp.Id, temp.A, temp.B)
-	if (temp != Bar{Id: 1, A: "1st", B: true}) {
+	mocker = MockerStruct{SkipId: false}
+	retrieved := Bar{}
+	expected := Bar{}
+	service.Get(1, &retrieved)
+	mocker.Mock(1, &expected)
+
+	if retrieved != expected {
 		t.Error("Error on first record equality")
 	}
 
-	//next := service.ReadAll(&Bar{})
-	//for next(&temp) {
-	//if temp.Id != temp.B {
-	//t.Error(fmt.Sprintf("Error with autoincrement, Id: %v B: %v", temp.Id, temp.B))
-	//}
-	//}
+	next := service.ReadAll(&Bar{})
+	i := 0
+	for next(&retrieved) {
+		i++
+		mocker.Mock(int64(i), &expected)
+		if retrieved != expected {
+			t.Error(fmt.Sprintf("Error with autoincrement, Id: %v B: %v", retrieved.Id, retrieved.B))
+		}
+	}
 
-	//next = service.ReadAllWhere(&Bar{}, map[string]interface{}{
-	//"B": 1,
-	//})
-
-	//for next(&temp) {
-	//if temp.A != "First" {
-	//t.Error(fmt.Sprintf("Error with ID lookup, Id: %v A: %v", temp.Id, temp.A))
-	//}
-	//}
-
-	//service.GetByNominal("Second", &temp)
-
-	//for next(&temp) {
-	//if temp.B != 2 {
-	//t.Error(fmt.Sprintf("Error with lookup, Id: %v A: %v", temp.Id, temp.A))
-	//}
-	//}
 }

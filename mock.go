@@ -1,0 +1,60 @@
+package main
+
+import (
+	//"database/sql"
+	//"fmt"
+	"reflect"
+	"strconv"
+	//"strings"
+)
+
+type RecordMock interface {
+	Mock(n int64, record interface{}) interface{}
+}
+
+type MockerStruct struct {
+	SkipId bool
+}
+
+func (service MockerStruct) Mock(n int64, record interface{}) interface{} {
+	typ := reflect.TypeOf(record)
+	// if a pointer to a struct is passed, get the type of the dereferenced object
+	if typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
+	}
+
+	val := reflect.ValueOf(record)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+
+	fields := GetInfo(record)
+	for _, field := range fields {
+		if field.IsAutoincrement && service.SkipId {
+			continue
+		}
+		fieldVal := val.FieldByName(field.Name)
+		switch field.Kind {
+		case reflect.Bool:
+			fieldVal.Set(reflect.ValueOf(n != 0))
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			fieldVal.Set(reflect.ValueOf(uint64(n)))
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			fieldVal.Set(reflect.ValueOf(n))
+		default:
+			temp := strconv.FormatInt(n, 10)
+			switch n {
+			case 1:
+				temp = temp + "st"
+			case 2:
+				temp = temp + "nd"
+			case 3:
+				temp = temp + "rd"
+			default:
+				temp = temp + "th"
+			}
+			fieldVal.Set(reflect.ValueOf(temp))
+		}
+	}
+	return record
+}
