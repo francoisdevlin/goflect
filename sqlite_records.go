@@ -126,7 +126,7 @@ func CreateSQLiteTable(record interface{}) (statement string) {
 
 func wrap(fieldVal reflect.Value, field Info) string {
 	output := ""
-	switch field.Kind {
+	switch fieldVal.Kind() {
 	case reflect.Bool:
 		if fieldVal.Bool() {
 			output = "1"
@@ -135,7 +135,7 @@ func wrap(fieldVal reflect.Value, field Info) string {
 		}
 		//output = "" + strconv.FormatBool(fieldVal.Bool()) + ""
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		output = "" + strconv.FormatInt(fieldVal.Int(), 10) + ""
+		output = "" + strconv.FormatInt(int64(fieldVal.Uint()), 10) + ""
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		output = "" + strconv.FormatInt(fieldVal.Int(), 10) + ""
 		//break
@@ -266,9 +266,9 @@ func NextRow(rows *sql.Rows, record interface{}) bool {
 			switch field.Kind {
 			case reflect.Bool:
 				fieldVal.Set(reflect.ValueOf(vals[i].(int64) != 0))
-			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-				fieldVal.Set(reflect.ValueOf(uint64(vals[i].(int64))))
-			case reflect.Int, reflect.Int64:
+			case reflect.Int:
+				fieldVal.Set(reflect.ValueOf(int(vals[i].(int64))))
+			case reflect.Int64:
 				fieldVal.Set(reflect.ValueOf(vals[i]))
 			case reflect.Int32:
 				fieldVal.Set(reflect.ValueOf(int32(vals[i].(int64))))
@@ -276,6 +276,16 @@ func NextRow(rows *sql.Rows, record interface{}) bool {
 				fieldVal.Set(reflect.ValueOf(int16(vals[i].(int64))))
 			case reflect.Int8:
 				fieldVal.Set(reflect.ValueOf(int8(vals[i].(int64))))
+			case reflect.Uint:
+				fieldVal.Set(reflect.ValueOf(uint(vals[i].(int64))))
+			case reflect.Uint64:
+				fieldVal.Set(reflect.ValueOf(uint64(vals[i].(int64))))
+			case reflect.Uint32:
+				fieldVal.Set(reflect.ValueOf(uint32(vals[i].(int64))))
+			case reflect.Uint16:
+				fieldVal.Set(reflect.ValueOf(uint16(vals[i].(int64))))
+			case reflect.Uint8:
+				fieldVal.Set(reflect.ValueOf(uint8(vals[i].(int64))))
 			default:
 				fieldVal.Set(reflect.ValueOf(string(vals[i].([]uint8))))
 			}

@@ -130,10 +130,23 @@ func TestBasicTableOpsFoo2(t *testing.T) {
 func TestBasicTableOpsFoo3(t *testing.T) {
 	type Baz struct {
 		Id  int64 `sql:"primary,autoincrement"`
+		I   int
 		I64 int64
 		I32 int32
 		I16 int16
 		I8  int8
+	}
+	basicWriteHelper(t, &Baz{}, &Baz{})
+}
+
+func TestBasicTableOpsFoo4(t *testing.T) {
+	type Baz struct {
+		Id  int64 `sql:"primary,autoincrement"`
+		U   uint
+		U64 uint64
+		U32 uint32
+		U16 uint16
+		U8  uint8
 	}
 	basicWriteHelper(t, &Baz{}, &Baz{})
 }

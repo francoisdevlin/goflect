@@ -37,9 +37,9 @@ func (service MockerStruct) Mock(n int64, record interface{}) interface{} {
 		switch field.Kind {
 		case reflect.Bool:
 			fieldVal.Set(reflect.ValueOf(n != 0))
-		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-			fieldVal.Set(reflect.ValueOf(uint64(n)))
-		case reflect.Int, reflect.Int64:
+		case reflect.Int:
+			fieldVal.Set(reflect.ValueOf(int(n)))
+		case reflect.Int64:
 			fieldVal.Set(reflect.ValueOf(n))
 		case reflect.Int32:
 			fieldVal.Set(reflect.ValueOf(int32(n)))
@@ -47,6 +47,16 @@ func (service MockerStruct) Mock(n int64, record interface{}) interface{} {
 			fieldVal.Set(reflect.ValueOf(int16(n)))
 		case reflect.Int8:
 			fieldVal.Set(reflect.ValueOf(int8(n)))
+		case reflect.Uint:
+			fieldVal.Set(reflect.ValueOf(uint(n)))
+		case reflect.Uint64:
+			fieldVal.Set(reflect.ValueOf(uint64(n)))
+		case reflect.Uint32:
+			fieldVal.Set(reflect.ValueOf(uint32(n)))
+		case reflect.Uint16:
+			fieldVal.Set(reflect.ValueOf(uint16(n)))
+		case reflect.Uint8:
+			fieldVal.Set(reflect.ValueOf(uint8(n)))
 		default:
 			temp := strconv.FormatInt(n, 10)
 			switch n {
