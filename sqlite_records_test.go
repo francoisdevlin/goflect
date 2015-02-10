@@ -110,6 +110,8 @@ func basicWriteHelper(t *testing.T, retrieved, expected interface{}) {
 	mocker = MockerStruct{SkipId: false}
 	service.Get(1, retrieved)
 	mocker.Mock(1, expected)
+	//fmt.Println(retrieved)
+	//fmt.Println(expected)
 
 	if !reflect.DeepEqual(retrieved, expected) {
 		t.Error("Error on first record equality")
@@ -199,6 +201,18 @@ func TestBasicTableOpsFloats(t *testing.T) {
 		Id  int64 `sql:"primary,autoincrement"`
 		F32 float32
 		F64 float64
+	}
+	basicWriteHelper(t, &Baz{}, &Baz{})
+}
+
+func TestBasicTableOpsBasicEmbed(t *testing.T) {
+	type Embed struct {
+		F32 float32
+		F64 float64
+	}
+	type Baz struct {
+		Id int64 `sql:"primary,autoincrement"`
+		Embed
 	}
 	basicWriteHelper(t, &Baz{}, &Baz{})
 }

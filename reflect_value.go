@@ -45,38 +45,56 @@ func (field reflectValue) GetFieldValidatorInfo() (output ValidatorInfo) {
 }
 
 //These don't really go here...
-func getInfo(fields []FieldDescription) (output []Info) {
-	for i, field := range fields {
-		temp := Info{
-			FieldInfo:     field.GetFieldInfo(),
-			SqlInfo:       field.GetFieldSqlInfo(),
-			UiInfo:        field.GetFieldUiInfo(),
-			ValidatorInfo: field.GetFieldValidatorInfo(),
-		}
-		if temp.FieldOrder == 0 {
-			temp.FieldOrder = int64(i)
-		}
-		output = append(output, temp)
+func hydrateField(i int, field FieldDescription) Info {
+	output := Info{
+		FieldInfo:     field.GetFieldInfo(),
+		SqlInfo:       field.GetFieldSqlInfo(),
+		UiInfo:        field.GetFieldUiInfo(),
+		ValidatorInfo: field.GetFieldValidatorInfo(),
 	}
-
+	if output.FieldOrder == 0 {
+		output.FieldOrder = int64(i)
+	}
 	return output
 }
 
 func GetInfo(record interface{}) (output []Info) {
 	typ := reflect.TypeOf(record)
+	if res, err := record.(reflect.StructField); err {
+		typ = res.Type
+	}
 	// if a pointer to a struct is passed, get the type of the dereferenced object
 	if typ.Kind() == reflect.Ptr {
 		typ = typ.Elem()
 	}
 
+	knownFields := make(map[string]Info)
+	fieldNames := make([]string, 0)
 	// loop through the struct's fields and set the map
-	fields := make([]FieldDescription, 0)
 	for i := 0; i < typ.NumField(); i++ {
 		field := typ.Field(i)
-		fields = append(fields, reflectValue(field))
+		if field.Type.Kind() == reflect.Struct && field.Anonymous {
+			anonFields := GetInfo(field)
+			for _, anonField := range anonFields {
+				//Add the new field if we don't know about it
+				if _, present := knownFields[anonField.Name]; !present {
+					fieldNames = append(fieldNames, anonField.Name)
+					knownFields[anonField.Name] = anonField
+				}
+			}
+			continue
+		}
+		if _, present := knownFields[field.Name]; !present {
+			fieldNames = append(fieldNames, field.Name)
+		}
+		fieldInfo := reflectValue(field)
+
+		knownFields[field.Name] = hydrateField(i, fieldInfo)
 	}
 
-	output = getInfo(fields)
+	for _, field := range fieldNames {
+		output = append(output, knownFields[field])
+	}
 
 	return output
 }
