@@ -8,6 +8,20 @@ import (
 	"strings"
 )
 
+func typeAndVal(record interface{}) (reflect.Type, reflect.Value) {
+	typ := reflect.TypeOf(record)
+	// if a pointer to a struct is passed, get the type of the dereferenced object
+	if typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
+	}
+
+	val := reflect.ValueOf(record)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+	return typ, val
+}
+
 func sqliteLookupMap() map[reflect.Kind]string {
 	lookup := map[reflect.Kind]string{
 		reflect.Bool:    "integer",
@@ -37,16 +51,7 @@ func (service SqliteRecordService) Insert(record interface{}) {
 }
 
 func (service SqliteRecordService) Update(record interface{}) {
-	typ := reflect.TypeOf(record)
-	// if a pointer to a struct is passed, get the type of the dereferenced object
-	if typ.Kind() == reflect.Ptr {
-		typ = typ.Elem()
-	}
-
-	val := reflect.ValueOf(record)
-	if val.Kind() == reflect.Ptr {
-		val = val.Elem()
-	}
+	typ, val := typeAndVal(record)
 
 	fields := GetInfo(record)
 	statement := ""
@@ -77,16 +82,7 @@ func (service SqliteRecordService) Update(record interface{}) {
 }
 
 func (service SqliteRecordService) Delete(record interface{}) {
-	typ := reflect.TypeOf(record)
-	// if a pointer to a struct is passed, get the type of the dereferenced object
-	if typ.Kind() == reflect.Ptr {
-		typ = typ.Elem()
-	}
-
-	val := reflect.ValueOf(record)
-	if val.Kind() == reflect.Ptr {
-		val = val.Elem()
-	}
+	typ, val := typeAndVal(record)
 
 	fields := GetInfo(record)
 	statement := ""
@@ -112,11 +108,7 @@ func (service SqliteRecordService) Delete(record interface{}) {
 }
 
 func (service SqliteRecordService) DeleteById(id int, record interface{}) {
-	typ := reflect.TypeOf(record)
-	// if a pointer to a struct is passed, get the type of the dereferenced object
-	if typ.Kind() == reflect.Ptr {
-		typ = typ.Elem()
-	}
+	typ, _ := typeAndVal(record)
 
 	fields := GetInfo(record)
 	statement := ""
@@ -191,11 +183,7 @@ func (service SqliteRecordService) ReadAllNominalWhere(record interface{}, condi
 }
 
 func CreateSQLiteTable(record interface{}) (statement string) {
-	typ := reflect.TypeOf(record)
-	// if a pointer to a struct is passed, get the type of the dereferenced object
-	if typ.Kind() == reflect.Ptr {
-		typ = typ.Elem()
-	}
+	typ, _ := typeAndVal(record)
 
 	fields := GetInfo(record)
 	lookup := sqliteLookupMap()
@@ -251,11 +239,7 @@ func wrap(fieldVal reflect.Value, field Info) string {
 }
 
 func InsertSQLiteRecord(record interface{}) (statement string) {
-	typ := reflect.TypeOf(record)
-	// if a pointer to a struct is passed, get the type of the dereferenced object
-	if typ.Kind() == reflect.Ptr {
-		typ = typ.Elem()
-	}
+	typ, val := typeAndVal(record)
 
 	fields := GetInfo(record)
 	statement = ""
@@ -270,11 +254,6 @@ func InsertSQLiteRecord(record interface{}) (statement string) {
 		}
 	}
 	statement += " ) VALUES ("
-
-	val := reflect.ValueOf(record)
-	if val.Kind() == reflect.Ptr {
-		val = val.Elem()
-	}
 
 	for i, field := range fields {
 		if field.IsAutoincrement {
@@ -291,11 +270,7 @@ func InsertSQLiteRecord(record interface{}) (statement string) {
 }
 
 func ListSQLiteRecordWhere(record interface{}, conditions map[string]interface{}) (statement string) {
-	typ := reflect.TypeOf(record)
-	// if a pointer to a struct is passed, get the type of the dereferenced object
-	if typ.Kind() == reflect.Ptr {
-		typ = typ.Elem()
-	}
+	typ, _ := typeAndVal(record)
 
 	fields := GetInfo(record)
 	statement = ""
@@ -313,11 +288,7 @@ func ListSQLiteRecordWhere(record interface{}, conditions map[string]interface{}
 }
 
 func ListSQLiteNominalWhere(record interface{}, conditions map[string]interface{}) (statement string) {
-	typ := reflect.TypeOf(record)
-	// if a pointer to a struct is passed, get the type of the dereferenced object
-	if typ.Kind() == reflect.Ptr {
-		typ = typ.Elem()
-	}
+	typ, _ := typeAndVal(record)
 
 	fields := GetInfo(record)
 	statement = ""
@@ -355,11 +326,7 @@ func ProcessWhereClause(fields []Info, conditions map[string]interface{}) string
 }
 
 func ListSQLiteNominal(record interface{}) (statement string) {
-	typ := reflect.TypeOf(record)
-	// if a pointer to a struct is passed, get the type of the dereferenced object
-	if typ.Kind() == reflect.Ptr {
-		typ = typ.Elem()
-	}
+	typ, _ := typeAndVal(record)
 
 	fields := GetInfo(record)
 	id, nominal := "", ""
