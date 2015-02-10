@@ -36,6 +36,46 @@ func (service SqliteRecordService) Insert(record interface{}) {
 	_, _ = service.Conn.Exec(message)
 }
 
+func (service SqliteRecordService) Update(record interface{}) {
+	typ := reflect.TypeOf(record)
+	// if a pointer to a struct is passed, get the type of the dereferenced object
+	if typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
+	}
+
+	val := reflect.ValueOf(record)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+
+	fields := GetInfo(record)
+	statement := ""
+	statement += "UPDATE " + typ.Name() + " SET "
+	conditions := make(map[string]interface{})
+	columns := make([]string, 0)
+	for _, field := range fields {
+		fieldVal := val.FieldByName(field.Name)
+		if field.IsPrimary {
+			switch fieldVal.Kind() {
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+				conditions[field.Name] = fieldVal.Uint()
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				conditions[field.Name] = fieldVal.Int()
+			default:
+				conditions[field.Name] = fieldVal.Int()
+				continue
+			}
+		}
+		temp := field.Name + "=" + wrap(fieldVal, field)
+		columns = append(columns, temp)
+	}
+	statement += strings.Join(columns, ", ")
+
+	statement += ProcessWhereClause(fields, conditions)
+	//fmt.Println(statement)
+	service.Conn.Exec(statement)
+}
+
 func (service SqliteRecordService) ReadAll(record interface{}) func(record interface{}) bool {
 	conditions := make(map[string]interface{})
 	return service.ReadAllWhere(record, conditions)
@@ -79,7 +119,12 @@ func (service SqliteRecordService) ReadAllWhere(record interface{}, conditions m
 }
 
 func (service SqliteRecordService) ReadAllNominal(record interface{}) func(record *Nominal) bool {
-	message := ListSQLiteNominal(record)
+	conditions := make(map[string]interface{})
+	return service.ReadAllNominalWhere(record, conditions)
+}
+
+func (service SqliteRecordService) ReadAllNominalWhere(record interface{}, conditions map[string]interface{}) func(record *Nominal) bool {
+	message := ListSQLiteNominalWhere(record, conditions)
 	rows, _ := service.Conn.Query(message)
 
 	output := func(r *Nominal) bool {
@@ -196,21 +241,49 @@ func ListSQLiteRecordWhere(record interface{}, conditions map[string]interface{}
 		typ = typ.Elem()
 	}
 
-	val := reflect.ValueOf(record)
-	if val.Kind() == reflect.Ptr {
-		val = val.Elem()
+	fields := GetInfo(record)
+	statement = ""
+	statement += "SELECT "
+	columns := make([]string, 0)
+	for _, field := range fields {
+		columns = append(columns, field.Name)
 	}
+	statement += strings.Join(columns, " , ")
+	statement += " FROM " + typ.Name()
 
-	segments := make([]string, 0)
+	statement += ProcessWhereClause(fields, conditions)
+
+	return statement
+}
+
+func ListSQLiteNominalWhere(record interface{}, conditions map[string]interface{}) (statement string) {
+	typ := reflect.TypeOf(record)
+	// if a pointer to a struct is passed, get the type of the dereferenced object
+	if typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
+	}
 
 	fields := GetInfo(record)
 	statement = ""
 	statement += "SELECT "
-	for i, field := range fields {
-		statement += " " + field.Name
-		if i != len(fields)-1 {
-			statement += ","
+	columns := make([]string, 0)
+	for _, field := range fields {
+		if field.IsPrimary || field.IsNominal {
+			columns = append(columns, field.Name)
 		}
+	}
+	statement += strings.Join(columns, " , ")
+	statement += " FROM " + typ.Name()
+
+	statement += ProcessWhereClause(fields, conditions)
+
+	return statement
+}
+
+func ProcessWhereClause(fields []Info, conditions map[string]interface{}) string {
+	output := ""
+	segments := make([]string, 0)
+	for _, field := range fields {
 		if conditional, present := conditions[field.Name]; present {
 			condVal := reflect.ValueOf(conditional)
 			if condVal.Kind() == reflect.Ptr {
@@ -219,13 +292,10 @@ func ListSQLiteRecordWhere(record interface{}, conditions map[string]interface{}
 			segments = append(segments, fmt.Sprintf("%v = %v", field.Name, wrap(condVal, field)))
 		}
 	}
-	statement += " FROM " + typ.Name()
-
 	if len(segments) > 0 {
-		statement += " WHERE " + strings.Join(segments, " AND ")
+		output += " WHERE " + strings.Join(segments, " AND ")
 	}
-
-	return statement
+	return output
 }
 
 func ListSQLiteNominal(record interface{}) (statement string) {

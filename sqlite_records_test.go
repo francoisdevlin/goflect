@@ -82,6 +82,14 @@ func TestBasicTableOpsFoo(t *testing.T) {
 			t.Error(fmt.Sprintf("Error with lookup, Id: %v A: %v", temp.Id, temp.A))
 		}
 	}
+	mocker = MockerStruct{SkipId: true}
+	service.Get(1, &temp)
+	mocker.Mock(10, &temp)
+	service.Update(&temp)
+	service.Get(1, &temp)
+	if (temp != Foo{Id: 1, A: "10th", B: 10}) {
+		t.Error("Update Failed")
+	}
 }
 
 func basicWriteHelper(t *testing.T, retrieved, expected interface{}) {
@@ -115,6 +123,17 @@ func basicWriteHelper(t *testing.T, retrieved, expected interface{}) {
 		if !reflect.DeepEqual(retrieved, expected) {
 			t.Error(fmt.Sprintf("Error with autoincrement, R: %v E: %v", retrieved, expected))
 		}
+	}
+
+	mocker.Mock(1, expected)
+	mocker = MockerStruct{SkipId: true}
+	service.Get(1, retrieved)
+	mocker.Mock(10, retrieved)
+	mocker.Mock(10, expected)
+	service.Update(retrieved)
+	service.Get(1, retrieved)
+	if !reflect.DeepEqual(retrieved, expected) {
+		t.Error("Error on first record update")
 	}
 
 }
