@@ -244,27 +244,25 @@ func InsertSQLiteRecord(record interface{}) (statement string) {
 	fields := GetInfo(record)
 	statement = ""
 	statement += "INSERT INTO " + typ.Name() + "("
-	for i, field := range fields {
+	columns := make([]string, 0)
+	for _, field := range fields {
 		if field.IsAutoincrement {
 			continue
 		}
-		statement += " " + field.Name
-		if i != len(fields)-1 {
-			statement += ","
-		}
+		columns = append(columns, field.Name)
 	}
+	statement += strings.Join(columns, ", ")
 	statement += " ) VALUES ("
 
-	for i, field := range fields {
+	columns = make([]string, 0)
+	for _, field := range fields {
 		if field.IsAutoincrement {
 			continue
 		}
 		fieldVal := val.FieldByName(field.Name)
-		statement += " " + wrap(fieldVal, field)
-		if i != len(fields)-1 {
-			statement += ","
-		}
+		columns = append(columns, wrap(fieldVal, field))
 	}
+	statement += strings.Join(columns, ", ")
 	statement += " )"
 	return statement
 }
