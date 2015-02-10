@@ -37,6 +37,10 @@ func (service MockerStruct) Mock(n int64, record interface{}) interface{} {
 		switch field.Kind {
 		case reflect.Bool:
 			fieldVal.Set(reflect.ValueOf(n != 0))
+		case reflect.Float64:
+			fieldVal.Set(reflect.ValueOf(float64(n)))
+		case reflect.Float32:
+			fieldVal.Set(reflect.ValueOf(float32(n)))
 		case reflect.Int:
 			fieldVal.Set(reflect.ValueOf(int(n)))
 		case reflect.Int64:
