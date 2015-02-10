@@ -56,14 +56,6 @@ import (
 	//"strings"
 )
 
-type SqlHydration interface {
-	GetRecords(ids []int)
-	GetRecord(ids int)
-	UpdateRecords()
-	InsertRecords()
-	DeleteRecords()
-}
-
 func main() {
 	fmt.Println("Hello")
 }
