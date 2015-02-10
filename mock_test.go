@@ -89,7 +89,7 @@ func TestMockFloats(t *testing.T) {
 	}
 }
 
-func TestMockctsIds(t *testing.T) {
+func TestMockIds(t *testing.T) {
 	type Baz struct {
 		Id int64 `sql:"primary,autoincrement"`
 	}
@@ -103,5 +103,30 @@ func TestMockctsIds(t *testing.T) {
 	mocker.Mock(1, &result)
 	if (result != Baz{Id: 1}) {
 		t.Error("SkipId not working - false case")
+	}
+}
+
+func TestMockImmutable(t *testing.T) {
+	type Baz struct {
+		Id int64 `sql:"primary,autoincrement"`
+		A  int64 `sql:"immutable"`
+		B  int64
+	}
+	mocker := MockerStruct{SkipImmutable: true}
+	result := Baz{}
+	mocker.Mock(1, &result)
+	if (result != Baz{Id: 0, A: 0, B: 1}) {
+		t.Error("Immutable Not Working  - immutable", result)
+	}
+	mocker = MockerStruct{SkipImmutable: false, SkipId: true}
+	mocker.Mock(1, &result)
+	if (result != Baz{Id: 0, A: 1, B: 1}) {
+		t.Error("Immutable Not working - !immutable && skipid")
+	}
+
+	mocker = MockerStruct{SkipImmutable: false, SkipId: false}
+	mocker.Mock(1, &result)
+	if (result != Baz{Id: 1, A: 1, B: 1}) {
+		t.Error("Immutable Not working - !immutable && !skipid")
 	}
 }

@@ -16,6 +16,7 @@ type SqlInfo struct {
 	IsNullable      bool
 	IsIndexed       bool
 	IsNominal       bool
+	IsImmutable     bool
 }
 
 type ValidatorInfo struct {

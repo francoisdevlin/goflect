@@ -13,7 +13,8 @@ type RecordMock interface {
 }
 
 type MockerStruct struct {
-	SkipId bool
+	SkipId        bool
+	SkipImmutable bool
 }
 
 func (service MockerStruct) Mock(n int64, record interface{}) interface{} {
@@ -31,6 +32,9 @@ func (service MockerStruct) Mock(n int64, record interface{}) interface{} {
 	fields := GetInfo(record)
 	for _, field := range fields {
 		if field.IsAutoincrement && service.SkipId {
+			continue
+		}
+		if field.IsImmutable && service.SkipImmutable {
 			continue
 		}
 		fieldVal := val.FieldByName(field.Name)

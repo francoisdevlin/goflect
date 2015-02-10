@@ -21,6 +21,7 @@ func (field reflectValue) GetFieldSqlInfo() (output SqlInfo) {
 
 	output.IsPrimary = strings.Contains(tags, "primary")
 	output.IsAutoincrement = strings.Contains(tags, "autoincrement")
+	output.IsImmutable = strings.Contains(tags, "immutable") || output.IsAutoincrement
 	output.IsUnique = strings.Contains(tags, "unique") || strings.Contains(tags, "primary")
 	output.IsNullable = !strings.Contains(tags, "not-null") || output.IsUnique
 	output.IsIndexed = strings.Contains(tags, "index") || output.IsUnique
