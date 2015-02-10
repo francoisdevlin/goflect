@@ -268,8 +268,14 @@ func NextRow(rows *sql.Rows, record interface{}) bool {
 				fieldVal.Set(reflect.ValueOf(vals[i].(int64) != 0))
 			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 				fieldVal.Set(reflect.ValueOf(uint64(vals[i].(int64))))
-			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			case reflect.Int, reflect.Int64:
 				fieldVal.Set(reflect.ValueOf(vals[i]))
+			case reflect.Int32:
+				fieldVal.Set(reflect.ValueOf(int32(vals[i].(int64))))
+			case reflect.Int16:
+				fieldVal.Set(reflect.ValueOf(int16(vals[i].(int64))))
+			case reflect.Int8:
+				fieldVal.Set(reflect.ValueOf(int8(vals[i].(int64))))
 			default:
 				fieldVal.Set(reflect.ValueOf(string(vals[i].([]uint8))))
 			}

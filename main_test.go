@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
+	"reflect"
 	"testing"
 )
 
@@ -83,39 +84,56 @@ func TestBasicTableOpsFoo(t *testing.T) {
 	}
 }
 
-func TestBasicTableOpsBar(t *testing.T) {
+func basicWriteHelper(t *testing.T, retrieved, expected interface{}) {
 	c, _ := sql.Open("sqlite3", ":memory:")
 	service := SqliteRecordService{c}
-	message := CreateSQLiteTable(&Bar{})
+	message := CreateSQLiteTable(retrieved)
 	_, err := c.Exec(message)
 	if err != nil {
 		t.Error("Miss creating table")
 	}
 
 	mocker := MockerStruct{SkipId: true}
-	service.Insert((mocker.Mock(1, &Bar{})))
-	service.Insert((mocker.Mock(2, &Bar{})))
-	service.Insert((mocker.Mock(3, &Bar{})))
-	service.Insert((mocker.Mock(4, &Bar{})))
+	service.Insert((mocker.Mock(1, retrieved)))
+	service.Insert((mocker.Mock(2, retrieved)))
+	service.Insert((mocker.Mock(3, retrieved)))
+	service.Insert((mocker.Mock(4, retrieved)))
 
 	mocker = MockerStruct{SkipId: false}
-	retrieved := Bar{}
-	expected := Bar{}
-	service.Get(1, &retrieved)
-	mocker.Mock(1, &expected)
+	service.Get(1, retrieved)
+	mocker.Mock(1, expected)
 
-	if retrieved != expected {
+	if !reflect.DeepEqual(retrieved, expected) {
 		t.Error("Error on first record equality")
 	}
 
-	next := service.ReadAll(&Bar{})
+	next := service.ReadAll(retrieved)
 	i := 0
-	for next(&retrieved) {
+	for next(retrieved) {
 		i++
-		mocker.Mock(int64(i), &expected)
-		if retrieved != expected {
-			t.Error(fmt.Sprintf("Error with autoincrement, Id: %v B: %v", retrieved.Id, retrieved.B))
+		mocker.Mock(int64(i), expected)
+		if !reflect.DeepEqual(retrieved, expected) {
+			t.Error(fmt.Sprintf("Error with autoincrement, R: %v E: %v", retrieved, expected))
 		}
 	}
 
+}
+
+func TestBasicTableOpsBar(t *testing.T) {
+	basicWriteHelper(t, &Bar{}, &Bar{})
+}
+
+func TestBasicTableOpsFoo2(t *testing.T) {
+	basicWriteHelper(t, &Foo{}, &Foo{})
+}
+
+func TestBasicTableOpsFoo3(t *testing.T) {
+	type Baz struct {
+		Id  int64 `sql:"primary,autoincrement"`
+		I64 int64
+		I32 int32
+		I16 int16
+		I8  int8
+	}
+	basicWriteHelper(t, &Baz{}, &Baz{})
 }
