@@ -1,11 +1,7 @@
 package main
 
 import (
-	//"database/sql"
-	//"fmt"
 	"reflect"
-	//"strconv"
-	//"strings"
 )
 
 type FieldInfo struct {
