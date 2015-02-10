@@ -271,8 +271,7 @@ func ListSQLiteRecordWhere(record interface{}, conditions map[string]interface{}
 	typ, _ := typeAndVal(record)
 
 	fields := GetInfo(record)
-	statement = ""
-	statement += "SELECT "
+	statement = "SELECT "
 	columns := make([]string, 0)
 	for _, field := range fields {
 		columns = append(columns, field.Name)
@@ -289,8 +288,7 @@ func ListSQLiteNominalWhere(record interface{}, conditions map[string]interface{
 	typ, _ := typeAndVal(record)
 
 	fields := GetInfo(record)
-	statement = ""
-	statement += "SELECT "
+	statement = "SELECT "
 	columns := make([]string, 0)
 	for _, field := range fields {
 		if field.IsPrimary || field.IsNominal {
@@ -321,24 +319,6 @@ func ProcessWhereClause(fields []Info, conditions map[string]interface{}) string
 		output += " WHERE " + strings.Join(segments, " AND ")
 	}
 	return output
-}
-
-func ListSQLiteNominal(record interface{}) (statement string) {
-	typ, _ := typeAndVal(record)
-
-	fields := GetInfo(record)
-	id, nominal := "", ""
-	for _, field := range fields {
-		if field.IsPrimary {
-			id = field.Name
-		}
-		if field.IsNominal {
-			nominal = field.Name
-		}
-	}
-	statement = fmt.Sprintf("SELECT %v, %v FROM %v", id, nominal, typ.Name())
-
-	return statement
 }
 
 func NextRow(rows *sql.Rows, record interface{}) bool {
