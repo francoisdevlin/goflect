@@ -67,5 +67,5 @@ type RecordService interface {
 	GetNominalByNominal(name string) (output Nominal)
 	Update(record interface{})
 	Delete(record interface{})
-	DeleteById(Id int64)
+	DeleteById(id int64, record interface{})
 }

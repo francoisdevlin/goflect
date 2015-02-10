@@ -76,6 +76,62 @@ func (service SqliteRecordService) Update(record interface{}) {
 	service.Conn.Exec(statement)
 }
 
+func (service SqliteRecordService) Delete(record interface{}) {
+	typ := reflect.TypeOf(record)
+	// if a pointer to a struct is passed, get the type of the dereferenced object
+	if typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
+	}
+
+	val := reflect.ValueOf(record)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+
+	fields := GetInfo(record)
+	statement := ""
+	statement += "DELETE FROM " + typ.Name()
+	conditions := make(map[string]interface{})
+	for _, field := range fields {
+		fieldVal := val.FieldByName(field.Name)
+		if field.IsPrimary {
+			switch fieldVal.Kind() {
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+				conditions[field.Name] = fieldVal.Uint()
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				conditions[field.Name] = fieldVal.Int()
+			default:
+				conditions[field.Name] = fieldVal.Int()
+				continue
+			}
+		}
+	}
+
+	statement += ProcessWhereClause(fields, conditions)
+	service.Conn.Exec(statement)
+}
+
+func (service SqliteRecordService) DeleteById(id int, record interface{}) {
+	typ := reflect.TypeOf(record)
+	// if a pointer to a struct is passed, get the type of the dereferenced object
+	if typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
+	}
+
+	fields := GetInfo(record)
+	statement := ""
+	statement += "DELETE FROM " + typ.Name()
+	conditions := make(map[string]interface{})
+	for _, field := range fields {
+		if field.IsPrimary {
+			conditions[field.Name] = id
+		}
+	}
+
+	statement += ProcessWhereClause(fields, conditions)
+	service.Conn.Exec(statement)
+}
+
 func (service SqliteRecordService) ReadAll(record interface{}) func(record interface{}) bool {
 	conditions := make(map[string]interface{})
 	return service.ReadAllWhere(record, conditions)

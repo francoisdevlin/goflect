@@ -101,11 +101,11 @@ func basicWriteHelper(t *testing.T, retrieved, expected interface{}) {
 		t.Error("Miss creating table")
 	}
 
+	MAX_COUNT := 4 //Why not 4?
 	mocker := MockerStruct{SkipId: true}
-	service.Insert((mocker.Mock(1, retrieved)))
-	service.Insert((mocker.Mock(2, retrieved)))
-	service.Insert((mocker.Mock(3, retrieved)))
-	service.Insert((mocker.Mock(4, retrieved)))
+	for i := 0; i < MAX_COUNT; i++ {
+		service.Insert((mocker.Mock(int64(i+1), retrieved)))
+	}
 
 	mocker = MockerStruct{SkipId: false}
 	service.Get(1, retrieved)
@@ -124,6 +124,9 @@ func basicWriteHelper(t *testing.T, retrieved, expected interface{}) {
 			t.Error(fmt.Sprintf("Error with autoincrement, R: %v E: %v", retrieved, expected))
 		}
 	}
+	if i != MAX_COUNT {
+		t.Errorf("Too few records found, expected %v, found %v", MAX_COUNT, i)
+	}
 
 	mocker.Mock(1, expected)
 	mocker = MockerStruct{SkipId: true}
@@ -134,6 +137,27 @@ func basicWriteHelper(t *testing.T, retrieved, expected interface{}) {
 	service.Get(1, retrieved)
 	if !reflect.DeepEqual(retrieved, expected) {
 		t.Error("Error on first record update")
+	}
+	service.Delete(retrieved)
+
+	next = service.ReadAll(retrieved)
+	i = 0
+	for next(retrieved) {
+		i++
+	}
+	if i != MAX_COUNT-1 {
+		t.Errorf("Too few records found, expected %v, found %v", MAX_COUNT-1, i)
+	}
+
+	service.DeleteById(2, retrieved)
+
+	next = service.ReadAll(retrieved)
+	i = 0
+	for next(retrieved) {
+		i++
+	}
+	if i != MAX_COUNT-2 {
+		t.Errorf("Too few records found, expected %v, found %v", MAX_COUNT-2, i)
 	}
 
 }
