@@ -71,3 +71,29 @@ func TestSqlFields(t *testing.T) {
 		IsNominal:  true,
 	}, &T07{})
 }
+
+func TestValidatorFields(t *testing.T) {
+	compare := func(expected ValidatorInfo, record interface{}) {
+		records := GetInfo(record)
+		result := records[0].ValidatorInfo
+		if result.IsRequired != expected.IsRequired ||
+			result.MaxValue != expected.MaxValue ||
+			result.MinValue != expected.MinValue ||
+			result.MatchRegex != expected.MatchRegex ||
+			len(result.InEnum) != len(expected.InEnum) ||
+			false {
+			t.Errorf("Error, expects %v, got %v", expected, result)
+		}
+	}
+
+	type T01 struct {
+		Id int `valid:"required" valid-enum:"A,B,C" valid-max:"10.0" valid-min:"1.0" valid-regex:"\\d+"`
+	}
+	compare(ValidatorInfo{
+		IsRequired: true,
+		MaxValue:   "10.0",
+		MinValue:   "1.0",
+		MatchRegex: "\\d+",
+		InEnum:     []string{"A", "B", "C"},
+	}, &T01{})
+}

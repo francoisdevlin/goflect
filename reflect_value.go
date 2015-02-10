@@ -4,6 +4,7 @@ import (
 	//"database/sql"
 	//"fmt"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -42,6 +43,13 @@ func (field reflectValue) GetFieldUiInfo() (output UiInfo) {
 }
 
 func (field reflectValue) GetFieldValidatorInfo() (output ValidatorInfo) {
+	output.IsRequired = strings.Contains(field.Tag.Get("valid"), "required")
+	output.MaxValue = field.Tag.Get("valid-max")
+	output.MinValue = field.Tag.Get("valid-min")
+	output.MatchRegex = field.Tag.Get("valid-regex")
+	r, _ := regexp.Compile(",")
+	output.InEnum = r.Split(field.Tag.Get("valid-enum"), -1)
+	output.IsRequired = strings.Contains(field.Tag.Get("valid"), "required")
 	return output
 }
 
