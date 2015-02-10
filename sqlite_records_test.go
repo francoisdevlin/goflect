@@ -216,3 +216,32 @@ func TestBasicTableOpsBasicEmbed(t *testing.T) {
 	}
 	basicWriteHelper(t, &Baz{}, &Baz{})
 }
+
+func TestDeepEmbed(t *testing.T) {
+	type E00 struct{ I00 int64 }
+	type E01 struct{ E00, I01 int64 }
+	type E02 struct{ E01, I02 int64 }
+	type E03 struct{ E02, I03 int64 }
+	type E04 struct{ E03, I04 int64 }
+	type E05 struct{ E04, I05 int64 }
+	type E06 struct{ E05, I06 int64 }
+	type E07 struct{ E06, I07 int64 }
+	type E08 struct{ E07, I08 int64 }
+	type E09 struct{ E08, I09 int64 }
+	type E10 struct{ E09, I10 int64 }
+	type E11 struct{ E10, I11 int64 }
+	type E12 struct{ E11, I12 int64 }
+	type E13 struct{ E12, I13 int64 }
+	type E14 struct{ E13, I14 int64 }
+	type E15 struct{ E14, I15 int64 }
+	type E16 struct{ E15, I16 int64 }
+	type E17 struct{ E16, I17 int64 }
+	type E18 struct{ E17, I18 int64 }
+	type E19 struct{ E18, I19 int64 }
+	type E20 struct{ E19, I20 int64 }
+	type Baz struct {
+		Id int64 `sql:"primary,autoincrement"`
+		E20
+	}
+	basicWriteHelper(t, &Baz{}, &Baz{})
+}
