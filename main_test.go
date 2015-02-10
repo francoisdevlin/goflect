@@ -127,7 +127,7 @@ func TestBasicTableOpsFoo2(t *testing.T) {
 	basicWriteHelper(t, &Foo{}, &Foo{})
 }
 
-func TestBasicTableOpsFoo3(t *testing.T) {
+func TestBasicTableOpsInts(t *testing.T) {
 	type Baz struct {
 		Id  int64 `sql:"primary,autoincrement"`
 		I   int
@@ -139,7 +139,7 @@ func TestBasicTableOpsFoo3(t *testing.T) {
 	basicWriteHelper(t, &Baz{}, &Baz{})
 }
 
-func TestBasicTableOpsFoo4(t *testing.T) {
+func TestBasicTableOpsUints(t *testing.T) {
 	type Baz struct {
 		Id  int64 `sql:"primary,autoincrement"`
 		U   uint
@@ -147,6 +147,15 @@ func TestBasicTableOpsFoo4(t *testing.T) {
 		U32 uint32
 		U16 uint16
 		U8  uint8
+	}
+	basicWriteHelper(t, &Baz{}, &Baz{})
+}
+
+func TestBasicTableOpsFloats(t *testing.T) {
+	type Baz struct {
+		Id  int64 `sql:"primary,autoincrement"`
+		F32 float32
+		F64 float64
 	}
 	basicWriteHelper(t, &Baz{}, &Baz{})
 }

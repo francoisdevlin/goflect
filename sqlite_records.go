@@ -138,6 +138,10 @@ func wrap(fieldVal reflect.Value, field Info) string {
 		output = "" + strconv.FormatInt(int64(fieldVal.Uint()), 10) + ""
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		output = "" + strconv.FormatInt(fieldVal.Int(), 10) + ""
+	case reflect.Float32:
+		output = "" + strconv.FormatFloat(fieldVal.Float(), 'f', 10, 32) + ""
+	case reflect.Float64:
+		output = "" + strconv.FormatFloat(fieldVal.Float(), 'f', 10, 64) + ""
 		//break
 	default:
 		output = "\"" + fieldVal.String() + "\""
@@ -266,6 +270,10 @@ func NextRow(rows *sql.Rows, record interface{}) bool {
 			switch field.Kind {
 			case reflect.Bool:
 				fieldVal.Set(reflect.ValueOf(vals[i].(int64) != 0))
+			case reflect.Float64:
+				fieldVal.Set(reflect.ValueOf(float64(vals[i].(float64))))
+			case reflect.Float32:
+				fieldVal.Set(reflect.ValueOf(float32(vals[i].(float64))))
 			case reflect.Int:
 				fieldVal.Set(reflect.ValueOf(int(vals[i].(int64))))
 			case reflect.Int64:
