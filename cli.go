@@ -30,7 +30,7 @@ func FlagSetup(record interface{}, args []string) {
 			u, _ := strconv.ParseUint(field.Default, 10, 64)
 			vals[field.Name] = flagSet.Uint64(field.Name, u, field.Description)
 		default:
-			vals[field.Name] = flagSet.String(field.Name, "", field.Description)
+			vals[field.Name] = flagSet.String(field.Name, field.Default, field.Description)
 		}
 	}
 	flagSet.Parse(args[1:])
