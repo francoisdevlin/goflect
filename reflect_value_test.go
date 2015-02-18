@@ -98,6 +98,16 @@ func TestValidatorFields(t *testing.T) {
 	}, &T01{})
 }
 
+func ExampleReflectValue_GetFieldInfo() {
+	type Bar struct {
+		Id int64
+	}
+
+	info := GetInfo(&Bar{})
+	fmt.Println(info[0].Name, info[0].Kind)
+	//Output: Id int64
+}
+
 func ExampleReflectValue_GetFieldSqlInfo_primary() {
 	type Bar struct {
 		Id int64 `sql:"primary,autoincrement"`
@@ -116,4 +126,14 @@ func ExampleReflectValue_GetFieldSqlInfo_immutable() {
 	info := GetInfo(&Bar{})
 	fmt.Println(info[0].IsImmutable)
 	//Output: true
+}
+
+func ExampleReflectValue_GetFieldUiInfo() {
+	type Bar struct {
+		Id int64 `desc:"An Id Field" default:"1" ui:"hidden"`
+	}
+
+	info := GetInfo(&Bar{})
+	fmt.Println(info[0].Description, info[0].Default, info[0].Hidden)
+	//Output: An Id Field 1 true
 }

@@ -44,6 +44,17 @@ func (field ReflectValue) GetFieldSqlInfo() (output SqlInfo) {
 	return output
 }
 
+/*
+This is used to generate a UiInfo field using reflection.  There are several struct tags that are used to store interesting information about a field
+
+    desc - This stores a human readable description for a tooltip
+    default - This stores the default value for the field.  Must be compatible with the type
+    order - This controls the order for the field to appear in web forms
+
+There is also a "flag tag", "ui", with the following entries possible
+
+    hidden - This controls if the user can see the field
+*/
 func (field ReflectValue) GetFieldUiInfo() (output UiInfo) {
 	output.Description = field.Tag.Get("desc")
 	output.Default = field.Tag.Get("default")
