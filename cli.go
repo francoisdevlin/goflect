@@ -1,4 +1,13 @@
-package main
+/*
+This is a tool to marshal command line flags into a concrete type.  It is used like so
+
+    type Foo struct{
+	Id   int64
+	Name string
+
+    }
+*/
+package goflect
 
 import (
 	"flag"
