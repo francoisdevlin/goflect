@@ -4,6 +4,9 @@ import (
 	"reflect"
 )
 
+/*
+The FieldInfo struct is used to store two pieces of information about the field, its name and Kind.
+*/
 type FieldInfo struct {
 	Name string       `desc:"This is the name of the field in the struct.  It is authoritative" sql:"primary"`
 	Kind reflect.Kind `desc:"This is the golang kind, from the reflect pacakge.  It controls dispatch"`
@@ -34,6 +37,9 @@ type UiInfo struct {
 	Default     string
 }
 
+/*
+This is the structure that holds all of the field information.  It is what is intended to be consumed by the reflection engine
+*/
 type Info struct {
 	FieldInfo
 	SqlInfo

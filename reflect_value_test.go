@@ -1,7 +1,7 @@
 package goflect
 
 import (
-	//"fmt"
+	"fmt"
 	"testing"
 )
 
@@ -96,4 +96,24 @@ func TestValidatorFields(t *testing.T) {
 		MatchRegex: "\\d+",
 		InEnum:     []string{"A", "B", "C"},
 	}, &T01{})
+}
+
+func ExampleReflectValue_GetFieldSqlInfo_primary() {
+	type Bar struct {
+		Id int64 `sql:"primary,autoincrement"`
+	}
+
+	info := GetInfo(&Bar{})
+	fmt.Println(info[0].IsPrimary, info[0].IsAutoincrement)
+	//Output: true true
+}
+
+func ExampleReflectValue_GetFieldSqlInfo_immutable() {
+	type Bar struct {
+		Id int64 `sql:"immutable"`
+	}
+
+	info := GetInfo(&Bar{})
+	fmt.Println(info[0].IsImmutable)
+	//Output: true
 }

@@ -1,23 +1,36 @@
 package goflect
 
 import (
-	//"database/sql"
-	//"fmt"
 	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
 )
 
-type reflectValue reflect.StructField
+type ReflectValue reflect.StructField
 
-func (field reflectValue) GetFieldInfo() (output FieldInfo) {
+/*
+This is used to determine the Field Info using reflection on a structure.  It will use the field's name as the name, and the field's type's Kind as the Kind
+*/
+func (field ReflectValue) GetFieldInfo() (output FieldInfo) {
 	output.Name = field.Name
 	output.Kind = field.Type.Kind()
 	return output
 }
 
-func (field reflectValue) GetFieldSqlInfo() (output SqlInfo) {
+/*
+This is used to generate a SqlInfo field using reflection.  There is a struct tag, sql, that stores interesting information about the field.  The following are valid entries for the tag
+
+    primary - denotes a primary key
+    autoincrement - denotes that the field will be autoincremented by the db
+    immutable - denotes that the field will be immutable, so it can't be updated
+    unique - denotes that a fields value will be unique
+    not-null - denotes that a field cannot be null
+    index - denotes that the field is indexed for performance
+    nominal - denotes that the field is a name alias for a record
+
+*/
+func (field ReflectValue) GetFieldSqlInfo() (output SqlInfo) {
 	tags := field.Tag.Get("sql")
 
 	output.IsPrimary = strings.Contains(tags, "primary")
@@ -31,7 +44,7 @@ func (field reflectValue) GetFieldSqlInfo() (output SqlInfo) {
 	return output
 }
 
-func (field reflectValue) GetFieldUiInfo() (output UiInfo) {
+func (field ReflectValue) GetFieldUiInfo() (output UiInfo) {
 	output.Description = field.Tag.Get("desc")
 	output.Default = field.Tag.Get("default")
 	output.FieldOrder, _ = strconv.ParseInt(field.Tag.Get("order"), 0, 64)
@@ -42,7 +55,7 @@ func (field reflectValue) GetFieldUiInfo() (output UiInfo) {
 	return output
 }
 
-func (field reflectValue) GetFieldValidatorInfo() (output ValidatorInfo) {
+func (field ReflectValue) GetFieldValidatorInfo() (output ValidatorInfo) {
 	output.IsRequired = strings.Contains(field.Tag.Get("valid"), "required")
 	output.MaxValue = field.Tag.Get("valid-max")
 	output.MinValue = field.Tag.Get("valid-min")
@@ -96,7 +109,7 @@ func GetInfo(record interface{}) (output []Info) {
 		if _, present := knownFields[field.Name]; !present {
 			fieldNames = append(fieldNames, field.Name)
 		}
-		fieldInfo := reflectValue(field)
+		fieldInfo := ReflectValue(field)
 
 		knownFields[field.Name] = hydrateField(i, fieldInfo)
 	}
