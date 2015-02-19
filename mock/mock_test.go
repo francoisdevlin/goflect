@@ -1,10 +1,7 @@
 package goflect
 
 import (
-	//"database/sql"
-	//"fmt"
-	//_ "github.com/mattn/go-sqlite3"
-	//"reflect"
+	"fmt"
 	"testing"
 )
 
@@ -129,4 +126,60 @@ func TestMockImmutable(t *testing.T) {
 	if (result != Baz{Id: 1, A: 1, B: 1}) {
 		t.Error("Immutable Not working - !immutable && !skipid")
 	}
+}
+
+func ExampleMockerStruct_Mock_set1() {
+	type Bar struct {
+		AString   string
+		AFloat    float64
+		AnInteger int64
+		ABool     bool
+	}
+	mocker := MockerStruct{}
+	temp := Bar{}
+	mocker.Mock(1, &temp)
+	fmt.Println(temp.AString, temp.AFloat, temp.AnInteger, temp.ABool)
+	//Output: 1st 1 1 true
+}
+
+func ExampleMockerStruct_Mock_set2() {
+	type Bar struct {
+		AString   string
+		AFloat    float64
+		AnInteger int64
+		ABool     bool
+	}
+	mocker := MockerStruct{}
+	temp := Bar{}
+	mocker.Mock(2, &temp)
+	fmt.Println(temp.AString, temp.AFloat, temp.AnInteger, temp.ABool)
+	//Output: 2nd 2 2 true
+}
+
+func ExampleMockerStruct_Mock_skipImmutable() {
+	type Bar struct {
+		AString   string `sql:"immutable"`
+		AFloat    float64
+		AnInteger int64
+		ABool     bool
+	}
+	mocker := MockerStruct{SkipImmutable: true}
+	temp := Bar{AString: "Not Set"}
+	mocker.Mock(1, &temp)
+	fmt.Println(temp.AString, temp.AFloat, temp.AnInteger, temp.ABool)
+	//Output: Not Set 1 1 true
+}
+
+func ExampleMockerStruct_Mock_skipId() {
+	type Bar struct {
+		AString   string
+		AFloat    float64
+		AnInteger int64 `sql:"autoincrement"`
+		ABool     bool
+	}
+	mocker := MockerStruct{SkipImmutable: true}
+	temp := Bar{}
+	mocker.Mock(1, &temp)
+	fmt.Println(temp.AString, temp.AFloat, temp.AnInteger, temp.ABool)
+	//Output: 1st 1 0 true
 }

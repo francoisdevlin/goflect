@@ -1,17 +1,24 @@
+/*
+This is a utility for creating mock records to help with testing
+*/
 package goflect
 
 import (
-	//"database/sql"
-	//"fmt"
+	"git.sevone.com/sdevlin/goflect.git"
 	"reflect"
 	"strconv"
-	//"strings"
 )
 
+/*
+This is used to create mock records, very useful for testing
+*/
 type RecordMock interface {
 	Mock(n int64, record interface{}) interface{}
 }
 
+/*
+This is an implementation of the RecordMock Interface
+*/
 type MockerStruct struct {
 	SkipId        bool
 	SkipImmutable bool
@@ -29,7 +36,7 @@ func (service MockerStruct) Mock(n int64, record interface{}) interface{} {
 		val = val.Elem()
 	}
 
-	fields := GetInfo(record)
+	fields := goflect.GetInfo(record)
 	for _, field := range fields {
 		if field.IsAutoincrement && service.SkipId {
 			continue
