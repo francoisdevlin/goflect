@@ -1,22 +1,22 @@
 /*
-This is a tool to marshal command line flags into a concrete type.  It is used like so
-
-    type Foo struct{
-	Id   int64
-	Name string
-
-    }
+This is a tool to marshal command line flags into a concrete type.  See the examples of the FlagSetup function to learn how it works
 */
 package goflect
 
 import (
 	"flag"
+	"git.sevone.com/sdevlin/goflect.git"
 	"reflect"
 	"strconv"
 )
 
+/*
+This function expects to recieve a set of arguments from the command line, and use them to hydrate a struct.  It is a simple wrapper around Go's flag package, and leverages much of that tools functionality
+
+The tool makes extensive use of the Default and Description metadata
+*/
 func FlagSetup(record interface{}, args []string) {
-	fields := GetInfo(record)
+	fields := goflect.GetInfo(record)
 	val := reflect.ValueOf(record)
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()

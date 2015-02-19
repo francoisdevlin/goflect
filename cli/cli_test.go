@@ -1,7 +1,7 @@
 package goflect
 
 import (
-	//"fmt"
+	"fmt"
 	"testing"
 )
 
@@ -194,4 +194,27 @@ func TestParseStringArgs(t *testing.T) {
 	if (defTrue != Defaults{"Not Awesome"}) {
 		t.Error("Default Parsing Error")
 	}
+}
+
+func ExampleFlagSetup_basic() {
+	type Bar struct {
+		//The desc metadata is used for command line help
+		Name  string `desc:"This is the name"`
+		Value int64  `desc:"This is a value"`
+	}
+	temp := Bar{}
+	FlagSetup(&temp, []string{"AppName", "-Name", "Sean", "-Value", "1"})
+	fmt.Println(temp.Name, temp.Value)
+	//Output: Sean 1
+}
+
+func ExampleFlagSetup_withDefaults() {
+	type Bar struct {
+		Name  string `default:"Bacon"`
+		Value int64  `default:"10"`
+	}
+	temp := Bar{}
+	FlagSetup(&temp, []string{"AppName"})
+	fmt.Println(temp.Name, temp.Value)
+	//Output: Bacon 10
 }
