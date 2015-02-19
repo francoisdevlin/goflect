@@ -3,6 +3,7 @@ package goflect
 import (
 	"database/sql"
 	"fmt"
+	"git.sevone.com/sdevlin/goflect.git"
 	"reflect"
 	"strconv"
 	"strings"
@@ -46,14 +47,38 @@ type SqliteRecordService struct {
 }
 
 func (service SqliteRecordService) Insert(record interface{}) {
-	message := InsertSQLiteRecord(record)
-	_, _ = service.Conn.Exec(message)
+	typ, val := typeAndVal(record)
+
+	fields := goflect.GetInfo(record)
+	statement := ""
+	statement += "INSERT INTO " + typ.Name() + "("
+	columns := make([]string, 0)
+	for _, field := range fields {
+		if field.IsAutoincrement {
+			continue
+		}
+		columns = append(columns, field.Name)
+	}
+	statement += strings.Join(columns, ", ")
+	statement += " ) VALUES ("
+
+	columns = make([]string, 0)
+	for _, field := range fields {
+		if field.IsAutoincrement {
+			continue
+		}
+		fieldVal := val.FieldByName(field.Name)
+		columns = append(columns, wrap(fieldVal, field))
+	}
+	statement += strings.Join(columns, ", ")
+	statement += " )"
+	_, _ = service.Conn.Exec(statement)
 }
 
 func (service SqliteRecordService) Update(record interface{}) {
 	typ, val := typeAndVal(record)
 
-	fields := GetInfo(record)
+	fields := goflect.GetInfo(record)
 	statement := ""
 	statement += "UPDATE " + typ.Name() + " SET "
 	conditions := make(map[string]interface{})
@@ -76,7 +101,7 @@ func (service SqliteRecordService) Update(record interface{}) {
 	}
 	statement += strings.Join(columns, ", ")
 
-	statement += ProcessWhereClause(fields, conditions)
+	statement += processWhereClause(fields, conditions)
 	//fmt.Println(statement)
 	service.Conn.Exec(statement)
 }
@@ -84,7 +109,7 @@ func (service SqliteRecordService) Update(record interface{}) {
 func (service SqliteRecordService) Delete(record interface{}) {
 	typ, val := typeAndVal(record)
 
-	fields := GetInfo(record)
+	fields := goflect.GetInfo(record)
 	statement := ""
 	statement += "DELETE FROM " + typ.Name()
 	conditions := make(map[string]interface{})
@@ -103,14 +128,14 @@ func (service SqliteRecordService) Delete(record interface{}) {
 		}
 	}
 
-	statement += ProcessWhereClause(fields, conditions)
+	statement += processWhereClause(fields, conditions)
 	service.Conn.Exec(statement)
 }
 
 func (service SqliteRecordService) DeleteById(id int, record interface{}) {
 	typ, _ := typeAndVal(record)
 
-	fields := GetInfo(record)
+	fields := goflect.GetInfo(record)
 	statement := ""
 	statement += "DELETE FROM " + typ.Name()
 	conditions := make(map[string]interface{})
@@ -120,7 +145,7 @@ func (service SqliteRecordService) DeleteById(id int, record interface{}) {
 		}
 	}
 
-	statement += ProcessWhereClause(fields, conditions)
+	statement += processWhereClause(fields, conditions)
 	service.Conn.Exec(statement)
 }
 
@@ -130,7 +155,7 @@ func (service SqliteRecordService) ReadAll(record interface{}) func(record inter
 }
 
 func (service SqliteRecordService) Get(id int64, record interface{}) {
-	fields := GetInfo(record)
+	fields := goflect.GetInfo(record)
 	conditions := make(map[string]interface{})
 	for _, field := range fields {
 		if field.IsPrimary {
@@ -143,7 +168,7 @@ func (service SqliteRecordService) Get(id int64, record interface{}) {
 }
 
 func (service SqliteRecordService) GetByNominal(name string, record interface{}) {
-	fields := GetInfo(record)
+	fields := goflect.GetInfo(record)
 	conditions := make(map[string]interface{})
 	for _, field := range fields {
 		if field.IsNominal {
@@ -156,27 +181,53 @@ func (service SqliteRecordService) GetByNominal(name string, record interface{})
 }
 
 func (service SqliteRecordService) ReadAllWhere(record interface{}, conditions map[string]interface{}) func(record interface{}) bool {
-	message := ListSQLiteRecordWhere(record, conditions)
-	rows, _ := service.Conn.Query(message)
+	typ, _ := typeAndVal(record)
+
+	fields := goflect.GetInfo(record)
+	statement := "SELECT "
+	columns := make([]string, 0)
+	for _, field := range fields {
+		columns = append(columns, field.Name)
+	}
+	statement += strings.Join(columns, " , ")
+	statement += " FROM " + typ.Name()
+
+	statement += processWhereClause(fields, conditions)
+
+	rows, _ := service.Conn.Query(statement)
 
 	output := func(r interface{}) bool {
-		return NextRow(rows, r)
+		return nextRow(rows, r)
 	}
 
 	return output
 }
 
-func (service SqliteRecordService) ReadAllNominal(record interface{}) func(record *Nominal) bool {
+func (service SqliteRecordService) ReadAllNominal(record interface{}) func(record *goflect.Nominal) bool {
 	conditions := make(map[string]interface{})
 	return service.ReadAllNominalWhere(record, conditions)
 }
 
-func (service SqliteRecordService) ReadAllNominalWhere(record interface{}, conditions map[string]interface{}) func(record *Nominal) bool {
-	message := ListSQLiteNominalWhere(record, conditions)
-	rows, _ := service.Conn.Query(message)
+func (service SqliteRecordService) ReadAllNominalWhere(record interface{}, conditions map[string]interface{}) func(record *goflect.Nominal) bool {
+	typ, _ := typeAndVal(record)
 
-	output := func(r *Nominal) bool {
-		return NextRow(rows, r)
+	fields := goflect.GetInfo(record)
+	statement := "SELECT "
+	columns := make([]string, 0)
+	for _, field := range fields {
+		if field.IsPrimary || field.IsNominal {
+			columns = append(columns, field.Name)
+		}
+	}
+	statement += strings.Join(columns, " , ")
+	statement += " FROM " + typ.Name()
+
+	statement += processWhereClause(fields, conditions)
+
+	rows, _ := service.Conn.Query(statement)
+
+	output := func(r *goflect.Nominal) bool {
+		return nextRow(rows, r)
 	}
 
 	return output
@@ -185,7 +236,7 @@ func (service SqliteRecordService) ReadAllNominalWhere(record interface{}, condi
 func CreateSQLiteTable(record interface{}) (statement string) {
 	typ, _ := typeAndVal(record)
 
-	fields := GetInfo(record)
+	fields := goflect.GetInfo(record)
 	lookup := sqliteLookupMap()
 	statement = ""
 	statement += "CREATE TABLE IF NOT EXISTS " + typ.Name() + "("
@@ -213,7 +264,7 @@ func CreateSQLiteTable(record interface{}) (statement string) {
 	return statement
 }
 
-func wrap(fieldVal reflect.Value, field Info) string {
+func wrap(fieldVal reflect.Value, field goflect.Info) string {
 	output := ""
 	switch fieldVal.Kind() {
 	case reflect.Bool:
@@ -238,72 +289,7 @@ func wrap(fieldVal reflect.Value, field Info) string {
 	return output
 }
 
-func InsertSQLiteRecord(record interface{}) (statement string) {
-	typ, val := typeAndVal(record)
-
-	fields := GetInfo(record)
-	statement = ""
-	statement += "INSERT INTO " + typ.Name() + "("
-	columns := make([]string, 0)
-	for _, field := range fields {
-		if field.IsAutoincrement {
-			continue
-		}
-		columns = append(columns, field.Name)
-	}
-	statement += strings.Join(columns, ", ")
-	statement += " ) VALUES ("
-
-	columns = make([]string, 0)
-	for _, field := range fields {
-		if field.IsAutoincrement {
-			continue
-		}
-		fieldVal := val.FieldByName(field.Name)
-		columns = append(columns, wrap(fieldVal, field))
-	}
-	statement += strings.Join(columns, ", ")
-	statement += " )"
-	return statement
-}
-
-func ListSQLiteRecordWhere(record interface{}, conditions map[string]interface{}) (statement string) {
-	typ, _ := typeAndVal(record)
-
-	fields := GetInfo(record)
-	statement = "SELECT "
-	columns := make([]string, 0)
-	for _, field := range fields {
-		columns = append(columns, field.Name)
-	}
-	statement += strings.Join(columns, " , ")
-	statement += " FROM " + typ.Name()
-
-	statement += ProcessWhereClause(fields, conditions)
-
-	return statement
-}
-
-func ListSQLiteNominalWhere(record interface{}, conditions map[string]interface{}) (statement string) {
-	typ, _ := typeAndVal(record)
-
-	fields := GetInfo(record)
-	statement = "SELECT "
-	columns := make([]string, 0)
-	for _, field := range fields {
-		if field.IsPrimary || field.IsNominal {
-			columns = append(columns, field.Name)
-		}
-	}
-	statement += strings.Join(columns, " , ")
-	statement += " FROM " + typ.Name()
-
-	statement += ProcessWhereClause(fields, conditions)
-
-	return statement
-}
-
-func ProcessWhereClause(fields []Info, conditions map[string]interface{}) string {
+func processWhereClause(fields []goflect.Info, conditions map[string]interface{}) string {
 	output := ""
 	segments := make([]string, 0)
 	for _, field := range fields {
@@ -321,10 +307,10 @@ func ProcessWhereClause(fields []Info, conditions map[string]interface{}) string
 	return output
 }
 
-func NextRow(rows *sql.Rows, record interface{}) bool {
+func nextRow(rows *sql.Rows, record interface{}) bool {
 	next := rows.Next()
 	if next {
-		fields := GetInfo(record)
+		fields := goflect.GetInfo(record)
 		val := reflect.ValueOf(record)
 		if val.Kind() == reflect.Ptr {
 			val = val.Elem()

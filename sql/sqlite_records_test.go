@@ -3,6 +3,7 @@ package goflect
 import (
 	"database/sql"
 	"fmt"
+	"git.sevone.com/sdevlin/goflect.git/mock"
 	_ "github.com/mattn/go-sqlite3"
 	"reflect"
 	"testing"
@@ -45,7 +46,7 @@ func TestBasicTableOpsFoo(t *testing.T) {
 		t.Error("Miss creating table")
 	}
 
-	mocker := MockerStruct{SkipId: true}
+	mocker := goflect.MockerStruct{SkipId: true}
 	service.Insert((mocker.Mock(1, &Foo{})))
 	service.Insert((mocker.Mock(2, &Foo{})))
 	service.Insert((mocker.Mock(3, &Foo{})))
@@ -82,7 +83,7 @@ func TestBasicTableOpsFoo(t *testing.T) {
 			t.Error(fmt.Sprintf("Error with lookup, Id: %v A: %v", temp.Id, temp.A))
 		}
 	}
-	mocker = MockerStruct{SkipId: true}
+	mocker = goflect.MockerStruct{SkipId: true}
 	service.Get(1, &temp)
 	mocker.Mock(10, &temp)
 	service.Update(&temp)
@@ -102,12 +103,12 @@ func basicWriteHelper(t *testing.T, retrieved, expected interface{}) {
 	}
 
 	MAX_COUNT := 4 //Why not 4?
-	mocker := MockerStruct{SkipId: true}
+	mocker := goflect.MockerStruct{SkipId: true}
 	for i := 0; i < MAX_COUNT; i++ {
 		service.Insert((mocker.Mock(int64(i+1), retrieved)))
 	}
 
-	mocker = MockerStruct{SkipId: false}
+	mocker = goflect.MockerStruct{SkipId: false}
 	service.Get(1, retrieved)
 	mocker.Mock(1, expected)
 	//fmt.Println(retrieved)
@@ -131,7 +132,7 @@ func basicWriteHelper(t *testing.T, retrieved, expected interface{}) {
 	}
 
 	mocker.Mock(1, expected)
-	mocker = MockerStruct{SkipId: true}
+	mocker = goflect.MockerStruct{SkipId: true}
 	service.Get(1, retrieved)
 	mocker.Mock(10, retrieved)
 	mocker.Mock(10, expected)
