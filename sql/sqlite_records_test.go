@@ -3,7 +3,8 @@ package goflect
 import (
 	"database/sql"
 	"fmt"
-	"git.sevone.com/sdevlin/goflect.git/mock"
+	"git.sevone.com/sdevlin/goflect.git"
+	mock "git.sevone.com/sdevlin/goflect.git/mock"
 	_ "github.com/mattn/go-sqlite3"
 	"reflect"
 	"testing"
@@ -46,7 +47,7 @@ func TestBasicTableOpsFoo(t *testing.T) {
 		t.Error("Miss creating table")
 	}
 
-	mocker := goflect.MockerStruct{SkipId: true}
+	mocker := mock.MockerStruct{SkipId: true}
 	service.Insert((mocker.Mock(1, &Foo{})))
 	service.Insert((mocker.Mock(2, &Foo{})))
 	service.Insert((mocker.Mock(3, &Foo{})))
@@ -63,6 +64,25 @@ func TestBasicTableOpsFoo(t *testing.T) {
 	for next(&temp) {
 		if temp.Id != temp.B {
 			t.Error(fmt.Sprintf("Error with autoincrement, Id: %v B: %v", temp.Id, temp.B))
+		}
+	}
+
+	i := 0
+	nominalTemp := goflect.Nominal{}
+	nextNom := service.ReadAllNominal(&Foo{})
+	for nextNom(&nominalTemp) {
+		i++
+		if nominalTemp.Id != int64(i) {
+			t.Error("There was an issue reading the nominal fields")
+		}
+	}
+
+	nextNom = service.ReadAllNominalWhere(&Foo{}, map[string]interface{}{
+		"B": &i,
+	})
+	for nextNom(&nominalTemp) {
+		if nominalTemp.Id != int64(i) {
+			t.Error("There was an issue reading the nominal fields with a pointer")
 		}
 	}
 
@@ -83,7 +103,7 @@ func TestBasicTableOpsFoo(t *testing.T) {
 			t.Error(fmt.Sprintf("Error with lookup, Id: %v A: %v", temp.Id, temp.A))
 		}
 	}
-	mocker = goflect.MockerStruct{SkipId: true}
+	mocker = mock.MockerStruct{SkipId: true}
 	service.Get(1, &temp)
 	mocker.Mock(10, &temp)
 	service.Update(&temp)
@@ -91,6 +111,7 @@ func TestBasicTableOpsFoo(t *testing.T) {
 	if (temp != Foo{Id: 1, A: "10th", B: 10}) {
 		t.Error("Update Failed")
 	}
+
 }
 
 func basicWriteHelper(t *testing.T, retrieved, expected interface{}) {
@@ -103,12 +124,12 @@ func basicWriteHelper(t *testing.T, retrieved, expected interface{}) {
 	}
 
 	MAX_COUNT := 4 //Why not 4?
-	mocker := goflect.MockerStruct{SkipId: true}
+	mocker := mock.MockerStruct{SkipId: true}
 	for i := 0; i < MAX_COUNT; i++ {
 		service.Insert((mocker.Mock(int64(i+1), retrieved)))
 	}
 
-	mocker = goflect.MockerStruct{SkipId: false}
+	mocker = mock.MockerStruct{SkipId: false}
 	service.Get(1, retrieved)
 	mocker.Mock(1, expected)
 	//fmt.Println(retrieved)
@@ -132,7 +153,7 @@ func basicWriteHelper(t *testing.T, retrieved, expected interface{}) {
 	}
 
 	mocker.Mock(1, expected)
-	mocker = goflect.MockerStruct{SkipId: true}
+	mocker = mock.MockerStruct{SkipId: true}
 	service.Get(1, retrieved)
 	mocker.Mock(10, retrieved)
 	mocker.Mock(10, expected)
