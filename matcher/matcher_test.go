@@ -506,4 +506,146 @@ func TestFieldMatcher(t *testing.T) {
 
 	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: GTE, Value: true})
 	matchError("Bool comparison is invalid", true)
+
+	//In Tests
+	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: IN, Value: []int{1}})
+	matchTrue("1 is in the set", int(1))
+	matchFalse("0 is not in the set", int(0))
+	matchFalse("Bacon is not in the set", "Bacon")
+
+	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: IN, Value: []int64{1}})
+	matchTrue("1 is in the set", int64(1))
+	matchFalse("0 is not in the set", int64(0))
+	matchFalse("Bacon is not in the set", "Bacon")
+
+	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: IN, Value: []int32{1}})
+	matchTrue("1 is in the set", int32(1))
+	matchFalse("0 is not in the set", int32(0))
+	matchFalse("Bacon is not in the set", "Bacon")
+
+	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: IN, Value: []int16{1}})
+	matchTrue("1 is in the set", int16(1))
+	matchFalse("0 is not in the set", int16(0))
+	matchFalse("Bacon is not in the set", "Bacon")
+
+	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: IN, Value: []int8{1}})
+	matchTrue("1 is in the set", int8(1))
+	matchFalse("0 is not in the set", int8(0))
+	matchFalse("Bacon is not in the set", "Bacon")
+
+	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: IN, Value: []uint{1}})
+	matchTrue("1 is in the set", uint(1))
+	matchFalse("0 is not in the set", uint(0))
+	matchFalse("Bacon is not in the set", "Bacon")
+
+	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: IN, Value: []uint64{1}})
+	matchTrue("1 is in the set", uint64(1))
+	matchFalse("0 is not in the set", uint64(0))
+	matchFalse("Bacon is not in the set", "Bacon")
+
+	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: IN, Value: []uint32{1}})
+	matchTrue("1 is in the set", uint32(1))
+	matchFalse("0 is not in the set", uint32(0))
+	matchFalse("Bacon is not in the set", "Bacon")
+
+	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: IN, Value: []uint16{1}})
+	matchTrue("1 is in the set", uint16(1))
+	matchFalse("0 is not in the set", uint16(0))
+	matchFalse("Bacon is not in the set", "Bacon")
+
+	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: IN, Value: []uint8{1}})
+	matchTrue("1 is in the set", uint8(1))
+	matchFalse("0 is not in the set", uint8(0))
+	matchFalse("Bacon is not in the set", "Bacon")
+
+	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: IN, Value: []float64{1}})
+	matchTrue("1 is in the set", float64(1))
+	matchFalse("0 is not in the set", float64(0))
+	matchFalse("Bacon is not in the set", "Bacon")
+
+	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: IN, Value: []float32{1}})
+	matchTrue("1 is in the set", float32(1))
+	matchFalse("0 is not in the set", float32(0))
+	matchFalse("Bacon is not in the set", "Bacon")
+
+	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: IN, Value: []string{"A"}})
+	matchTrue("A is in the set", "A")
+	matchFalse("B is not in the set", "B")
+	matchFalse("1 is not in the set", 1)
+
+	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: IN, Value: []bool{true}})
+	matchTrue("True is in the set", true)
+	matchFalse("False is not in the set", false)
+	matchFalse("1 is not in the set", 1)
+
+	//Not In Tests
+	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: NOT_IN, Value: []int{1}})
+	matchFalse("1 is in the set", int(1))
+	matchTrue("0 is not in the set", int(0))
+	matchFalse("Bacon is not in the set", "Bacon")
+
+	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: NOT_IN, Value: []int64{1}})
+	matchFalse("1 is in the set", int64(1))
+	matchTrue("0 is not in the set", int64(0))
+	matchFalse("Bacon is not in the set", "Bacon")
+
+	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: NOT_IN, Value: []int32{1}})
+	matchFalse("1 is in the set", int32(1))
+	matchTrue("0 is not in the set", int32(0))
+	matchFalse("Bacon is not in the set", "Bacon")
+
+	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: NOT_IN, Value: []int16{1}})
+	matchFalse("1 is in the set", int16(1))
+	matchTrue("0 is not in the set", int16(0))
+	matchFalse("Bacon is not in the set", "Bacon")
+
+	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: NOT_IN, Value: []int8{1}})
+	matchFalse("1 is in the set", int8(1))
+	matchTrue("0 is not in the set", int8(0))
+	matchFalse("Bacon is not in the set", "Bacon")
+
+	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: NOT_IN, Value: []uint{1}})
+	matchFalse("1 is in the set", uint(1))
+	matchTrue("0 is not in the set", uint(0))
+	matchFalse("Bacon is not in the set", "Bacon")
+
+	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: NOT_IN, Value: []uint64{1}})
+	matchFalse("1 is in the set", uint64(1))
+	matchTrue("0 is not in the set", uint64(0))
+	matchFalse("Bacon is not in the set", "Bacon")
+
+	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: NOT_IN, Value: []uint32{1}})
+	matchFalse("1 is in the set", uint32(1))
+	matchTrue("0 is not in the set", uint32(0))
+	matchFalse("Bacon is not in the set", "Bacon")
+
+	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: NOT_IN, Value: []uint16{1}})
+	matchFalse("1 is in the set", uint16(1))
+	matchTrue("0 is not in the set", uint16(0))
+	matchFalse("Bacon is not in the set", "Bacon")
+
+	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: NOT_IN, Value: []uint8{1}})
+	matchFalse("1 is in the set", uint8(1))
+	matchTrue("0 is not in the set", uint8(0))
+	matchFalse("Bacon is not in the set", "Bacon")
+
+	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: NOT_IN, Value: []float64{1}})
+	matchFalse("1 is in the set", float64(1))
+	matchTrue("0 is not in the set", float64(0))
+	matchFalse("Bacon is not in the set", "Bacon")
+
+	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: NOT_IN, Value: []float32{1}})
+	matchFalse("1 is in the set", float32(1))
+	matchTrue("0 is not in the set", float32(0))
+	matchFalse("Bacon is not in the set", "Bacon")
+
+	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: NOT_IN, Value: []string{"A"}})
+	matchFalse("A is in the set", "A")
+	matchTrue("B is not in the set", "B")
+	matchFalse("1 is not in the set", 1)
+
+	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: NOT_IN, Value: []bool{true}})
+	matchFalse("True is in the set", true)
+	matchTrue("False is not in the set", false)
+	matchFalse("1 is not in the set", 1)
 }
