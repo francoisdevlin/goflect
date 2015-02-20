@@ -111,3 +111,43 @@ func TestDefaultPrinterFields(t *testing.T) {
 	assertMatch("_ MATCH \"1\"", Match("1"))
 	assertMatch("_ NOT MATCH \"1\"", NotMatch("1"))
 }
+
+func TestSqlitePrinterFields(t *testing.T) {
+	assertMatch := func(expected string, matcher Matcher) {
+		printer := SqlitePrinter{}
+		result, _ := printer.Print(matcher)
+		if result != expected {
+			t.Errorf("got:%v, want:%v", result, expected)
+		}
+	}
+	assertMatch("true", Any())
+	assertMatch("false", None())
+	assertMatch("_ = 1", Eq(1))
+	assertMatch("_ = \"1\"", Eq("1"))
+	assertMatch("_ != 1", Neq(1))
+	assertMatch("_ != \"1\"", Neq("1"))
+	assertMatch("_ < 1", Lt(1))
+	assertMatch("_ < \"1\"", Lt("1"))
+	assertMatch("_ <= 1", Lte(1))
+	assertMatch("_ <= \"1\"", Lte("1"))
+	assertMatch("_ > 1", Gt(1))
+	assertMatch("_ > \"1\"", Gt("1"))
+	assertMatch("_ >= 1", Gte(1))
+	assertMatch("_ >= \"1\"", Gte("1"))
+	assertMatch("_ IN (1, 2, 3)", In([]int{1, 2, 3}))
+	assertMatch("_ IN (1, 2, 3)", In([]int64{1, 2, 3}))
+	assertMatch("_ IN (1, 2, 3)", In([]int32{1, 2, 3}))
+	assertMatch("_ IN (1, 2, 3)", In([]int16{1, 2, 3}))
+	assertMatch("_ IN (1, 2, 3)", In([]int8{1, 2, 3}))
+	assertMatch("_ IN (1, 2, 3)", In([]uint{1, 2, 3}))
+	assertMatch("_ IN (1, 2, 3)", In([]uint64{1, 2, 3}))
+	assertMatch("_ IN (1, 2, 3)", In([]uint32{1, 2, 3}))
+	assertMatch("_ IN (1, 2, 3)", In([]uint16{1, 2, 3}))
+	assertMatch("_ IN (1, 2, 3)", In([]uint8{1, 2, 3}))
+	assertMatch("_ IN (1.0000, 2.0000, 3.0000)", In([]float64{1, 2, 3}))
+	assertMatch("_ IN (1.0000, 2.0000, 3.0000)", In([]float32{1, 2, 3}))
+	assertMatch("_ IN (\"1\", \"2\", \"3\")", In([]string{"1", "2", "3"}))
+	assertMatch("_ NOT IN (1, 2, 3)", NotIn([]int{1, 2, 3}))
+	assertMatch("_ MATCH \"1\"", Match("1"))
+	assertMatch("_ NOT MATCH \"1\"", NotMatch("1"))
+}
