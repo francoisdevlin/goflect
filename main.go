@@ -7,7 +7,7 @@ import (
 	//"net/http"
 	//"flag"
 	"fmt"
-	"os"
+	//"os"
 	//"reflect"
 	//"strconv"
 )
@@ -32,7 +32,7 @@ func main() {
 
 	//record := Info{}
 	record := Bar{}
-	FlagSetup(&record, os.Args)
+	//FlagSetup(&record, os.Args)
 	//fields := GetInfo(&record)
 
 	//flags := flag.FlagSet{}

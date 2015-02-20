@@ -1,0 +1,34 @@
+<h1>Sean Test Live<h1>
+<table>
+{{range $element := .}}
+<tr><td colspan="3">
+<h1>{{$element.Name}}</h1>
+{{$element.Description}}
+</td>
+</tr>
+	<tr> <td>
+		<table>
+			<tr><th colspan="2">UI Info</th></tr>
+			<tr><td>Hidden</td><td>{{$element.Hidden}}</td></tr>
+		</table>
+	</td> <td>
+		<table>
+			<tr><th colspan="2">Validator Info</th></tr>
+			<tr><td>Max Value</td><td>{{$element.MaxValue}}</td></tr>
+			<tr><td>Min Value</td><td>{{$element.MinValue}}</td></tr>
+			<tr><td>Required</td><td>{{$element.IsRequired}}</td></tr>
+		</table>
+	</td> <td>
+		<table>
+			<tr><th colspan="2">Sql Info</th></tr>
+			<tr><td>Primary</td><td>{{$element.IsPrimary}}</td></tr>
+			<tr><td>Autoincrement</td><td>{{$element.IsAutoincrement}}</td></tr>
+			<tr><td>Nominal</td><td>{{$element.IsNominal}}</td></tr>
+			<tr><td>Unique</td><td>{{$element.IsUnique}}</td></tr>
+			<tr><td>Indexed</td><td>{{$element.IsIndexed}}</td></tr>
+			<tr><td>Immutable</td><td>{{$element.IsImmutable}}</td></tr>
+			<tr><td>Nullable</td><td>{{$element.IsNullable}}</td></tr>
+		</table>
+	</td> </tr>
+{{end}}
+</table>

@@ -7,7 +7,6 @@ import (
 )
 
 type FieldOps int
-type ComposeOps int
 
 const (
 	LT FieldOps = iota
@@ -20,13 +19,6 @@ const (
 	NOT_IN
 	MATCH
 	NOT_MATCH
-)
-
-const (
-	NOT ComposeOps = iota
-	AND
-	OR
-	XOR
 )
 
 type Matcher interface {
@@ -139,300 +131,159 @@ func (field *FieldMatcher) warmCache() {
 
 func (field FieldMatcher) Match(record interface{}) (bool, error) {
 	field.warmCache()
+	invert := false
 	switch field.Op {
-	case EQ:
+	case NEQ, NOT_IN, GT, GTE, NOT_MATCH:
+		invert = true
+	}
+	switch field.Op {
+	case NEQ, EQ:
 		if reflect.TypeOf(record) != reflect.TypeOf(field.Value) {
-			return false, nil
+			return invert != false, nil
 		}
 		switch r := record.(type) {
 		case int:
-			return r == field.Value.(int), nil
+			return invert != (r == field.Value.(int)), nil
 		case int64:
-			return r == field.Value.(int64), nil
+			return invert != (r == field.Value.(int64)), nil
 		case int32:
-			return r == field.Value.(int32), nil
+			return invert != (r == field.Value.(int32)), nil
 		case int16:
-			return r == field.Value.(int16), nil
+			return invert != (r == field.Value.(int16)), nil
 		case int8:
-			return r == field.Value.(int8), nil
+			return invert != (r == field.Value.(int8)), nil
 		case uint:
-			return r == field.Value.(uint), nil
+			return invert != (r == field.Value.(uint)), nil
 		case uint64:
-			return r == field.Value.(uint64), nil
+			return invert != (r == field.Value.(uint64)), nil
 		case uint32:
-			return r == field.Value.(uint32), nil
+			return invert != (r == field.Value.(uint32)), nil
 		case uint16:
-			return r == field.Value.(uint16), nil
+			return invert != (r == field.Value.(uint16)), nil
 		case uint8:
-			return r == field.Value.(uint8), nil
+			return invert != (r == field.Value.(uint8)), nil
 		case float64:
-			return r == field.Value.(float64), nil
+			return invert != (r == field.Value.(float64)), nil
 		case float32:
-			return r == field.Value.(float32), nil
+			return invert != (r == field.Value.(float32)), nil
 		case string:
-			return r == field.Value.(string), nil
+			return invert != (r == field.Value.(string)), nil
 		case bool:
-			return r == field.Value.(bool), nil
+			return invert != (r == field.Value.(bool)), nil
 		}
-	case NEQ:
-		if reflect.TypeOf(record) != reflect.TypeOf(field.Value) {
-			return true, nil
-		}
-		switch r := record.(type) {
-		case int:
-			return r != field.Value.(int), nil
-		case int64:
-			return r != field.Value.(int64), nil
-		case int32:
-			return r != field.Value.(int32), nil
-		case int16:
-			return r != field.Value.(int16), nil
-		case int8:
-			return r != field.Value.(int8), nil
-		case uint:
-			return r != field.Value.(uint), nil
-		case uint64:
-			return r != field.Value.(uint64), nil
-		case uint32:
-			return r != field.Value.(uint32), nil
-		case uint16:
-			return r != field.Value.(uint16), nil
-		case uint8:
-			return r != field.Value.(uint8), nil
-		case float64:
-			return r != field.Value.(float64), nil
-		case float32:
-			return r != field.Value.(float32), nil
-		case string:
-			return r != field.Value.(string), nil
-		case bool:
-			return r != field.Value.(bool), nil
-		}
-	case LT:
+	case GTE, LT:
 		if reflect.TypeOf(record) != reflect.TypeOf(field.Value) {
 			return false, InvalidCompare(1)
 		}
 		switch r := record.(type) {
 		case int:
-			return r < field.Value.(int), nil
+			return invert != (r < field.Value.(int)), nil
 		case int64:
-			return r < field.Value.(int64), nil
+			return invert != (r < field.Value.(int64)), nil
 		case int32:
-			return r < field.Value.(int32), nil
+			return invert != (r < field.Value.(int32)), nil
 		case int16:
-			return r < field.Value.(int16), nil
+			return invert != (r < field.Value.(int16)), nil
 		case int8:
-			return r < field.Value.(int8), nil
+			return invert != (r < field.Value.(int8)), nil
 		case uint:
-			return r < field.Value.(uint), nil
+			return invert != (r < field.Value.(uint)), nil
 		case uint64:
-			return r < field.Value.(uint64), nil
+			return invert != (r < field.Value.(uint64)), nil
 		case uint32:
-			return r < field.Value.(uint32), nil
+			return invert != (r < field.Value.(uint32)), nil
 		case uint16:
-			return r < field.Value.(uint16), nil
+			return invert != (r < field.Value.(uint16)), nil
 		case uint8:
-			return r < field.Value.(uint8), nil
+			return invert != (r < field.Value.(uint8)), nil
 		case float64:
-			return r < field.Value.(float64), nil
+			return invert != (r < field.Value.(float64)), nil
 		case float32:
-			return r < field.Value.(float32), nil
+			return invert != (r < field.Value.(float32)), nil
 		case string:
-			return r < field.Value.(string), nil
+			return invert != (r < field.Value.(string)), nil
 		}
-	case LTE:
+	case GT, LTE:
 		if reflect.TypeOf(record) != reflect.TypeOf(field.Value) {
 			return false, InvalidCompare(1)
 		}
 		switch r := record.(type) {
 		case int:
-			return r <= field.Value.(int), nil
+			return invert != (r <= field.Value.(int)), nil
 		case int64:
-			return r <= field.Value.(int64), nil
+			return invert != (r <= field.Value.(int64)), nil
 		case int32:
-			return r <= field.Value.(int32), nil
+			return invert != (r <= field.Value.(int32)), nil
 		case int16:
-			return r <= field.Value.(int16), nil
+			return invert != (r <= field.Value.(int16)), nil
 		case int8:
-			return r <= field.Value.(int8), nil
+			return invert != (r <= field.Value.(int8)), nil
 		case uint:
-			return r <= field.Value.(uint), nil
+			return invert != (r <= field.Value.(uint)), nil
 		case uint64:
-			return r <= field.Value.(uint64), nil
+			return invert != (r <= field.Value.(uint64)), nil
 		case uint32:
-			return r <= field.Value.(uint32), nil
+			return invert != (r <= field.Value.(uint32)), nil
 		case uint16:
-			return r <= field.Value.(uint16), nil
+			return invert != (r <= field.Value.(uint16)), nil
 		case uint8:
-			return r <= field.Value.(uint8), nil
+			return invert != (r <= field.Value.(uint8)), nil
 		case float64:
-			return r <= field.Value.(float64), nil
+			return invert != (r <= field.Value.(float64)), nil
 		case float32:
-			return r <= field.Value.(float32), nil
+			return invert != (r <= field.Value.(float32)), nil
 		case string:
-			return r <= field.Value.(string), nil
+			return invert != (r <= field.Value.(string)), nil
 		}
-	case GT:
-		if reflect.TypeOf(record) != reflect.TypeOf(field.Value) {
-			return false, InvalidCompare(1)
-		}
-		switch r := record.(type) {
-		case int:
-			return r > field.Value.(int), nil
-		case int64:
-			return r > field.Value.(int64), nil
-		case int32:
-			return r > field.Value.(int32), nil
-		case int16:
-			return r > field.Value.(int16), nil
-		case int8:
-			return r > field.Value.(int8), nil
-		case uint:
-			return r > field.Value.(uint), nil
-		case uint64:
-			return r > field.Value.(uint64), nil
-		case uint32:
-			return r > field.Value.(uint32), nil
-		case uint16:
-			return r > field.Value.(uint16), nil
-		case uint8:
-			return r > field.Value.(uint8), nil
-		case float64:
-			return r > field.Value.(float64), nil
-		case float32:
-			return r > field.Value.(float32), nil
-		case string:
-			return r > field.Value.(string), nil
-		}
-	case GTE:
-		if reflect.TypeOf(record) != reflect.TypeOf(field.Value) {
-			return false, InvalidCompare(1)
-		}
-		switch r := record.(type) {
-		case int:
-			return r >= field.Value.(int), nil
-		case int64:
-			return r >= field.Value.(int64), nil
-		case int32:
-			return r >= field.Value.(int32), nil
-		case int16:
-			return r >= field.Value.(int16), nil
-		case int8:
-			return r >= field.Value.(int8), nil
-		case uint:
-			return r >= field.Value.(uint), nil
-		case uint64:
-			return r >= field.Value.(uint64), nil
-		case uint32:
-			return r >= field.Value.(uint32), nil
-		case uint16:
-			return r >= field.Value.(uint16), nil
-		case uint8:
-			return r >= field.Value.(uint8), nil
-		case float64:
-			return r >= field.Value.(float64), nil
-		case float32:
-			return r >= field.Value.(float32), nil
-		case string:
-			return r >= field.Value.(string), nil
-		}
-	case IN:
+	case IN, NOT_IN:
 		if reflect.TypeOf(record) != reflect.TypeOf(field.Value).Elem() {
-			return false, nil
+			return invert != false, nil
 		}
 		switch r := record.(type) {
 		case int:
 			_, present := (field.fieldCache.(map[int]int8))[r]
-			return present, nil
+			return invert != present, nil
 		case int64:
 			_, present := (field.fieldCache.(map[int64]int8))[r]
-			return present, nil
+			return invert != present, nil
 		case int32:
 			_, present := (field.fieldCache.(map[int32]int8))[r]
-			return present, nil
+			return invert != present, nil
 		case int16:
 			_, present := (field.fieldCache.(map[int16]int8))[r]
-			return present, nil
+			return invert != present, nil
 		case int8:
 			_, present := (field.fieldCache.(map[int8]int8))[r]
-			return present, nil
+			return invert != present, nil
 		case uint:
 			_, present := (field.fieldCache.(map[uint]int8))[r]
-			return present, nil
+			return invert != present, nil
 		case uint64:
 			_, present := (field.fieldCache.(map[uint64]int8))[r]
-			return present, nil
+			return invert != present, nil
 		case uint32:
 			_, present := (field.fieldCache.(map[uint32]int8))[r]
-			return present, nil
+			return invert != present, nil
 		case uint16:
 			_, present := (field.fieldCache.(map[uint16]int8))[r]
-			return present, nil
+			return invert != present, nil
 		case uint8:
 			_, present := (field.fieldCache.(map[uint8]int8))[r]
-			return present, nil
+			return invert != present, nil
 		case float64:
 			_, present := (field.fieldCache.(map[float64]int8))[r]
-			return present, nil
+			return invert != present, nil
 		case float32:
 			_, present := (field.fieldCache.(map[float32]int8))[r]
-			return present, nil
+			return invert != present, nil
 		case string:
 			_, present := (field.fieldCache.(map[string]int8))[r]
-			return present, nil
+			return invert != present, nil
 		case bool:
 			_, present := (field.fieldCache.(map[bool]int8))[r]
-			return present, nil
+			return invert != present, nil
 		}
-	case NOT_IN:
-		if reflect.TypeOf(record) != reflect.TypeOf(field.Value).Elem() {
-			return false, nil
-		}
-		switch r := record.(type) {
-		case int:
-			_, present := (field.fieldCache.(map[int]int8))[r]
-			return !present, nil
-		case int64:
-			_, present := (field.fieldCache.(map[int64]int8))[r]
-			return !present, nil
-		case int32:
-			_, present := (field.fieldCache.(map[int32]int8))[r]
-			return !present, nil
-		case int16:
-			_, present := (field.fieldCache.(map[int16]int8))[r]
-			return !present, nil
-		case int8:
-			_, present := (field.fieldCache.(map[int8]int8))[r]
-			return !present, nil
-		case uint:
-			_, present := (field.fieldCache.(map[uint]int8))[r]
-			return !present, nil
-		case uint64:
-			_, present := (field.fieldCache.(map[uint64]int8))[r]
-			return !present, nil
-		case uint32:
-			_, present := (field.fieldCache.(map[uint32]int8))[r]
-			return !present, nil
-		case uint16:
-			_, present := (field.fieldCache.(map[uint16]int8))[r]
-			return !present, nil
-		case uint8:
-			_, present := (field.fieldCache.(map[uint8]int8))[r]
-			return !present, nil
-		case float64:
-			_, present := (field.fieldCache.(map[float64]int8))[r]
-			return !present, nil
-		case float32:
-			_, present := (field.fieldCache.(map[float32]int8))[r]
-			return !present, nil
-		case string:
-			_, present := (field.fieldCache.(map[string]int8))[r]
-			return !present, nil
-		case bool:
-			_, present := (field.fieldCache.(map[bool]int8))[r]
-			return !present, nil
-		}
-	case MATCH:
+	case MATCH, NOT_MATCH:
 		if reflect.TypeOf(record) != reflect.TypeOf(field.Value) {
 			return false, InvalidCompare(1)
 		}
@@ -442,19 +293,7 @@ func (field FieldMatcher) Match(record interface{}) (bool, error) {
 			if err != nil {
 				return false, InvalidCompare(1)
 			}
-			return exp.MatchString(r), nil
-		}
-	case NOT_MATCH:
-		if reflect.TypeOf(record) != reflect.TypeOf(field.Value) {
-			return false, InvalidCompare(1)
-		}
-		switch r := record.(type) {
-		case string:
-			exp, err := regexp.Compile(field.Value.(string))
-			if err != nil {
-				return false, InvalidCompare(1)
-			}
-			return !exp.MatchString(r), nil
+			return invert != exp.MatchString(r), nil
 		}
 	}
 	return false, InvalidCompare(1)
