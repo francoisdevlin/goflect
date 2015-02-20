@@ -2,6 +2,7 @@ package goflect
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -14,7 +15,7 @@ type DefaultPrinter struct {
 }
 
 /*
-This prints a human readable representation of the matcher
+This prints a human readable representation of the matcher.  It is
 */
 func (p DefaultPrinter) Print(m Matcher) (string, error) {
 	switch r := m.(type) {
@@ -42,7 +43,13 @@ func (p DefaultPrinter) Print(m Matcher) (string, error) {
 		return strings.Join(output, " OR "), nil
 	case StructMatcher:
 		output := make([]string, 0)
-		for name, matcher := range r.Fields {
+		keys := make([]string, 0)
+		for name, _ := range r.Fields {
+			keys = append(keys, name)
+		}
+		sort.Strings(keys)
+		for _, name := range keys {
+			matcher, _ := r.Fields[name]
 			printer := DefaultPrinter{Var: name}
 			result, err := printer.Print(matcher)
 			if err != nil {
@@ -73,8 +80,25 @@ func (p DefaultPrinter) Print(m Matcher) (string, error) {
 			output += ">"
 		case GTE:
 			output += ">="
+		case IN:
+			output += "IN"
+		case NOT_IN:
+			output += "NOT IN"
+		case MATCH:
+			output += "MATCH"
+		case NOT_MATCH:
+			output += "NOT MATCH"
 		}
 		switch val := r.Value.(type) {
+		case []string:
+			output += " ["
+			entries := make([]string, 0)
+			for _, v := range val {
+				entries = append(entries, "\""+v+"\"")
+			}
+			output += strings.Join(entries, " ")
+			output += "]"
+			return output, nil
 		case string:
 			return output + " \"" + val + "\"", nil
 		default:
