@@ -10,7 +10,7 @@ func TestErrorMessage(t *testing.T) {
 }
 
 func TestFieldMatcher(t *testing.T) {
-	assertMatch := func(message string, matcher FieldMatcher, value interface{}, expected, hasError bool) {
+	assertMatch := func(message string, matcher Matcher, value interface{}, expected, hasError bool) {
 		match, err := matcher.Match(value)
 		if match != expected && (err != nil) == hasError {
 			t.Error(message)
@@ -18,7 +18,7 @@ func TestFieldMatcher(t *testing.T) {
 	}
 
 	type funcSig func(message string, record interface{})
-	withMatcher := func(matcher FieldMatcher) (matchTrue, matchFalse, matchError funcSig) {
+	withMatcher := func(matcher Matcher) (matchTrue, matchFalse, matchError funcSig) {
 		matchTrue = func(message string, record interface{}) {
 			assertMatch(message, matcher, record, true, false)
 		}
@@ -648,4 +648,22 @@ func TestFieldMatcher(t *testing.T) {
 	matchFalse("True is in the set", true)
 	matchTrue("False is not in the set", false)
 	matchFalse("1 is not in the set", 1)
+
+	//MATCH Case
+	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: MATCH, Value: "Bacon.*"})
+	matchTrue("Bacon Matches", "Bacon")
+	matchFalse("Pizza Doesn't Match", "Pizza")
+	matchError("1 is not usable", 1)
+
+	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: MATCH, Value: "[a"})
+	matchError("Regexp comile error", "Test")
+
+	//NOT MATCH Case
+	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: NOT_MATCH, Value: "Bacon.*"})
+	matchFalse("Bacon Matches", "Bacon")
+	matchTrue("Pizza Doesn't Match", "Pizza")
+	matchError("1 is not usable", 1)
+
+	matchTrue, matchFalse, matchError = withMatcher(FieldMatcher{Op: NOT_MATCH, Value: "[a"})
+	matchError("Regexp comile error", "Test")
 }

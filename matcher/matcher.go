@@ -3,6 +3,7 @@ package goflect
 import (
 	//"fmt"
 	"reflect"
+	"regexp"
 )
 
 type FieldOps int
@@ -42,10 +43,6 @@ type InvalidCompare int
 
 func (i InvalidCompare) Error() string {
 	return "Invalid comparoson operation"
-}
-
-type StructMatcher struct {
-	Fields map[string]FieldMatcher
 }
 
 func (field *FieldMatcher) warmCache() {
@@ -434,6 +431,30 @@ func (field FieldMatcher) Match(record interface{}) (bool, error) {
 		case bool:
 			_, present := (field.fieldCache.(map[bool]int8))[r]
 			return !present, nil
+		}
+	case MATCH:
+		if reflect.TypeOf(record) != reflect.TypeOf(field.Value) {
+			return false, InvalidCompare(1)
+		}
+		switch r := record.(type) {
+		case string:
+			exp, err := regexp.Compile(field.Value.(string))
+			if err != nil {
+				return false, InvalidCompare(1)
+			}
+			return exp.MatchString(r), nil
+		}
+	case NOT_MATCH:
+		if reflect.TypeOf(record) != reflect.TypeOf(field.Value) {
+			return false, InvalidCompare(1)
+		}
+		switch r := record.(type) {
+		case string:
+			exp, err := regexp.Compile(field.Value.(string))
+			if err != nil {
+				return false, InvalidCompare(1)
+			}
+			return !exp.MatchString(r), nil
 		}
 	}
 	return false, InvalidCompare(1)
