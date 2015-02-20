@@ -237,7 +237,7 @@ func (field FieldMatcher) Match(record interface{}) (bool, error) {
 		}
 	case IN, NOT_IN:
 		if reflect.TypeOf(record) != reflect.TypeOf(field.Value).Elem() {
-			return invert != false, nil
+			return invert, nil
 		}
 		switch r := record.(type) {
 		case int:
