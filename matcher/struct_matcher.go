@@ -22,6 +22,13 @@ type StructMatcher struct {
 	Fields map[string]Matcher
 }
 
+func (field *StructMatcher) AddField(name string, matcher Matcher) {
+	if field.Fields == nil {
+		field.Fields = make(map[string]Matcher)
+	}
+	field.Fields[name] = matcher
+}
+
 func (field StructMatcher) Match(record interface{}) (bool, error) {
 	if field.Fields == nil {
 		field.Fields = make(map[string]Matcher)

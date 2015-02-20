@@ -11,9 +11,8 @@ func TestStructMatch(t *testing.T) {
 	withMatcher := withMatcherFactory(t)
 
 	matcher := StructMatcher{}
-	matcher.Fields = make(map[string]Matcher)
-	matcher.Fields["A"] = Eq(int(1))
-	matcher.Fields["B"] = Eq(int(2))
+	matcher.AddField("A", Eq(int(1)))
+	matcher.AddField("B", Eq(int(2)))
 	matchTrue, matchFalse, matchError := withMatcher(matcher)
 
 	matchTrue("A Well formed map", map[string]interface{}{
