@@ -109,8 +109,45 @@ func NotMatch(record string) Matcher {
 	return FieldMatcher{Op: NOT_MATCH, Value: record}
 }
 
+/*
+This function will return a matcher that is the logical inverse of the provided matcher.  Sometimes it will wrap the provided matcher with an Inverter, other times it will perform an optimization in order to keep the call tree as small as possible
+*/
 func Not(matcher Matcher) Matcher {
-	return InvertMatch{M: matcher}
+	switch r := matcher.(type) {
+	case InvertMatch:
+		return r.M
+	case AnyMatch:
+		return None()
+	case NoneMatch:
+		return Any()
+	case FieldMatcher:
+		switch r.Op {
+		case EQ:
+			return Neq(r.Value)
+		case NEQ:
+			return Eq(r.Value)
+		case LT:
+			return Gte(r.Value)
+		case GTE:
+			return Lt(r.Value)
+		case LTE:
+			return Gt(r.Value)
+		case GT:
+			return Lte(r.Value)
+		case IN:
+			return NotIn(r.Value)
+		case NOT_IN:
+			return In(r.Value)
+		case MATCH:
+			return NotMatch(r.Value.(string))
+		case NOT_MATCH:
+			return Match(r.Value.(string))
+		default:
+			return InvertMatch{M: matcher}
+		}
+	default:
+		return InvertMatch{M: matcher}
+	}
 }
 
 func And(matchers ...Matcher) Matcher {

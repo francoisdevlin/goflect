@@ -117,7 +117,14 @@ func TestDefaultPrinterFields(t *testing.T) {
 	assertMatch("_ MATCH \"1\"", Match("1"))
 	assertMatch("_ NOT MATCH \"1\"", NotMatch("1"))
 
-	assertMatch("NOT (true)", Not(Any()))
+	//Demonstrate Not, with rewrite rules
+	assertMatch("false", Not(Any()))
+	assertMatch("true", Not(None()))
+	assertMatch("true", Not(Not(Any())))
+	assertMatch("false", Not(Not(None())))
+	assertMatch("NOT (_ > 5 AND _ < 10)", Not(And(Gt(5), Lt(10))))
+	assertMatch("_ > 5 AND _ < 10", Not(Not(And(Gt(5), Lt(10)))))
+
 	assertMatch("true AND true", And(Any(), Any()))
 	assertMatch("true OR true", Or(Any(), Any()))
 	m := StructMatcher{}
@@ -168,7 +175,11 @@ func TestSqlitePrinterFields(t *testing.T) {
 	assertMatch("_ MATCH \"1\"", Match("1"))
 	assertMatch("_ NOT MATCH \"1\"", NotMatch("1"))
 
-	assertMatch("NOT (true)", Not(Any()))
+	assertMatch("false", Not(Any()))
+	assertMatch("true", Not(None()))
+	assertMatch("true", Not(Not(Any())))
+	assertMatch("false", Not(Not(None())))
+
 	assertMatch("true AND true", And(Any(), Any()))
 	assertMatch("true OR true", Or(Any(), Any()))
 	m := StructMatcher{}

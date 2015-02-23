@@ -1,6 +1,7 @@
 package goflect
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -47,4 +48,68 @@ func TestOrMatch(t *testing.T) {
 	matchFalse("9 is bad", int(9))
 	matchTrue("10 is okay", int(10))
 	matchError("Bacon is right out", "Bacon")
+}
+
+func ExampleNot_showCompoundExample() {
+	printAll := func(matchers ...Matcher) {
+		printer := DefaultPrinter{}
+		for _, matcher := range matchers {
+			result, _ := printer.Print(matcher)
+			fmt.Println(result)
+		}
+	}
+
+	printAll(
+		Not(And(Lt(10), Gt(5))),
+		Not(Or(Gt(10), Lt(5))),
+	)
+	//Output:
+	//NOT (_ < 10 AND _ > 5)
+	//NOT (_ > 10 OR _ < 5)
+
+}
+
+func ExampleNot_showRewriteRules() {
+	printAll := func(matchers ...Matcher) {
+		printer := DefaultPrinter{}
+		for _, matcher := range matchers {
+			result, _ := printer.Print(matcher)
+			fmt.Println(result)
+		}
+	}
+
+	printAll(
+		//Invert the constants
+		Not(Any()),
+		Not(None()),
+		//Invert basic comparison
+		Not(Eq(1)),
+		Not(Neq(1)),
+		Not(Lt(1)),
+		Not(Lte(1)),
+		Not(Gt(1)),
+		Not(Gte(1)),
+		//Invert the advanced matchers
+		Not(In([]int{1, 2, 3})),
+		Not(NotIn([]int{1, 2, 3})),
+		Not(Match("\\.")),
+		Not(NotMatch("\\.")),
+		//Remove an inverter
+		Not(Not(And(Lt(10), Gt(5)))),
+	)
+
+	//Output:
+	//false
+	//true
+	//_ != 1
+	//_ = 1
+	//_ >= 1
+	//_ > 1
+	//_ <= 1
+	//_ < 1
+	//_ NOT IN [1 2 3]
+	//_ IN [1 2 3]
+	//_ NOT MATCH "\."
+	//_ MATCH "\."
+	//_ < 10 AND _ > 5
 }
