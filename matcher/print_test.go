@@ -152,10 +152,12 @@ func TestSqlitePrinterFields(t *testing.T) {
 
 	assertMatch("true", And(Any(), Any()))
 	assertMatch("true", Or(Any(), Any()))
+
 	m := StructMatcher{}
 	m.AddField("A", Eq(1))
 	m.AddField("B", Eq(0))
 	assertMatch("(A = 1) AND (B = 0)", m)
+
 	m = StructMatcher{}
 	m.AddField("A", Eq(Literal("B")))
 	assertMatch("(A = B)", m)

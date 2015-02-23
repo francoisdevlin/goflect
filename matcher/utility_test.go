@@ -173,3 +173,179 @@ func ExampleOr_showRewriteRules() {
 	//true
 	//_ != 1 OR _ != 2 OR _ != 3
 }
+
+func ExampleEq() {
+	show := func(m Matcher, value interface{}) {
+		printer := DefaultPrinter{Var: fmt.Sprint(value)}
+		result, err := m.Match(value)
+		statement, _ := printer.Print(m)
+		if err != nil {
+			fmt.Println(statement, ":", "ERROR")
+		} else {
+			fmt.Println(statement, ":", result)
+		}
+	}
+
+	show(Eq(1), 1)
+	show(Eq(2), 1)
+	//The types must be exactly the same, or else this is not true
+	show(Eq(int(1)), int64(1))
+	//Output:
+	//1 = 1 : true
+	//1 = 2 : false
+	//1 = 1 : false
+}
+
+func ExampleNeq() {
+	show := func(m Matcher, value interface{}) {
+		printer := DefaultPrinter{Var: fmt.Sprint(value)}
+		result, err := m.Match(value)
+		statement, _ := printer.Print(m)
+		if err != nil {
+			fmt.Println(statement, ":", "ERROR")
+		} else {
+			fmt.Println(statement, ":", result)
+		}
+	}
+
+	show(Neq(1), 1)
+	show(Neq(2), 1)
+	//If the types are not exactly the same they are considered not equal
+	show(Neq(int(1)), int64(1))
+	//Output:
+	//1 != 1 : false
+	//1 != 2 : true
+	//1 != 1 : true
+}
+
+func ExampleLt() {
+	show := func(m Matcher, value interface{}) {
+		printer := DefaultPrinter{Var: fmt.Sprint(value)}
+		result, err := m.Match(value)
+		statement, _ := printer.Print(m)
+		if err != nil {
+			fmt.Println(statement, ":", "ERROR")
+		} else {
+			fmt.Println(statement, ":", result)
+		}
+	}
+
+	show(Lt(1), 1)
+	show(Lt(2), 1)
+	//If the types are not exactly the same it is an error
+	show(Lt(int(1)), int64(1))
+	//Output:
+	//1 < 1 : false
+	//1 < 2 : true
+	//1 < 1 : ERROR
+}
+
+func ExampleLte() {
+	show := func(m Matcher, value interface{}) {
+		printer := DefaultPrinter{Var: fmt.Sprint(value)}
+		result, err := m.Match(value)
+		statement, _ := printer.Print(m)
+		if err != nil {
+			fmt.Println(statement, ":", "ERROR")
+		} else {
+			fmt.Println(statement, ":", result)
+		}
+	}
+
+	show(Lte(1), 1)
+	show(Lte(2), 1)
+	//If the types are not exactly the same it is an error
+	show(Lte(int(1)), int64(1))
+	//Output:
+	//1 <= 1 : true
+	//1 <= 2 : true
+	//1 <= 1 : ERROR
+}
+
+func ExampleGt() {
+	show := func(m Matcher, value interface{}) {
+		printer := DefaultPrinter{Var: fmt.Sprint(value)}
+		result, err := m.Match(value)
+		statement, _ := printer.Print(m)
+		if err != nil {
+			fmt.Println(statement, ":", "ERROR")
+		} else {
+			fmt.Println(statement, ":", result)
+		}
+	}
+
+	show(Gt(1), 1)
+	show(Gt(2), 1)
+	//If the types are not exactly the same it is an error
+	show(Gt(int(1)), int64(1))
+	//Output:
+	//1 > 1 : false
+	//1 > 2 : false
+	//1 > 1 : ERROR
+}
+
+func ExampleGte() {
+	show := func(m Matcher, value interface{}) {
+		printer := DefaultPrinter{Var: fmt.Sprint(value)}
+		result, err := m.Match(value)
+		statement, _ := printer.Print(m)
+		if err != nil {
+			fmt.Println(statement, ":", "ERROR")
+		} else {
+			fmt.Println(statement, ":", result)
+		}
+	}
+
+	show(Gte(1), 1)
+	show(Gte(2), 1)
+	//If the types are not exactly the same it is an error
+	show(Gte(int(1)), int64(1))
+	//Output:
+	//1 >= 1 : true
+	//1 >= 2 : false
+	//1 >= 1 : ERROR
+}
+
+func ExampleNone() {
+	show := func(m Matcher, value interface{}) {
+		printer := DefaultPrinter{Var: fmt.Sprint(value)}
+		result, err := m.Match(value)
+		statement, _ := printer.Print(m)
+		if err != nil {
+			fmt.Println(statement, ":", "ERROR")
+		} else {
+			fmt.Println(statement, ":", result)
+		}
+	}
+
+	show(None(), 1)
+	show(None(), 1)
+	//If the types are not exactly the same they are considered not equal
+	show(None(), int64(1))
+	//Output:
+	//false : false
+	//false : false
+	//false : false
+}
+
+func ExampleAny() {
+	show := func(m Matcher, value interface{}) {
+		printer := DefaultPrinter{Var: fmt.Sprint(value)}
+		result, err := m.Match(value)
+		statement, _ := printer.Print(m)
+		if err != nil {
+			fmt.Println(statement, ":", "ERROR")
+		} else {
+			fmt.Println(statement, ":", result)
+		}
+	}
+
+	show(Any(), 1)
+	show(Any(), 1)
+	//If the types are not exactly the same they are considered not equal
+	show(Any(), int64(1))
+	//Output:
+	//true : true
+	//true : true
+	//true : true
+}

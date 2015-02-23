@@ -61,34 +61,58 @@ func (a OrMatch) Match(record interface{}) (bool, error) {
 	return accum, nil
 }
 
+/*
+This returns a matcher that always returns true
+*/
 func Any() Matcher {
 	return AnyMatch(1)
 }
 
+/*
+This returns a matcher that always returns false
+*/
 func None() Matcher {
 	return NoneMatch(1)
 }
 
+/*
+This returns a matcher thay will test that a tested value is equal to a specified one
+*/
 func Eq(record interface{}) Matcher {
 	return FieldMatcher{Op: EQ, Value: record}
 }
 
+/*
+This returns a matcher thay will test that a tested value is not equal to a specified one
+*/
 func Neq(record interface{}) Matcher {
 	return FieldMatcher{Op: NEQ, Value: record}
 }
 
+/*
+This returns a matcher thay will test that a tested value is less than a specified one
+*/
 func Lt(record interface{}) Matcher {
 	return FieldMatcher{Op: LT, Value: record}
 }
 
+/*
+This returns a matcher thay will test that a tested value is less than or equal to a specified one
+*/
 func Lte(record interface{}) Matcher {
 	return FieldMatcher{Op: LTE, Value: record}
 }
 
+/*
+This returns a matcher thay will test that a tested value is greater than a specified one
+*/
 func Gt(record interface{}) Matcher {
 	return FieldMatcher{Op: GT, Value: record}
 }
 
+/*
+This returns a matcher thay will test that a tested value is greater than or equal to a specified one
+*/
 func Gte(record interface{}) Matcher {
 	return FieldMatcher{Op: GTE, Value: record}
 }
