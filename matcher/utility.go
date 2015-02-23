@@ -150,10 +150,62 @@ func Not(matcher Matcher) Matcher {
 	}
 }
 
+/*
+This will take a collection of matchers and return the logical AND of each matcher.  This is an optimizing statement, so some rewriting of the rules may occur.
+
+Calling this with no arguments is the same as calling Any()
+*/
 func And(matchers ...Matcher) Matcher {
-	return AndMatch{Matchers: matchers}
+	usedMatchers := make([]Matcher, 0)
+	for _, matcher := range matchers {
+		switch m := matcher.(type) {
+		case AnyMatch:
+			usedMatchers = usedMatchers
+		case AndMatch:
+			for _, childMatch := range m.Matchers {
+				usedMatchers = append(usedMatchers, childMatch)
+			}
+		case NoneMatch:
+			return None()
+		default:
+			usedMatchers = append(usedMatchers, m)
+		}
+	}
+	if len(usedMatchers) == 0 {
+		return Any()
+	}
+	if len(usedMatchers) == 1 {
+		return usedMatchers[0]
+	}
+	return AndMatch{Matchers: usedMatchers}
 }
 
+/*
+This will take a collection of matchers and return the logical OR of each matcher.  This is an optimizing statement, so some rewriting of the rules may occur.
+
+Calling this with no arguments is the same as calling None()
+*/
 func Or(matchers ...Matcher) Matcher {
-	return OrMatch{Matchers: matchers}
+	usedMatchers := make([]Matcher, 0)
+	for _, matcher := range matchers {
+		switch m := matcher.(type) {
+		case NoneMatch:
+			usedMatchers = usedMatchers
+		case OrMatch:
+			for _, childMatch := range m.Matchers {
+				usedMatchers = append(usedMatchers, childMatch)
+			}
+		case AnyMatch:
+			return Any()
+		default:
+			usedMatchers = append(usedMatchers, m)
+		}
+	}
+	if len(usedMatchers) == 0 {
+		return None()
+	}
+	if len(usedMatchers) == 1 {
+		return usedMatchers[0]
+	}
+	return OrMatch{Matchers: usedMatchers}
 }

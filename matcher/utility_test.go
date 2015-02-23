@@ -113,3 +113,63 @@ func ExampleNot_showRewriteRules() {
 	//_ MATCH "\."
 	//_ < 10 AND _ > 5
 }
+
+func ExampleAnd_showRewriteRules() {
+	printAll := func(matchers ...Matcher) {
+		printer := DefaultPrinter{}
+		for _, matcher := range matchers {
+			result, _ := printer.Print(matcher)
+			fmt.Println(result)
+		}
+	}
+
+	printAll(
+		//Optimize calls to Any out
+		And(Eq(1), Any()),
+		//No args returns Any
+		And(),
+		//One arg returns arg
+		And(Eq(1)),
+		//None short circuits
+		And(Eq(1), None()),
+		//And statements consolidated
+		And(And(Neq(1), Neq(2)), Neq(3)),
+	)
+
+	//Output:
+	//_ = 1
+	//true
+	//_ = 1
+	//false
+	//_ != 1 AND _ != 2 AND _ != 3
+}
+
+func ExampleOr_showRewriteRules() {
+	printAll := func(matchers ...Matcher) {
+		printer := DefaultPrinter{}
+		for _, matcher := range matchers {
+			result, _ := printer.Print(matcher)
+			fmt.Println(result)
+		}
+	}
+
+	printAll(
+		//Optimize calls to None out
+		Or(Eq(1), None()),
+		//No args returns None
+		Or(),
+		//One arg returns arg
+		Or(Eq(1)),
+		//Any short circuits
+		Or(Eq(1), Any()),
+		//Or statements consolidated
+		Or(Or(Neq(1), Neq(2)), Neq(3)),
+	)
+
+	//Output:
+	//_ = 1
+	//false
+	//_ = 1
+	//true
+	//_ != 1 OR _ != 2 OR _ != 3
+}

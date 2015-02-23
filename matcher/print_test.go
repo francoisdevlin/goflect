@@ -7,27 +7,22 @@ import (
 
 func ExampleDefaultPrinter_Print_basic() {
 	//This is a quick example of how the pretty printer works
-	printer := DefaultPrinter{}
+	printAll := func(matchers ...Matcher) {
+		printer := DefaultPrinter{}
+		for _, matcher := range matchers {
+			result, _ := printer.Print(matcher)
+			fmt.Println(result)
+		}
+	}
 
-	//Print our two constant matchers
-	result, _ := printer.Print(Any())
-	fmt.Println(result)
-
-	result, _ = printer.Print(None())
-	fmt.Println(result)
-
-	//Print a few basic equality matchers
-	result, _ = printer.Print(Eq(int(1)))
-	fmt.Println(result)
-
-	result, _ = printer.Print(Eq(float64(1)))
-	fmt.Println(result)
-
-	result, _ = printer.Print(Eq(true))
-	fmt.Println(result)
-
-	result, _ = printer.Print(Eq("Bacon"))
-	fmt.Println(result)
+	printAll(
+		Any(),
+		None(),
+		Eq(int(1)),
+		Eq(float64(1)),
+		Eq(true),
+		Eq("Bacon"),
+	)
 	//Output:
 	//true
 	//false
@@ -35,31 +30,6 @@ func ExampleDefaultPrinter_Print_basic() {
 	// _ = 1
 	// _ = true
 	// _ = "Bacon"
-}
-
-func ExampleDefaultPrinter_Print_compound() {
-	//This demonstrates how the pretty printer handles expressions compound
-	printer := DefaultPrinter{}
-
-	//An AND conditional
-	result, _ := printer.Print(And(Eq("Bacon"), Any()))
-	fmt.Println(result)
-
-	//An OR conditional
-	result, _ = printer.Print(Or(Eq("Bacon"), None()))
-	fmt.Println(result)
-
-	result, _ = printer.Print(Not(Or(Eq("Bacon"), Any())))
-	fmt.Println(result)
-
-	//A compound expression
-	result, _ = printer.Print(Or(And(Eq("Bacon"), Any()), Neq("Pizza")))
-	fmt.Println(result)
-	//Output:
-	//_ = "Bacon" AND true
-	//_ = "Bacon" OR false
-	//NOT (_ = "Bacon" OR true)
-	//(_ = "Bacon" AND true) OR _ != "Pizza"
 }
 
 func ExampleDefaultPrinter_Print_struct() {
@@ -125,8 +95,8 @@ func TestDefaultPrinterFields(t *testing.T) {
 	assertMatch("NOT (_ > 5 AND _ < 10)", Not(And(Gt(5), Lt(10))))
 	assertMatch("_ > 5 AND _ < 10", Not(Not(And(Gt(5), Lt(10)))))
 
-	assertMatch("true AND true", And(Any(), Any()))
-	assertMatch("true OR true", Or(Any(), Any()))
+	assertMatch("true", And(Any(), Any()))
+	assertMatch("true", Or(Any(), Any()))
 	m := StructMatcher{}
 	m.AddField("A", Eq(1))
 	m.AddField("B", Eq(0))
@@ -180,8 +150,8 @@ func TestSqlitePrinterFields(t *testing.T) {
 	assertMatch("true", Not(Not(Any())))
 	assertMatch("false", Not(Not(None())))
 
-	assertMatch("true AND true", And(Any(), Any()))
-	assertMatch("true OR true", Or(Any(), Any()))
+	assertMatch("true", And(Any(), Any()))
+	assertMatch("true", Or(Any(), Any()))
 	m := StructMatcher{}
 	m.AddField("A", Eq(1))
 	m.AddField("B", Eq(0))
