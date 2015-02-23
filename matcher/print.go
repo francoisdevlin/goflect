@@ -11,6 +11,7 @@ type Printer interface {
 	Print(m Matcher) (string, error)
 }
 
+type Literal string
 type DefaultPrinter struct {
 	Var string
 }
@@ -26,7 +27,16 @@ func printAnd(p Printer, r AndMatch) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		result = "(" + result + ")"
+		needsParens := false
+		switch temp := matcher.(type) {
+		case OrMatch:
+			needsParens = true
+		default:
+			temp = temp
+		}
+		if needsParens {
+			result = "(" + result + ")"
+		}
 		output = append(output, result)
 	}
 	return strings.Join(output, " AND "), nil
@@ -39,7 +49,18 @@ func printOr(p Printer, r OrMatch) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		result = "(" + result + ")"
+		needsParens := false
+		switch temp := matcher.(type) {
+		case AndMatch:
+			needsParens = true
+		case StructMatcher:
+			needsParens = true
+		default:
+			temp = temp
+		}
+		if needsParens {
+			result = "(" + result + ")"
+		}
 		output = append(output, result)
 	}
 	return strings.Join(output, " OR "), nil
@@ -67,14 +88,41 @@ func printStruct(factory func(name string) Printer, r StructMatcher) (string, er
 		if err != nil {
 			return "", err
 		}
-		result = "(" + result + ")\n"
+		result = "(" + result + ")"
 		output = append(output, result)
 	}
-	return strings.Join(output, "AND "), nil
+	return strings.Join(output, " AND "), nil
 }
 
 func q(name string) string {
 	return "\"" + name + "\""
+}
+
+func stringToken(token FieldOps) string {
+	output := ""
+	switch token {
+	case EQ:
+		output += "="
+	case NEQ:
+		output += "!="
+	case LT:
+		output += "<"
+	case LTE:
+		output += "<="
+	case GT:
+		output += ">"
+	case GTE:
+		output += ">="
+	case IN:
+		output += "IN"
+	case NOT_IN:
+		output += "NOT IN"
+	case MATCH:
+		output += "MATCH"
+	case NOT_MATCH:
+		output += "NOT MATCH"
+	}
+	return output
 }
 
 /*
@@ -95,29 +143,7 @@ func (p DefaultPrinter) Print(m Matcher) (string, error) {
 		} else {
 			output += p.Var
 		}
-		output += " "
-		switch r.Op {
-		case EQ:
-			output += "="
-		case NEQ:
-			output += "!="
-		case LT:
-			output += "<"
-		case LTE:
-			output += "<="
-		case GT:
-			output += ">"
-		case GTE:
-			output += ">="
-		case IN:
-			output += "IN"
-		case NOT_IN:
-			output += "NOT IN"
-		case MATCH:
-			output += "MATCH"
-		case NOT_MATCH:
-			output += "NOT MATCH"
-		}
+		output += " " + stringToken(r.Op)
 		switch val := r.Value.(type) {
 		case []string:
 			output += " ["
@@ -130,6 +156,8 @@ func (p DefaultPrinter) Print(m Matcher) (string, error) {
 			return output, nil
 		case string:
 			return output + " " + q(val), nil
+		case Literal:
+			return output + " " + string(val), nil
 		default:
 			return output + " " + fmt.Sprint(r.Value), nil
 		}
@@ -161,29 +189,7 @@ func (p SqlitePrinter) Print(m Matcher) (string, error) {
 		} else {
 			output += p.Var
 		}
-		output += " "
-		switch r.Op {
-		case EQ:
-			output += "="
-		case NEQ:
-			output += "!="
-		case LT:
-			output += "<"
-		case LTE:
-			output += "<="
-		case GT:
-			output += ">"
-		case GTE:
-			output += ">="
-		case IN:
-			output += "IN"
-		case NOT_IN:
-			output += "NOT IN"
-		case MATCH:
-			output += "MATCH"
-		case NOT_MATCH:
-			output += "NOT MATCH"
-		}
+		output += " " + stringToken(r.Op)
 		makeInish := func(entries []string) string {
 			output += " ("
 			output += strings.Join(entries, ", ")
@@ -259,6 +265,8 @@ func (p SqlitePrinter) Print(m Matcher) (string, error) {
 			return makeInish(entries), nil
 		case string:
 			return output + " " + q(val), nil
+		case Literal:
+			return output + " " + string(val), nil
 		default:
 			return output + " " + fmt.Sprint(r.Value), nil
 		}

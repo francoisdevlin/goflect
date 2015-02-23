@@ -51,10 +51,15 @@ func ExampleDefaultPrinter_Print_compound() {
 
 	result, _ = printer.Print(Not(Or(Eq("Bacon"), Any())))
 	fmt.Println(result)
+
+	//A compound expression
+	result, _ = printer.Print(Or(And(Eq("Bacon"), Any()), Neq("Pizza")))
+	fmt.Println(result)
 	//Output:
-	//(_ = "Bacon") AND (true)
-	//(_ = "Bacon") OR (false)
-	//NOT ((_ = "Bacon") OR (true))
+	//_ = "Bacon" AND true
+	//_ = "Bacon" OR false
+	//NOT (_ = "Bacon" OR true)
+	//(_ = "Bacon" AND true) OR _ != "Pizza"
 }
 
 func ExampleDefaultPrinter_Print_struct() {
@@ -62,25 +67,26 @@ func ExampleDefaultPrinter_Print_struct() {
 	printer := DefaultPrinter{}
 
 	matcher := StructMatcher{}
-	matcher.Fields = make(map[string]Matcher)
 	matcher.AddField("A", Eq(int(1)))
 	matcher.AddField("B", Eq(int(2)))
 	result, _ := printer.Print(matcher)
 	fmt.Println(result)
 
 	matcher = StructMatcher{}
-	matcher.Fields = make(map[string]Matcher)
 	matcher.AddField("A", And(Gte(int(1)), Lte(int(10))))
 	matcher.AddField("B", Eq(int(2)))
 	result, _ = printer.Print(matcher)
 	fmt.Println(result)
 
+	matcher = StructMatcher{}
+	matcher.AddField("A", Eq(Literal("B")))
+	result, _ = printer.Print(matcher)
+	fmt.Println(result)
+
 	//Output:
-	//(A = 1)
-	//AND (B = 2)
-	//
-	//((A >= 1) AND (A <= 10))
-	//AND (B = 2)
+	//(A = 1) AND (B = 2)
+	//(A >= 1 AND A <= 10) AND (B = 2)
+	//(A = B)
 }
 
 func TestDefaultPrinterFields(t *testing.T) {
@@ -110,6 +116,17 @@ func TestDefaultPrinterFields(t *testing.T) {
 	assertMatch("_ NOT IN [1 2 3]", NotIn([]int{1, 2, 3}))
 	assertMatch("_ MATCH \"1\"", Match("1"))
 	assertMatch("_ NOT MATCH \"1\"", NotMatch("1"))
+
+	assertMatch("NOT (true)", Not(Any()))
+	assertMatch("true AND true", And(Any(), Any()))
+	assertMatch("true OR true", Or(Any(), Any()))
+	m := StructMatcher{}
+	m.AddField("A", Eq(1))
+	m.AddField("B", Eq(0))
+	assertMatch("(A = 1) AND (B = 0)", m)
+	m = StructMatcher{}
+	m.AddField("A", Eq(Literal("B")))
+	assertMatch("(A = B)", m)
 }
 
 func TestSqlitePrinterFields(t *testing.T) {
@@ -150,4 +167,15 @@ func TestSqlitePrinterFields(t *testing.T) {
 	assertMatch("_ NOT IN (1, 2, 3)", NotIn([]int{1, 2, 3}))
 	assertMatch("_ MATCH \"1\"", Match("1"))
 	assertMatch("_ NOT MATCH \"1\"", NotMatch("1"))
+
+	assertMatch("NOT (true)", Not(Any()))
+	assertMatch("true AND true", And(Any(), Any()))
+	assertMatch("true OR true", Or(Any(), Any()))
+	m := StructMatcher{}
+	m.AddField("A", Eq(1))
+	m.AddField("B", Eq(0))
+	assertMatch("(A = 1) AND (B = 0)", m)
+	m = StructMatcher{}
+	m.AddField("A", Eq(Literal("B")))
+	assertMatch("(A = B)", m)
 }
