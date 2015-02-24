@@ -1,4 +1,4 @@
-package goflect
+package main
 
 import (
 	//"database/sql"

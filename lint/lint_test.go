@@ -1,4 +1,4 @@
-package goflect
+package lint
 
 import (
 	"fmt"

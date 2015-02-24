@@ -1,8 +1,8 @@
-package goflect
+package lint
 
 import (
 	"fmt"
-	"git.sevone.com/sdevlin/goflect.git"
+	"git.sevone.com/sdevlin/goflect.git/goflect"
 	"go/token"
 	"reflect"
 	"regexp"
@@ -16,6 +16,20 @@ const (
 	NOMINAL_MISCOUNT
 	PRIMARY_MISCOUNT
 )
+
+func (c ErrorCode) String() string {
+	switch c {
+	case NOMINAL_MISMATCH:
+		return "NOMINAL_MISMATCH"
+	case TAG_ERROR:
+		return "TAG_PARSE_ERROR"
+	case NOMINAL_MISCOUNT:
+		return "NOMINAL_MISCOUNT"
+	case PRIMARY_MISCOUNT:
+		return "PRIMARY_MISCOUNT"
+	}
+	return ""
+}
 
 type ValidationError struct {
 	Code    ErrorCode
@@ -145,6 +159,11 @@ func Nominal(f goflect.Info) []error {
 This checks the syntax of the contents of the struct tag, so that the reflection engine works properly.  It will ensure that each tag is unique, the tag can be parsed, and that the tag is followed by a quoted string
 */
 func StructTag(message string) []error {
+	_, output := ParseStructTag(message)
+	return output
+}
+
+func ParseStructTag(message string) (map[string]string, []error) {
 	whitespace, _ := regexp.Compile("^[\\s,]+")
 	symbol, _ := regexp.Compile("^[a-zA-Z_]\\w*")
 	operators, _ := regexp.Compile("^:\"")
@@ -170,13 +189,13 @@ func StructTag(message string) []error {
 	}
 
 	if len(errors) > 0 {
-		return errors
+		return nil, errors
 	}
 	if len(tokens)%2 != 0 {
 		errors = append(errors, ValidationError{Code: TAG_ERROR, Message: "There are the wrong number of tokens present"})
 	}
 	if len(errors) > 0 {
-		return errors
+		return nil, errors
 	}
 
 	iteration := 0
@@ -201,7 +220,7 @@ func StructTag(message string) []error {
 		iteration += 2
 	}
 	if len(errors) > 0 {
-		return errors
+		return nil, errors
 	}
-	return errors
+	return tagKeys, errors
 }

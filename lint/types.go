@@ -1,4 +1,4 @@
-package goflect
+package lint
 
 import (
 	"go/token"
@@ -16,7 +16,6 @@ func NewStructInfo() (output StructInfo) {
 
 type StructList struct {
 	token.Position
-	fset    *token.FileSet
 	Structs map[string]StructInfo
 }
 
