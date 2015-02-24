@@ -78,6 +78,20 @@ func TestStructTagValidator(t *testing.T) {
 	if results[0].Error.Code != TAG_ERROR {
 		t.Error("Did not get TAG_ERROR back")
 	}
-	fmt.Println(results)
+}
 
+func TestPrimaryOnceValidator(t *testing.T) {
+	type DoublePrimary struct {
+		A string `sql:"primary"`
+		B string `sql:"primary"`
+	}
+
+	results := ValidateType(&DoublePrimary{}, NewStructList())
+	if len(results) != 1 {
+		t.Error("Did not get exactly 1 result back")
+	}
+	if results[0].Error.Code != PRIMARY_MISCOUNT {
+		t.Error("Did not get PRIMARY_MISCOUNT back")
+	}
+	fmt.Println(results)
 }

@@ -13,6 +13,8 @@ type ErrorCode int
 const (
 	NOMINAL_MISMATCH ErrorCode = iota
 	TAG_ERROR
+	NOMINAL_MISCOUNT
+	PRIMARY_MISCOUNT
 )
 
 type ValidationError struct {
@@ -30,18 +32,22 @@ type Result struct {
 }
 
 func ValidateType(record interface{}, list StructList) []Result {
-	//fieldChecks := make([]func(f goflect.Info) []error, 0)
-	fieldChecks := []func(f goflect.Info) []error{
-		Nominal,
-	}
-
 	typ := reflect.TypeOf(record)
 	// if a pointer to a struct is passed, get the type of the dereferenced object
 	if typ.Kind() == reflect.Ptr {
 		typ = typ.Elem()
 	}
 
-	recordChecks := make([]func(f []goflect.Info) []error, 0)
+	//fieldChecks := make([]func(f goflect.Info) []error, 0)
+	fieldChecks := []func(f goflect.Info) []error{
+		Nominal,
+	}
+
+	//recordChecks := make([]func(f []goflect.Info) []error, 0)
+	recordChecks := []func(f []goflect.Info) []error{
+		NominalOnce,
+		PrimaryOnce,
+	}
 
 	output := make([]Result, 0)
 	fields := goflect.GetInfo(record)
@@ -75,6 +81,49 @@ func ValidateType(record interface{}, list StructList) []Result {
 	return output
 }
 
+/*
+This test ensures that there is only one field marked nominal for a given type
+*/
+func NominalOnce(fields []goflect.Info) []error {
+	nominalFields := make([]string, 0)
+	for _, field := range fields {
+		if field.IsNominal {
+			nominalFields = append(nominalFields, field.Name)
+		}
+	}
+	errors := make([]error, 0)
+	if len(nominalFields) > 1 {
+		errors = append(errors, ValidationError{
+			Code:    NOMINAL_MISCOUNT,
+			Message: fmt.Sprintf("There can be only one nominal field, but the following are marked, %v", nominalFields),
+		})
+	}
+	return errors
+}
+
+/*
+This test ensures that there is only one field marked primary for a given type
+*/
+func PrimaryOnce(fields []goflect.Info) []error {
+	primaryFields := make([]string, 0)
+	for _, field := range fields {
+		if field.IsPrimary {
+			primaryFields = append(primaryFields, field.Name)
+		}
+	}
+	errors := make([]error, 0)
+	if len(primaryFields) > 1 {
+		errors = append(errors, ValidationError{
+			Code:    PRIMARY_MISCOUNT,
+			Message: fmt.Sprintf("There can be only one primary field, but the following are marked, %v", primaryFields),
+		})
+	}
+	return errors
+}
+
+/*
+This checks the conditions around a nominal field.  The requirements are that the nominal field is type string, and that the nominal field is unique
+*/
 func Nominal(f goflect.Info) []error {
 	errors := make([]error, 0)
 	if f.IsNominal && f.Kind != reflect.String {
@@ -92,6 +141,9 @@ func Nominal(f goflect.Info) []error {
 	return errors
 }
 
+/*
+This checks the syntax of the contents of the struct tag, so that the reflection engine works properly.  It will ensure that each tag is unique, the tag can be parsed, and that the tag is followed by a quoted string
+*/
 func StructTag(message string) []error {
 	whitespace, _ := regexp.Compile("^[\\s,]+")
 	symbol, _ := regexp.Compile("^[a-zA-Z_]\\w*")
