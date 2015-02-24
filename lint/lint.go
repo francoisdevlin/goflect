@@ -327,5 +327,5 @@ func FormatStructTag(pos token.Position, input string) (string, []error) {
 	for name, value := range tagKeys {
 		appendTag(name, value)
 	}
-	return strings.Join(entries, "\n"+strings.Repeat("\t", cols)), nil
+	return strings.Join(entries, "\n"+strings.Repeat("\t", cols)), errors
 }
