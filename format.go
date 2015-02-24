@@ -49,7 +49,11 @@ func (v *StructCandidateVisitor) Visit(node ast.Node) (w ast.Visitor) {
 }
 
 func main() {
-	rest := os.Args[2:]
+	if len(os.Args) < 2 {
+		fmt.Println("Not enough arguments")
+		os.Exit(1)
+	}
+	rest := os.Args[1:]
 	for _, filename := range rest {
 		if _, err := os.Stat(filename); os.IsNotExist(err) {
 			fmt.Printf("No such file or directory: %s\n", filename)
