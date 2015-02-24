@@ -1,7 +1,7 @@
 package goflect
 
 import (
-	//"fmt"
+	"fmt"
 	"testing"
 )
 
@@ -31,4 +31,53 @@ func TestNominalValidator(t *testing.T) {
 	if results[0].Error.Code != NOMINAL_MISMATCH {
 		t.Error("Did not get NOMINAL_MISMATCH back")
 	}
+}
+
+func TestStructTagValidator(t *testing.T) {
+	type ForgottenQuote struct {
+		Id int `sql:primary`
+	}
+
+	results := ValidateType(&ForgottenQuote{}, NewStructList())
+	if len(results) != 1 {
+		t.Error("Did not get exactly 1 result back")
+	}
+	if results[0].Error.Code != TAG_ERROR {
+		t.Error("Did not get TAG_ERROR back")
+	}
+
+	type ExtraTag struct {
+		Id int `sql:"primary" bacon`
+	}
+	results = ValidateType(&ExtraTag{}, NewStructList())
+	if len(results) != 1 {
+		t.Error("Did not get exactly 1 result back")
+	}
+	if results[0].Error.Code != TAG_ERROR {
+		t.Error("Did not get TAG_ERROR back")
+	}
+
+	type RepeatedTag struct {
+		Id int `sql:"primary" sql:"primary"`
+	}
+	results = ValidateType(&RepeatedTag{}, NewStructList())
+	if len(results) != 1 {
+		t.Error("Did not get exactly 1 result back")
+	}
+	if results[0].Error.Code != TAG_ERROR {
+		t.Error("Did not get TAG_ERROR back")
+	}
+
+	type ExtraSpace struct {
+		Id int `sql: "primary"`
+	}
+	results = ValidateType(&ExtraSpace{}, NewStructList())
+	if len(results) != 1 {
+		t.Error("Did not get exactly 1 result back")
+	}
+	if results[0].Error.Code != TAG_ERROR {
+		t.Error("Did not get TAG_ERROR back")
+	}
+	fmt.Println(results)
+
 }
