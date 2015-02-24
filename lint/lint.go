@@ -72,6 +72,7 @@ func ValidateType(record interface{}, list StructList) []Result {
 		errors := recordCheck(fields)
 		for _, err := range errors {
 			cast, _ := err.(ValidationError)
+			cast.Message += " on type " + strconv.Quote(typ.Name())
 			output = append(output, Result{Error: cast, Position: list.Position})
 		}
 	}
@@ -84,12 +85,14 @@ func ValidateType(record interface{}, list StructList) []Result {
 		errors := StructTag(string(valType.Tag))
 		for _, err := range errors {
 			cast, _ := err.(ValidationError)
+			cast.Message += " with field " + strconv.Quote(field.Name)
 			output = append(output, Result{Error: cast, Position: pos})
 		}
 		for _, fieldCheck := range fieldChecks {
 			errors := fieldCheck(field)
 			for _, err := range errors {
 				cast, _ := err.(ValidationError)
+				cast.Message += " with field " + strconv.Quote(field.Name)
 				output = append(output, Result{Error: cast, Position: pos})
 			}
 		}
@@ -224,6 +227,21 @@ func ParseStructTag(message string) (map[string]string, []error) {
 	if len(errors) > 0 {
 		return nil, errors
 	}
+	fieldLimiter := map[string]func(string) []error{
+		goflect.TAG_SQL: FlagLimiterFactory(goflect.SQL_FIELDS),
+		goflect.TAG_UI:  FlagLimiterFactory(goflect.UI_FIELDS),
+	}
+	for tag, value := range tagKeys {
+		if limiter, hit := fieldLimiter[tag]; hit {
+			for _, err := range limiter(value) {
+				if e, ok := err.(ValidationError); ok {
+					e.Message += " for tag " + strconv.Quote(tag)
+					err = e
+				}
+				errors = append(errors, err)
+			}
+		}
+	}
 	return tagKeys, errors
 }
 
@@ -244,6 +262,33 @@ func FlagOrderFactory(flags []string) func(string) string {
 			}
 		}
 		return strconv.Quote(strings.Join(output, ", "))
+
+	}
+	return orderFlags
+}
+
+func FlagLimiterFactory(flags []string) func(string) []error {
+	orderFlags := func(value string) []error {
+		errors := make([]error, 0)
+		wrapquotes, _ := regexp.Compile("(^\"|\"$)")
+		commas, _ := regexp.Compile(", *")
+		value = wrapquotes.ReplaceAllString(value, "")
+		entries := commas.Split(value, -1)
+		temp := make(map[string]int)
+		for _, flag := range flags {
+			temp[flag] = 1
+		}
+
+		for _, entry := range entries {
+			//We have a flag we shouldn't...
+			if _, hit := temp[entry]; !hit {
+				errors = append(errors, ValidationError{
+					Code:    TAG_ERROR,
+					Message: fmt.Sprintf("Flag '%v' is not allowed", entry),
+				})
+			}
+		}
+		return errors
 
 	}
 	return orderFlags
