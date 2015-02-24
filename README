@@ -2,6 +2,9 @@ This is a tool centered around using relection to perform marshalling between an
 
 This is a key addition to the wiring project, and will allow us to move forward in becoming a platofrm effortlessly
 
+Please use the godoc tool to find the documetation for this project
+
+
 Things to generate
 
 * Tools for generating type info
