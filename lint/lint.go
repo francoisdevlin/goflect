@@ -302,8 +302,8 @@ func FormatStructTag(pos token.Position, input string) (string, []error) {
 		fmt.Println(errors)
 		return "", errors
 	}
-	cols := pos.Column
-	cols = ((cols / 8) + 1)
+	cols := pos.Column - 1
+	//cols = ((cols / 8) + 1)
 	entries := make([]string, 0)
 	touchedTags := make(map[string]int)
 	fieldFormatter := map[string]func(string) string{
@@ -327,5 +327,5 @@ func FormatStructTag(pos token.Position, input string) (string, []error) {
 	for name, value := range tagKeys {
 		appendTag(name, value)
 	}
-	return strings.Join(entries, "\n"+strings.Repeat("\t", cols)), errors
+	return strings.Join(entries, "\n\t"+strings.Repeat(" ", cols)), errors
 }
