@@ -1,13 +1,16 @@
 package main
 
 import (
-	//"fmt"
+	"bytes"
+	//"bufio"
+	"fmt"
 	"git.sevone.com/sdevlin/goflect.git/lint"
 	"go/ast"
 	//"go/format"
 	"go/parser"
 	"go/printer"
 	"go/token"
+	"io/ioutil"
 	"os"
 )
 
@@ -32,9 +35,11 @@ func (v *StructCandidateVisitor) Visit(node ast.Node) (w ast.Visitor) {
 				if field.Tag != nil {
 					pos := getPos(field.Tag.ValuePos)
 					tagString := field.Tag.Value
-					newString, _ := lint.FormatStructTag(pos, tagString)
-					newString = "`" + newString + "`"
-					field.Tag = &ast.BasicLit{Kind: token.STRING, Value: newString, ValuePos: field.Tag.ValuePos}
+					newString, errors := lint.FormatStructTag(pos, tagString)
+					if len(errors) == 0 {
+						newString = "`" + newString + "`"
+						field.Tag = &ast.BasicLit{Kind: token.STRING, Value: newString, ValuePos: field.Tag.ValuePos}
+					}
 				}
 			}
 		}
@@ -44,13 +49,25 @@ func (v *StructCandidateVisitor) Visit(node ast.Node) (w ast.Visitor) {
 }
 
 func main() {
-	fset := token.NewFileSet()
-	filename := "goflect/types.go"
-	file, err := parser.ParseFile(fset, filename, nil, parser.ParseComments)
-	if err != nil {
-		// Whoops!
+	rest := os.Args[2:]
+	for _, filename := range rest {
+		if _, err := os.Stat(filename); os.IsNotExist(err) {
+			fmt.Printf("No such file or directory: %s\n", filename)
+			os.Exit(1)
+		}
 	}
-	structs := StructCandidateVisitor{fset: fset}
-	ast.Walk(&structs, file)
-	printer.Fprint(os.Stdout, fset, file)
+
+	for _, filename := range rest {
+		buffer := bytes.NewBufferString("")
+
+		fset := token.NewFileSet()
+		file, err := parser.ParseFile(fset, filename, nil, parser.ParseComments)
+		if err != nil {
+			// Whoops!
+		}
+		structs := StructCandidateVisitor{fset: fset}
+		ast.Walk(&structs, file)
+		printer.Fprint(buffer, fset, file)
+		ioutil.WriteFile(filename, buffer.Bytes(), os.ModePerm)
+	}
 }
