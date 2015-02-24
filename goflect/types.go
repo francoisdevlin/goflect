@@ -57,7 +57,7 @@ The FieldInfo struct is used to store two pieces of information about the field,
 */
 type FieldInfo struct {
 	Name string `desc:"This is the name of the field in the struct.  It is authoritative"
-			sql:"primary, not-null"`
+	             sql:"primary"`
 	Kind reflect.Kind `desc:"This is the golang kind, from the reflect pacakge.  It controls dispatch"`
 }
 
