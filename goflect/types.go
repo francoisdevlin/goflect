@@ -4,12 +4,60 @@ import (
 	"reflect"
 )
 
+const (
+	TAG_DESC    string = "desc"
+	TAG_SQL            = "sql"
+	TAG_VALID          = "valid"
+	TAG_DEFAULT        = "default"
+	TAG_ORDER          = "order"
+	TAG_UI             = "ui"
+)
+
+const (
+	SQL_PRIMARY   string = "primary"
+	SQL_AUTOINC          = "autoincrement"
+	SQL_IMMUTABLE        = "immutable"
+	SQL_UNIQUE           = "unique"
+	SQL_NULLABLE         = "not-null"
+	SQL_INDEX            = "index"
+	SQL_NOMINAL          = "nominal"
+)
+
+const (
+	UI_HIDDEN string = "hidden"
+	UI_REDACT        = "redacted"
+)
+
+var (
+	TAGS = []string{
+		TAG_DESC,
+		TAG_DEFAULT,
+		TAG_VALID,
+		TAG_SQL,
+		TAG_UI,
+		TAG_ORDER,
+	}
+	SQL_FIELDS = []string{
+		SQL_PRIMARY,
+		SQL_AUTOINC,
+		SQL_UNIQUE,
+		SQL_IMMUTABLE,
+		SQL_NOMINAL,
+		SQL_NULLABLE,
+		SQL_INDEX,
+	}
+	UI_FIELDS = []string{
+		UI_HIDDEN,
+		UI_REDACT,
+	}
+)
+
 /*
 The FieldInfo struct is used to store two pieces of information about the field, its name and Kind.
 */
 type FieldInfo struct {
-	Name string       `desc:"This is the name of the field in the struct.  It is authoritative" sql:"primary"`
-	Kind reflect.Kind `desc:"This is the golang kind, from the reflect pacakge.  It controls dispatch" fail`
+	Name string       `desc:"This is the name of the field in the struct.  It is authoritative" sql:",not-null,primary"`
+	Kind reflect.Kind `desc:"This is the golang kind, from the reflect pacakge.  It controls dispatch"`
 }
 
 type SqlInfo struct {
