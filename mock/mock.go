@@ -4,7 +4,7 @@ This is a utility for creating mock records to help with testing
 package goflect
 
 import (
-	"git.sevone.com/sdevlin/goflect.git"
+	"git.sevone.com/sdevlin/goflect.git/goflect"
 	"reflect"
 	"strconv"
 )

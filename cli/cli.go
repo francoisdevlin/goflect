@@ -5,7 +5,7 @@ package goflect
 
 import (
 	"flag"
-	"git.sevone.com/sdevlin/goflect.git"
+	"git.sevone.com/sdevlin/goflect.git/goflect"
 	"reflect"
 	"strconv"
 )
