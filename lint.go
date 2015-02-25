@@ -1,16 +1,57 @@
 package main
 
 import (
-	//"fmt"
+	"bytes"
+	"fmt"
 	"git.sevone.com/sdevlin/goflect.git/lint"
 	"go/ast"
-	//"go/format"
 	"go/parser"
 	"go/printer"
 	"go/token"
+	"io/ioutil"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"strconv"
 )
+
+const TEMPLATE = `package main
+
+import (
+	"fmt"
+	"git.sevone.com/sdevlin/goflect.git/lint"
+	"go/token"
+	"os"
+)
+
+type tuple struct {
+	Record    interface{}
+	Positions lint.StructList
+}
+
+func getTypes() []tuple {
+	output := []tuple{}
+	return output
+}
+
+func main() {
+	types := getTypes()
+
+	errors := make([]lint.Result, 0)
+	for _, typ := range types {
+		localErrors := lint.ValidateType(typ.Record, typ.Positions)
+		for _, err := range localErrors {
+			errors = append(errors, err)
+		}
+	}
+
+	for _, err := range errors {
+		fmt.Println(err.Position, err.Error.Code, err.Error.Message)
+	}
+	if len(errors) > 0 {
+		os.Exit(1)
+	}
+}`
 
 type StructCandidateVisitor struct {
 	fset *token.FileSet
@@ -73,20 +114,22 @@ func posLiteral(pos token.Position) *ast.CompositeLit {
 }
 
 func main() {
+	filename := os.Args[2]
 	fset := token.NewFileSet()
-	filename := "goflect/types.go"
 	file, err := parser.ParseFile(fset, filename, nil, 0)
 	if err != nil {
 		// Whoops!
 	}
-	importPath := "./goflect/"
+	importPath := "./" + filepath.Dir(filename)
 	targetPackage := file.Name.Name
 	structs := StructCandidateVisitor{fset: fset}
 	ast.Walk(&structs, file)
-	//fmt.Println(structs.Position, structs.Structs)
 
 	fset = token.NewFileSet()
-	file, err = parser.ParseFile(fset, "lint_template.go", nil, 0)
+	lintfile := "__lint_template.go"
+	ioutil.WriteFile(lintfile, []byte(TEMPLATE), os.ModePerm)
+	file, err = parser.ParseFile(fset, lintfile, nil, 0)
+	os.Remove(lintfile)
 	if err != nil {
 		// Whoops!
 	}
@@ -130,7 +173,6 @@ func main() {
 					Fun: &ast.Ident{Name: "append"},
 					Args: []ast.Expr{
 						&ast.Ident{Name: "output"},
-						//&ast.BasicLit{Kind: token.STRING, Value: "bacon"},
 						f(name, targetPackage),
 					},
 				},
@@ -176,5 +218,16 @@ func main() {
 
 	}
 	file.Decls = decls
-	printer.Fprint(os.Stdout, fset, file)
+	buffer := bytes.NewBufferString("")
+	printer.Fprint(buffer, fset, file)
+
+	tempFile := "abcdef__temp.go"
+	ioutil.WriteFile(tempFile, buffer.Bytes(), os.ModePerm)
+	cmd := exec.Command("/usr/local/go/bin/go", "run", tempFile)
+	out, result := cmd.Output()
+	fmt.Print(string(out))
+	os.Remove(tempFile)
+	if result != nil {
+		os.Exit(1)
+	}
 }
