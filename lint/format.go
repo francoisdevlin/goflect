@@ -9,6 +9,11 @@ import (
 	"strings"
 )
 
+/*
+This is a pretty printer for the struct tags.  This was added to assist with tracking all of the information that will be stored as metadata.  This way we can trust the standards for the order of writing fields is honored.  This will help us scale to having hundreds of types.
+
+Please see the examples for specific usage
+*/
 func FormatStructTag(pos token.Position, input string) (string, []error) {
 	backquotes, _ := regexp.Compile("(^`|`$)")
 	input = backquotes.ReplaceAllString(input, "")
@@ -21,8 +26,8 @@ func FormatStructTag(pos token.Position, input string) (string, []error) {
 	entries := make([]string, 0)
 	touchedTags := make(map[string]int)
 	fieldFormatter := map[string]func(string) string{
-		goflect.TAG_SQL: FlagOrderFactory(goflect.SQL_FIELDS),
-		goflect.TAG_UI:  FlagOrderFactory(goflect.UI_FIELDS),
+		goflect.TAG_SQL: flagOrderFactory(goflect.SQL_FIELDS),
+		goflect.TAG_UI:  flagOrderFactory(goflect.UI_FIELDS),
 	}
 	appendTag := func(name, value string) {
 		if _, hit := touchedTags[name]; !hit {
@@ -48,7 +53,7 @@ func FormatStructTag(pos token.Position, input string) (string, []error) {
 	return strings.Join(entries, seperator), errors
 }
 
-func FlagOrderFactory(flags []string) func(string) string {
+func flagOrderFactory(flags []string) func(string) string {
 	orderFlags := func(value string) string {
 		wrapquotes, _ := regexp.Compile("(^\"|\"$)")
 		commas, _ := regexp.Compile(", *")

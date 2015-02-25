@@ -242,8 +242,8 @@ func ParseStructTag(message string) (map[string]string, []error) {
 		return nil, errors
 	}
 	fieldLimiter := map[string]func(string) []error{
-		goflect.TAG_SQL: FlagLimiterFactory(goflect.SQL_FIELDS),
-		goflect.TAG_UI:  FlagLimiterFactory(goflect.UI_FIELDS),
+		goflect.TAG_SQL: flagLimiterFactory(goflect.SQL_FIELDS),
+		goflect.TAG_UI:  flagLimiterFactory(goflect.UI_FIELDS),
 	}
 	for tag, value := range tagKeys {
 		if limiter, hit := fieldLimiter[tag]; hit {
@@ -259,7 +259,7 @@ func ParseStructTag(message string) (map[string]string, []error) {
 	return tagKeys, errors
 }
 
-func FlagLimiterFactory(flags []string) func(string) []error {
+func flagLimiterFactory(flags []string) func(string) []error {
 	orderFlags := func(value string) []error {
 		errors := make([]error, 0)
 		wrapquotes, _ := regexp.Compile("(^\"|\"$)")
