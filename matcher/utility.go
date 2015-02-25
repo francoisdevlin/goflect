@@ -1,4 +1,4 @@
-package goflect
+package matcher
 
 type AnyMatch int
 type NoneMatch int

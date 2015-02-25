@@ -1,4 +1,4 @@
-package goflect
+package matcher
 
 import (
 	"testing"

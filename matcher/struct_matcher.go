@@ -7,7 +7,7 @@ The plan is to use matcher objects to define projections in the product.  This c
     A way of providing a filtering mechanism for user interaction
     A consistent rules API mechanism
 */
-package goflect
+package matcher
 
 import (
 	//"fmt"
