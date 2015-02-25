@@ -114,7 +114,7 @@ func posLiteral(pos token.Position) *ast.CompositeLit {
 }
 
 func main() {
-	filename := os.Args[2]
+	filename := os.Args[1]
 	fset := token.NewFileSet()
 	file, err := parser.ParseFile(fset, filename, nil, 0)
 	if err != nil {

@@ -3,7 +3,6 @@ package lint
 import (
 	"fmt"
 	"git.sevone.com/sdevlin/goflect.git/goflect"
-	"go/token"
 	"reflect"
 	"regexp"
 	"strconv"
