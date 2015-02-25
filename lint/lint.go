@@ -7,28 +7,42 @@ import (
 	"reflect"
 	"regexp"
 	"strconv"
-	"strings"
 )
 
 type ErrorCode int
 
 const (
 	NOMINAL_MISMATCH ErrorCode = iota
+	PRIMARY_MISMATCH
 	TAG_ERROR
 	NOMINAL_MISCOUNT
 	PRIMARY_MISCOUNT
+	AUTOINC_ERROR
+	UNIQUE_ERROR
+	BAD_DEFAULT
+	VALIDATOR_PARSE_ERROR
 )
 
 func (c ErrorCode) String() string {
 	switch c {
 	case NOMINAL_MISMATCH:
 		return "NOMINAL_MISMATCH"
+	case PRIMARY_MISMATCH:
+		return "PRIMARY_MISMATCH"
 	case TAG_ERROR:
 		return "TAG_PARSE_ERROR"
 	case NOMINAL_MISCOUNT:
 		return "NOMINAL_MISCOUNT"
 	case PRIMARY_MISCOUNT:
 		return "PRIMARY_MISCOUNT"
+	case AUTOINC_ERROR:
+		return "AUTOINC_ERROR"
+	case UNIQUE_ERROR:
+		return "UNIQUE_ERROR"
+	case BAD_DEFAULT:
+		return "BAD_DEFAULT_VALUE"
+	case VALIDATOR_PARSE_ERROR:
+		return "VALIDATOR_PARSE_ERROR"
 	}
 	return ""
 }
@@ -245,28 +259,6 @@ func ParseStructTag(message string) (map[string]string, []error) {
 	return tagKeys, errors
 }
 
-func FlagOrderFactory(flags []string) func(string) string {
-	orderFlags := func(value string) string {
-		wrapquotes, _ := regexp.Compile("(^\"|\"$)")
-		commas, _ := regexp.Compile(", *")
-		value = wrapquotes.ReplaceAllString(value, "")
-		entries := commas.Split(value, -1)
-		temp := make(map[string]int)
-		for _, entry := range entries {
-			temp[entry] = 1
-		}
-		output := make([]string, 0)
-		for _, flag := range flags {
-			if _, hit := temp[flag]; hit {
-				output = append(output, flag)
-			}
-		}
-		return strconv.Quote(strings.Join(output, ", "))
-
-	}
-	return orderFlags
-}
-
 func FlagLimiterFactory(flags []string) func(string) []error {
 	orderFlags := func(value string) []error {
 		errors := make([]error, 0)
@@ -292,40 +284,4 @@ func FlagLimiterFactory(flags []string) func(string) []error {
 
 	}
 	return orderFlags
-}
-
-func FormatStructTag(pos token.Position, input string) (string, []error) {
-	backquotes, _ := regexp.Compile("(^`|`$)")
-	input = backquotes.ReplaceAllString(input, "")
-	tagKeys, errors := ParseStructTag(input)
-	if len(errors) > 0 {
-		fmt.Println(errors)
-		return "", errors
-	}
-	cols := pos.Column - 1
-	//cols = ((cols / 8) + 1)
-	entries := make([]string, 0)
-	touchedTags := make(map[string]int)
-	fieldFormatter := map[string]func(string) string{
-		goflect.TAG_SQL: FlagOrderFactory(goflect.SQL_FIELDS),
-		goflect.TAG_UI:  FlagOrderFactory(goflect.UI_FIELDS),
-	}
-	appendTag := func(name, value string) {
-		if _, hit := touchedTags[name]; !hit {
-			if value != "" {
-				if formatter, fieldHit := fieldFormatter[name]; fieldHit {
-					value = formatter(value)
-				}
-				entries = append(entries, name+":"+value)
-			}
-			touchedTags[name] = 1
-		}
-	}
-	for _, name := range goflect.TAGS {
-		appendTag(name, tagKeys[name])
-	}
-	for name, value := range tagKeys {
-		appendTag(name, value)
-	}
-	return strings.Join(entries, "\n\t"+strings.Repeat(" ", cols)), errors
 }
