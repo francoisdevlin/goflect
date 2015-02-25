@@ -1,7 +1,7 @@
 package lint
 
 import (
-	//"fmt"
+	"fmt"
 	"testing"
 )
 
@@ -31,6 +31,50 @@ func TestNominalValidator(t *testing.T) {
 	if results[0].Error.Code != NOMINAL_MISMATCH {
 		t.Error("Did not get NOMINAL_MISMATCH back")
 	}
+}
+
+/*
+This demonstrates some of the requirements around the nominal keyword.  The nominal field must be type string.  It must be with something that is able to unique.  The type must have a primary key, and there can only be one nominal field for a given type.  A string primary key may also be nominal.
+*/
+func ExampleValidateType_nominalConstraints() {
+	type NominalIntMisconfigure struct {
+		Id   int `sql:"primary"`
+		Name int `sql:"nominal,unique"`
+	}
+
+	results := ValidateType(&NominalIntMisconfigure{}, NewStructList())
+	fmt.Println(results[0].Error.Code, results[0].Error.Message)
+
+	type NominalUniqueMisconfigure struct {
+		Id   int    `sql:"primary"`
+		Name string `sql:"nominal"`
+	}
+
+	results = ValidateType(&NominalUniqueMisconfigure{}, NewStructList())
+	fmt.Println(results[0].Error.Code, results[0].Error.Message)
+
+	type NominalRepeatedMisconfigure struct {
+		Id    int    `sql:"primary"`
+		Name  string `sql:"nominal,unique"`
+		Value string `sql:"nominal,unique"`
+	}
+
+	results = ValidateType(&NominalRepeatedMisconfigure{}, NewStructList())
+	fmt.Println(results[0].Error.Code, results[0].Error.Message)
+
+	type NominalMissingPrimary struct {
+		Id   int
+		Name string `sql:"nominal,unique"`
+	}
+
+	results = ValidateType(&NominalMissingPrimary{}, NewStructList())
+	fmt.Println(results[0].Error.Code, results[0].Error.Message)
+	//Output:
+	//NOMINAL_MISMATCH Field Name is marked nominal, but is kind int with field "Name"
+	//NOMINAL_MISMATCH Field Name is marked nominal, but is not unique with field "Name"
+	//NOMINAL_MISCOUNT There can be only one nominal field, but the following are marked, [Name Value] on type "NominalRepeatedMisconfigure"
+	//NOMINAL_MISMATCH There is a nominal field without a primary key on type "NominalMissingPrimary"
+
 }
 
 func TestStructTagValidator(t *testing.T) {
@@ -108,8 +152,9 @@ func TestPrimaryOnceValidator(t *testing.T) {
 
 func TestNominalOnceValidator(t *testing.T) {
 	type DoubleNominal struct {
-		A string `sql:"nominal,unique"`
-		B string `sql:"nominal,unique"`
+		Id int    `sql:"primary"`
+		A  string `sql:"nominal,unique"`
+		B  string `sql:"nominal,unique"`
 	}
 
 	results := ValidateType(&DoubleNominal{}, NewStructList())

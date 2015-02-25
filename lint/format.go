@@ -17,7 +17,7 @@ Please see the examples for specific usage
 func FormatStructTag(pos token.Position, input string) (string, []error) {
 	backquotes, _ := regexp.Compile("(^`|`$)")
 	input = backquotes.ReplaceAllString(input, "")
-	tagKeys, errors := ParseStructTag(input)
+	tagKeys, errors := parseStructTag(input)
 	if len(errors) > 0 {
 		fmt.Println(errors)
 		return "", errors

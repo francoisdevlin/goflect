@@ -61,6 +61,9 @@ type Result struct {
 	Position token.Position
 }
 
+/*
+This is the function that is called by the linter binary, and delegate the work approrpiately.
+*/
 func ValidateType(record interface{}, list StructList) []Result {
 	typ := reflect.TypeOf(record)
 	// if a pointer to a struct is passed, get the type of the dereferenced object
@@ -68,15 +71,14 @@ func ValidateType(record interface{}, list StructList) []Result {
 		typ = typ.Elem()
 	}
 
-	//fieldChecks := make([]func(f goflect.Info) []error, 0)
 	fieldChecks := []func(f goflect.Info) []error{
-		Nominal,
+		nominal,
 	}
 
-	//recordChecks := make([]func(f []goflect.Info) []error, 0)
 	recordChecks := []func(f []goflect.Info) []error{
-		NominalOnce,
-		PrimaryOnce,
+		nominalOnce,
+		nominalRequiresPrimary,
+		primaryOnce,
 	}
 
 	output := make([]Result, 0)
@@ -96,7 +98,7 @@ func ValidateType(record interface{}, list StructList) []Result {
 			pos = fieldStruct.Position
 		}
 		valType, _ := typ.FieldByName(field.Name)
-		errors := StructTag(string(valType.Tag))
+		errors := structTag(string(valType.Tag))
 		for _, err := range errors {
 			cast, _ := err.(ValidationError)
 			cast.Message += " with field " + strconv.Quote(field.Name)
@@ -117,7 +119,7 @@ func ValidateType(record interface{}, list StructList) []Result {
 /*
 This test ensures that there is only one field marked nominal for a given type
 */
-func NominalOnce(fields []goflect.Info) []error {
+func nominalOnce(fields []goflect.Info) []error {
 	nominalFields := make([]string, 0)
 	for _, field := range fields {
 		if field.IsNominal {
@@ -135,9 +137,29 @@ func NominalOnce(fields []goflect.Info) []error {
 }
 
 /*
+This test ensures that there is only one field marked nominal for a given type
+*/
+func nominalRequiresPrimary(fields []goflect.Info) []error {
+	nominalFound, primaryFound := false, false
+	for _, field := range fields {
+		nominalFound = nominalFound || field.IsNominal
+		primaryFound = primaryFound || field.IsPrimary
+	}
+
+	errors := make([]error, 0)
+	if nominalFound && !primaryFound {
+		errors = append(errors, ValidationError{
+			Code:    NOMINAL_MISMATCH,
+			Message: fmt.Sprintf("There is a nominal field without a primary key"),
+		})
+	}
+	return errors
+}
+
+/*
 This test ensures that there is only one field marked primary for a given type
 */
-func PrimaryOnce(fields []goflect.Info) []error {
+func primaryOnce(fields []goflect.Info) []error {
 	primaryFields := make([]string, 0)
 	for _, field := range fields {
 		if field.IsPrimary {
@@ -157,7 +179,7 @@ func PrimaryOnce(fields []goflect.Info) []error {
 /*
 This checks the conditions around a nominal field.  The requirements are that the nominal field is type string, and that the nominal field is unique
 */
-func Nominal(f goflect.Info) []error {
+func nominal(f goflect.Info) []error {
 	errors := make([]error, 0)
 	if f.IsNominal && f.Kind != reflect.String {
 		errors = append(errors, ValidationError{
@@ -177,12 +199,12 @@ func Nominal(f goflect.Info) []error {
 /*
 This checks the syntax of the contents of the struct tag, so that the reflection engine works properly.  It will ensure that each tag is unique, the tag can be parsed, and that the tag is followed by a quoted string
 */
-func StructTag(message string) []error {
-	_, output := ParseStructTag(message)
+func structTag(message string) []error {
+	_, output := parseStructTag(message)
 	return output
 }
 
-func ParseStructTag(message string) (map[string]string, []error) {
+func parseStructTag(message string) (map[string]string, []error) {
 	whitespace, _ := regexp.Compile("^[\\s,]+")
 	symbol, _ := regexp.Compile("^[a-zA-Z_]\\w*")
 	operators, _ := regexp.Compile("^:\"")
