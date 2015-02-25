@@ -54,9 +54,9 @@ func ExampleDefaultPrinter_Print_struct() {
 	fmt.Println(result)
 
 	//Output:
-	//(A = 1) AND (B = 2)
-	//(A >= 1 AND A <= 10) AND (B = 2)
-	//(A = B)
+	//A = 1 AND B = 2
+	//A >= 1 AND A <= 10 AND B = 2
+	//A = B
 }
 
 func TestDefaultPrinterFields(t *testing.T) {
@@ -100,10 +100,10 @@ func TestDefaultPrinterFields(t *testing.T) {
 	m := StructMatcher{}
 	m.AddField("A", Eq(1))
 	m.AddField("B", Eq(0))
-	assertMatch("(A = 1) AND (B = 0)", m)
+	assertMatch("A = 1 AND B = 0", m)
 	m = StructMatcher{}
 	m.AddField("A", Eq(Literal("B")))
-	assertMatch("(A = B)", m)
+	assertMatch("A = B", m)
 }
 
 func TestSqlitePrinterFields(t *testing.T) {
@@ -156,9 +156,16 @@ func TestSqlitePrinterFields(t *testing.T) {
 	m := StructMatcher{}
 	m.AddField("A", Eq(1))
 	m.AddField("B", Eq(0))
-	assertMatch("(A = 1) AND (B = 0)", m)
+	assertMatch("A = 1 AND B = 0", m)
 
 	m = StructMatcher{}
 	m.AddField("A", Eq(Literal("B")))
-	assertMatch("(A = B)", m)
+	assertMatch("A = B", m)
+}
+
+func ExampleSqlitePrinter_Print_hello() {
+	//m := StructMatcher{}
+	//m.AddField("A", Eq(1))
+	//m.AddField("B", Eq(0))
+	//assertMatch("(A = 1) AND (B = 0)", m)
 }

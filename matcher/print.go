@@ -88,7 +88,16 @@ func printStruct(factory func(name string) Printer, r StructMatcher) (string, er
 		if err != nil {
 			return "", err
 		}
-		result = "(" + result + ")"
+		needsParens := false
+		switch temp := matcher.(type) {
+		case OrMatch:
+			needsParens = true
+		default:
+			temp = temp
+		}
+		if needsParens {
+			result = "(" + result + ")"
+		}
 		output = append(output, result)
 	}
 	return strings.Join(output, " AND "), nil
