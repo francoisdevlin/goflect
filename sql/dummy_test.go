@@ -7,12 +7,12 @@ import (
 )
 
 func TestDummyService(t *testing.T) {
-	dummy := DummyService{}
+	dummy := dummyService{}
 	dummy.Insert(&dummy)
 	dummy.ReadAll(&dummy)
 	dummy.Update(&dummy)
 	dummy.Delete(&dummy)
-	if (dummy != DummyService{Inserts: 1, Updates: 1, Reads: 1, Deletes: 1}) {
+	if (dummy != dummyService{Inserts: 1, Updates: 1, Reads: 1, Deletes: 1}) {
 		t.Errorf("The dummy is not the expected value, it is: %v", dummy)
 	}
 }
@@ -20,14 +20,14 @@ func TestDummyService(t *testing.T) {
 /*
 This shows how to use the a service to resetrict behavior
 */
-func ExampleDummyService_basic() {
+func ExampleRecordService_basicRestrict() {
 	match := matcher.StructMatcher{}
 	match.AddField("Inserts", matcher.Gte(1))
 
-	dummy := DummyService{}
+	dummy := NewDummyService()
 	service, _ := dummy.Restrict(match)
 	//Inserts are blocked
-	err := service.Insert(DummyService{})
+	err := service.Insert(dummyService{})
 	fmt.Println(err)
 	//Output:
 	//Could not insert record, does not match

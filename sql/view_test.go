@@ -9,29 +9,29 @@ func TestView(t *testing.T) {
 	match := matcher.StructMatcher{}
 	match.AddField("Inserts", matcher.Gte(1))
 
-	dummy := DummyService{}
+	dummy := dummyService{}
 	service, _ := dummy.Restrict(match)
 	//Inserts are blocked
-	service.Insert(DummyService{})
-	if (dummy != DummyService{}) {
+	service.Insert(dummyService{})
+	if (dummy != dummyService{}) {
 		t.Errorf("The dummy is not the expected value, it is: %v", dummy)
 	}
 
 	//Updates are blocked
-	service.Update(DummyService{})
-	if (dummy != DummyService{}) {
+	service.Update(dummyService{})
+	if (dummy != dummyService{}) {
 		t.Errorf("The dummy is not the expected value, it is: %v", dummy)
 	}
 
 	//Deletes are blocked
-	service.Delete(DummyService{})
-	if (dummy != DummyService{}) {
+	service.Delete(dummyService{})
+	if (dummy != dummyService{}) {
 		t.Errorf("The dummy is not the expected value, it is: %v", dummy)
 	}
 
 	//The service methods work properly when the record meets the conditions
-	oneInsert := DummyService{Inserts: 1}
-	oneAll := DummyService{Inserts: 1, Updates: 1, Reads: 1, Deletes: 1}
+	oneInsert := dummyService{Inserts: 1}
+	oneAll := dummyService{Inserts: 1, Updates: 1, Reads: 1, Deletes: 1}
 	service.Insert(oneInsert)
 	service.ReadAll(oneInsert)
 	service.Update(oneInsert)
@@ -66,7 +66,7 @@ func TestView(t *testing.T) {
 	service.ReadAll(oneAll)
 	service.Update(oneAll)
 	service.Delete(oneAll)
-	if (dummy != DummyService{Inserts: 2, Updates: 2, Reads: 2, Deletes: 2}) {
+	if (dummy != dummyService{Inserts: 2, Updates: 2, Reads: 2, Deletes: 2}) {
 		t.Errorf("The dummy is not the expected value, it is: %v", dummy)
 	}
 
