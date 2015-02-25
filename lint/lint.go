@@ -9,6 +9,9 @@ import (
 	"strconv"
 )
 
+/*
+This is the set of local error codes
+*/
 type ErrorCode int
 
 const (
@@ -47,6 +50,9 @@ func (c ErrorCode) String() string {
 	return ""
 }
 
+/*
+This is the local error type
+*/
 type ValidationError struct {
 	Code    ErrorCode
 	Message string
@@ -54,11 +60,6 @@ type ValidationError struct {
 
 func (v ValidationError) Error() string {
 	return v.Message
-}
-
-type Result struct {
-	Error    ValidationError
-	Position token.Position
 }
 
 /*
