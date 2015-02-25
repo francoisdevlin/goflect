@@ -31,15 +31,15 @@ This is used to generate a SqlInfo field using reflection.  There is a struct ta
 
 */
 func (field ReflectValue) GetFieldSqlInfo() (output SqlInfo) {
-	tags := field.Tag.Get("sql")
+	tags := field.Tag.Get(TAG_SQL)
 
-	output.IsPrimary = strings.Contains(tags, "primary")
-	output.IsAutoincrement = strings.Contains(tags, "autoincrement")
-	output.IsImmutable = strings.Contains(tags, "immutable") || output.IsAutoincrement
-	output.IsUnique = strings.Contains(tags, "unique") || strings.Contains(tags, "primary")
-	output.IsNullable = !(strings.Contains(tags, "not-null") || output.IsUnique)
-	output.IsIndexed = strings.Contains(tags, "index") || output.IsUnique
-	output.IsNominal = strings.Contains(tags, "nominal")
+	output.IsPrimary = strings.Contains(tags, SQL_PRIMARY)
+	output.IsAutoincrement = strings.Contains(tags, SQL_AUTOINC)
+	output.IsImmutable = strings.Contains(tags, SQL_IMMUTABLE) || output.IsAutoincrement
+	output.IsUnique = strings.Contains(tags, SQL_UNIQUE) || output.IsPrimary
+	output.IsNullable = !(strings.Contains(tags, SQL_NULLABLE) || output.IsUnique)
+	output.IsIndexed = strings.Contains(tags, SQL_INDEX) || output.IsUnique
+	output.IsNominal = strings.Contains(tags, SQL_NOMINAL)
 
 	return output
 }
