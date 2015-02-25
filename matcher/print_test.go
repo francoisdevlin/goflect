@@ -163,9 +163,20 @@ func TestSqlitePrinterFields(t *testing.T) {
 	assertMatch("A = B", m)
 }
 
+/*
+This demonstrates a very basic example of using a struct matcher to write an SQL where clause
+*/
 func ExampleSqlitePrinter_Print_hello() {
-	//m := StructMatcher{}
-	//m.AddField("A", Eq(1))
-	//m.AddField("B", Eq(0))
-	//assertMatch("(A = 1) AND (B = 0)", m)
+	printMatcher := func(matcher Matcher) {
+		printer := SqlitePrinter{}
+		result, _ := printer.Print(matcher)
+		fmt.Println(result)
+	}
+	m := StructMatcher{}
+	m.AddField("A", Eq(1))
+	m.AddField("B", Eq(0))
+
+	printMatcher(m)
+	//Output:
+	//A = 1 AND B = 0
 }

@@ -181,7 +181,7 @@ func (p DefaultPrinter) Print(m Matcher) (string, error) {
 }
 
 /*
-This prints a human readable representation of the matcher.  It is
+This prints a human readable representation of the matcher.  It is specifically tweaks to provide a vlaid where clause for SQLite
 */
 func (p SqlitePrinter) Print(m Matcher) (string, error) {
 	switch r := m.(type) {
