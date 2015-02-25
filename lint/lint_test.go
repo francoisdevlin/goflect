@@ -135,6 +135,41 @@ func TestStructTagValidator(t *testing.T) {
 	}
 }
 
+/*
+These are a collection of examples showing various struct tags that don't parse properly
+*/
+func ExampleValidateType_parseErrors() {
+	type ForgottenQuote struct {
+		Id int `sql:primary`
+	}
+
+	results := ValidateType(&ForgottenQuote{}, NewStructList())
+	fmt.Println(results[0].Error.Code, results[0].Error.Message)
+
+	type ExtraTag struct {
+		Id int `sql:"primary" bacon`
+	}
+	results = ValidateType(&ExtraTag{}, NewStructList())
+	fmt.Println(results[0].Error.Code, results[0].Error.Message)
+
+	type RepeatedTag struct {
+		Id int `sql:"primary" sql:"primary"`
+	}
+	results = ValidateType(&RepeatedTag{}, NewStructList())
+	fmt.Println(results[0].Error.Code, results[0].Error.Message)
+
+	type NonExistantFlag struct {
+		Id int `sql:"primary,bacon"`
+	}
+	results = ValidateType(&NonExistantFlag{}, NewStructList())
+	fmt.Println(results[0].Error.Code, results[0].Error.Message)
+	//Output:
+	//TAG_PARSE_ERROR :primary with field "Id"
+	//TAG_PARSE_ERROR There are the wrong number of tokens present with field "Id"
+	//TAG_PARSE_ERROR Key sql has been repeated with field "Id"
+	//TAG_PARSE_ERROR Flag 'bacon' is not allowed for tag "sql" with field "Id"
+}
+
 func TestPrimaryOnceValidator(t *testing.T) {
 	type DoublePrimary struct {
 		A string `sql:"primary"`
@@ -148,6 +183,40 @@ func TestPrimaryOnceValidator(t *testing.T) {
 	if results[0].Error.Code != PRIMARY_MISCOUNT {
 		t.Error("Did not get PRIMARY_MISCOUNT back")
 	}
+}
+
+/*
+This demonstrates the constraints around a primary key. It must be a type that can be unique (not float, bool or byte[]), and there can only be one for a given type
+*/
+func ExampleValidateType_primaryConstraints() {
+	printErrors := func(args ...interface{}) {
+		for _, arg := range args {
+			results := ValidateType(arg, NewStructList())
+			for _, err := range results {
+				fmt.Println(err.Error.Code, err.Error.Message)
+			}
+		}
+	}
+
+	type RepeatedPrimary struct {
+		Id    int `sql:"primary"`
+		Value int `sql:"primary"`
+	}
+	type BooleanPrimary struct {
+		Id bool `sql:"primary"`
+	}
+	type FloatPrimary struct {
+		Id float64 `sql:"primary"`
+	}
+	printErrors(
+		&RepeatedPrimary{},
+		&BooleanPrimary{},
+		&FloatPrimary{},
+	)
+	//Output:
+	//PRIMARY_MISCOUNT There can be only one primary field, but the following are marked, [Id Value] on type "RepeatedPrimary"
+	//PRIMARY_MISMATCH Field Id is marked unique, but is kind bool with field "Id"
+	//PRIMARY_MISMATCH Field Id is marked unique, but is kind float64 with field "Id"
 }
 
 func TestNominalOnceValidator(t *testing.T) {
@@ -164,6 +233,81 @@ func TestNominalOnceValidator(t *testing.T) {
 	if results[0].Error.Code != NOMINAL_MISCOUNT {
 		t.Error("Did not get NOMINAL_MISCOUNT back")
 	}
+}
+
+/*
+This demonstrates the constraints around an autoinc annoation.  It must be a primary key alreaady, and something int-like
+*/
+func ExampleValidateType_autoincConstraints() {
+	printErrors := func(args ...interface{}) {
+		for _, arg := range args {
+			results := ValidateType(arg, NewStructList())
+			for _, err := range results {
+				fmt.Println(err.Error.Code, err.Error.Message)
+			}
+		}
+	}
+
+	type NoPrimary struct {
+		Id string `sql:"autoincrement"`
+	}
+	type StringAutoinc struct {
+		Id string `sql:"primary,autoincrement"`
+	}
+	printErrors(
+		&NoPrimary{},
+		&StringAutoinc{},
+	)
+	//Output:
+	//AUTOINC_ERROR Marked autoinc, but not primary with field "Id"
+	//AUTOINC_ERROR Field is marked autoinc, but is kind string with field "Id"
+}
+
+/*
+This demonstrates errors for defaults that cannon be parsed to the appropriate kind
+*/
+func ExampleValidateType_defaultMistmatches() {
+	printErrors := func(args ...interface{}) {
+		for _, arg := range args {
+			results := ValidateType(arg, NewStructList())
+			for _, err := range results {
+				fmt.Println(err.Error.Code, err.Error.Message)
+			}
+		}
+	}
+
+	type BoolStringMismatch struct {
+		Value bool `default:"fail"`
+	}
+	type FloatStringMismatch struct {
+		Value float64 `default:"fail"`
+	}
+	type IntStringMismatch struct {
+		Value int `default:"fail"`
+	}
+	type IntFloatMismatch struct {
+		Value int `default:"10.1"`
+	}
+	type UintStringMismatch struct {
+		Value uint `default:"fail"`
+	}
+	type UintFloatMismatch struct {
+		Value uint `default:"10.1"`
+	}
+	type UintIntMismatch struct {
+		Value uint `default:"-1"`
+	}
+	printErrors(
+		&BoolStringMismatch{},
+		&FloatStringMismatch{},
+		&IntStringMismatch{},
+		&IntFloatMismatch{},
+		&UintStringMismatch{},
+		&UintFloatMismatch{},
+		&UintIntMismatch{},
+	)
+	//Output:
+	//Bacon
 }
 
 func TestErrorCodeSerialization(t *testing.T) {

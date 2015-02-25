@@ -62,7 +62,7 @@ type Result struct {
 }
 
 /*
-This is the function that is called by the linter binary, and delegate the work approrpiately.
+This is the function that is called by the linter binary, and delegate the work approrpiately.  Please read the examples to see the constraints on specific items
 */
 func ValidateType(record interface{}, list StructList) []Result {
 	typ := reflect.TypeOf(record)
@@ -73,6 +73,9 @@ func ValidateType(record interface{}, list StructList) []Result {
 
 	fieldChecks := []func(f goflect.Info) []error{
 		nominal,
+		uniqueType,
+		autoinc,
+		checkDefault,
 	}
 
 	recordChecks := []func(f []goflect.Info) []error{
@@ -191,6 +194,125 @@ func nominal(f goflect.Info) []error {
 		errors = append(errors, ValidationError{
 			Code:    NOMINAL_MISMATCH,
 			Message: fmt.Sprintf("Field %v is marked nominal, but is not unique", f.Name),
+		})
+	}
+	return errors
+}
+
+/*
+This checks the conditions around a unique field.  The requirements are that a unique field must be either an integer or string type.
+*/
+func uniqueType(f goflect.Info) []error {
+	errors := make([]error, 0)
+	if !f.IsUnique {
+		return errors
+	}
+	switch f.Kind {
+	case reflect.String,
+		reflect.Int,
+		reflect.Int64,
+		reflect.Int32,
+		reflect.Int16,
+		reflect.Int8,
+		reflect.Uint,
+		reflect.Uint64,
+		reflect.Uint32,
+		reflect.Uint16,
+		reflect.Uint8:
+		return errors
+	}
+	errors = append(errors, ValidationError{
+		Code:    PRIMARY_MISMATCH,
+		Message: fmt.Sprintf("Field %v is marked unique, but is kind %v", f.Name, f.Kind),
+	})
+	return errors
+}
+
+/*
+This checks the requirements around an autoincremented field.  It must be int-like and have a primary key
+*/
+func autoinc(f goflect.Info) []error {
+	errors := make([]error, 0)
+	if !f.IsAutoincrement {
+		return errors
+	}
+	if !f.IsPrimary {
+		errors = append(errors, ValidationError{
+			Code:    AUTOINC_ERROR,
+			Message: fmt.Sprintf("Marked autoinc, but not primary"),
+		})
+		return errors
+	}
+	switch f.Kind {
+	case reflect.Int,
+		reflect.Int64,
+		reflect.Int32,
+		reflect.Int16,
+		reflect.Int8,
+		reflect.Uint,
+		reflect.Uint64,
+		reflect.Uint32,
+		reflect.Uint16,
+		reflect.Uint8:
+		return errors
+	}
+	errors = append(errors, ValidationError{
+		Code:    AUTOINC_ERROR,
+		Message: fmt.Sprintf("Field is marked autoinc, but is kind %v", f.Kind),
+	})
+	return errors
+}
+
+/*
+This checks the default value, and ensures that is can be parsed by the appropriate type.  The empty string is always valid.  Anything with kind string is also valid.
+
+Note:  There is a seperate check that will parse any matching constraints, and apply them to the defaults
+*/
+func checkDefault(f goflect.Info) []error {
+	errors := make([]error, 0)
+	if f.Default == "" {
+		return errors
+	}
+	var err error = nil
+	switch f.Kind {
+	case reflect.String:
+		return errors
+	case reflect.Float64:
+		_, err = strconv.ParseFloat(f.Default, 64)
+	case reflect.Float32:
+		_, err = strconv.ParseFloat(f.Default, 32)
+	case reflect.Bool:
+		_, err = strconv.ParseBool(f.Default)
+	case reflect.Int:
+		_, err = strconv.ParseInt(f.Default, 10, 64)
+	case reflect.Int64:
+		_, err = strconv.ParseInt(f.Default, 10, 64)
+	case reflect.Int32:
+		_, err = strconv.ParseInt(f.Default, 10, 32)
+	case reflect.Int16:
+		_, err = strconv.ParseInt(f.Default, 10, 16)
+	case reflect.Int8:
+		_, err = strconv.ParseInt(f.Default, 10, 8)
+	case reflect.Uint:
+		_, err = strconv.ParseUint(f.Default, 10, 64)
+	case reflect.Uint64:
+		_, err = strconv.ParseUint(f.Default, 10, 64)
+	case reflect.Uint32:
+		_, err = strconv.ParseUint(f.Default, 10, 32)
+	case reflect.Uint16:
+		_, err = strconv.ParseUint(f.Default, 10, 16)
+	case reflect.Uint8:
+		_, err = strconv.ParseUint(f.Default, 10, 8)
+	default:
+		errors = append(errors, ValidationError{
+			Code:    BAD_DEFAULT,
+			Message: fmt.Sprintf("Unable to determine default logic for kind %v", f.Kind),
+		})
+	}
+	if err != nil {
+		errors = append(errors, ValidationError{
+			Code:    BAD_DEFAULT,
+			Message: fmt.Sprintf("Unable to convert \"%v\" to kind %v", f.Default, f.Kind),
 		})
 	}
 	return errors
