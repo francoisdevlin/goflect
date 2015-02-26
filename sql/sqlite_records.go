@@ -295,12 +295,14 @@ func RailsConvention(record interface{}) func(interface{}) (interface{}, error) 
 
 	closedRecords := make(map[string]interface{})
 	closedName := typ.Name()
+	primaryName := ""
 	var closedId interface{} = nil
 	fields := goflect.GetInfo(record)
 	for _, field := range fields {
 		fieldVal := val.FieldByName(field.Name)
 		if field.IsPrimary {
 			closedId = fieldVal.Interface()
+			primaryName = field.Name
 			//closedRecords[typ.Name()] = fieldVal.Interface()
 		} else if strings.Contains(field.Name, "Id") {
 			closedRecords[field.Name] = fieldVal.Interface()
@@ -312,7 +314,7 @@ func RailsConvention(record interface{}) func(interface{}) (interface{}, error) 
 		//This will find a parent object.  E.g., a device given an object
 		parentColumn := typ.Name() + "Id"
 		if value, hit := closedRecords[parentColumn]; hit {
-			otherField := val.FieldByName("Id")
+			otherField := val.FieldByName(primaryName)
 			otherField.Set(reflect.ValueOf(value))
 			return other, nil
 		}
