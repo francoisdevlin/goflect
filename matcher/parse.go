@@ -32,7 +32,7 @@ type ParseStruct struct {
 }
 
 func (service ParseStruct) Parse(input string) (Matcher, error) {
-	tokens, err := Tokenize(input)
+	tokens, err := tokenize(input)
 	if err != nil {
 		fmt.Println(tokens)
 		return nil, err
@@ -133,7 +133,7 @@ func (service ParseStruct) Parse(input string) (Matcher, error) {
 	return output, nil
 }
 
-func Tokenize(message string) ([]string, error) {
+func tokenize(message string) ([]string, error) {
 	output := make([]string, 0)
 	whitespace, _ := regexp.Compile("^[\\s,]+")
 	lParen, _ := regexp.Compile("^\\(")

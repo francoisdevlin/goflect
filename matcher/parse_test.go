@@ -50,7 +50,7 @@ func TestParseCodes(t *testing.T) {
 
 func TestTokenize(t *testing.T) {
 	expectedLen := func(s string, length int, code ParseErrors) {
-		tokens, e := Tokenize(s)
+		tokens, e := tokenize(s)
 		if e != nil {
 			err, _ := e.(MatchParseError)
 			if err.Code != code {

@@ -52,7 +52,7 @@ func TestOrMatch(t *testing.T) {
 
 func ExampleNot_showCompoundExample() {
 	printAll := func(matchers ...Matcher) {
-		printer := DefaultPrinter{}
+		printer := defaultPrinter{}
 		for _, matcher := range matchers {
 			result, _ := printer.Print(matcher)
 			fmt.Println(result)
@@ -71,7 +71,7 @@ func ExampleNot_showCompoundExample() {
 
 func ExampleNot_showRewriteRules() {
 	printAll := func(matchers ...Matcher) {
-		printer := DefaultPrinter{}
+		printer := defaultPrinter{}
 		for _, matcher := range matchers {
 			result, _ := printer.Print(matcher)
 			fmt.Println(result)
@@ -116,7 +116,7 @@ func ExampleNot_showRewriteRules() {
 
 func ExampleAnd_showRewriteRules() {
 	printAll := func(matchers ...Matcher) {
-		printer := DefaultPrinter{}
+		printer := defaultPrinter{}
 		for _, matcher := range matchers {
 			result, _ := printer.Print(matcher)
 			fmt.Println(result)
@@ -146,7 +146,7 @@ func ExampleAnd_showRewriteRules() {
 
 func ExampleOr_showRewriteRules() {
 	printAll := func(matchers ...Matcher) {
-		printer := DefaultPrinter{}
+		printer := defaultPrinter{}
 		for _, matcher := range matchers {
 			result, _ := printer.Print(matcher)
 			fmt.Println(result)
@@ -176,7 +176,7 @@ func ExampleOr_showRewriteRules() {
 
 func ExampleEq() {
 	show := func(m Matcher, value interface{}) {
-		printer := DefaultPrinter{Var: fmt.Sprint(value)}
+		printer := defaultPrinter{v: fmt.Sprint(value)}
 		result, err := m.Match(value)
 		statement, _ := printer.Print(m)
 		if err != nil {
@@ -198,7 +198,7 @@ func ExampleEq() {
 
 func ExampleNeq() {
 	show := func(m Matcher, value interface{}) {
-		printer := DefaultPrinter{Var: fmt.Sprint(value)}
+		printer := defaultPrinter{v: fmt.Sprint(value)}
 		result, err := m.Match(value)
 		statement, _ := printer.Print(m)
 		if err != nil {
@@ -220,7 +220,7 @@ func ExampleNeq() {
 
 func ExampleLt() {
 	show := func(m Matcher, value interface{}) {
-		printer := DefaultPrinter{Var: fmt.Sprint(value)}
+		printer := defaultPrinter{v: fmt.Sprint(value)}
 		result, err := m.Match(value)
 		statement, _ := printer.Print(m)
 		if err != nil {
@@ -242,7 +242,7 @@ func ExampleLt() {
 
 func ExampleLte() {
 	show := func(m Matcher, value interface{}) {
-		printer := DefaultPrinter{Var: fmt.Sprint(value)}
+		printer := defaultPrinter{v: fmt.Sprint(value)}
 		result, err := m.Match(value)
 		statement, _ := printer.Print(m)
 		if err != nil {
@@ -264,7 +264,7 @@ func ExampleLte() {
 
 func ExampleGt() {
 	show := func(m Matcher, value interface{}) {
-		printer := DefaultPrinter{Var: fmt.Sprint(value)}
+		printer := defaultPrinter{v: fmt.Sprint(value)}
 		result, err := m.Match(value)
 		statement, _ := printer.Print(m)
 		if err != nil {
@@ -286,7 +286,7 @@ func ExampleGt() {
 
 func ExampleGte() {
 	show := func(m Matcher, value interface{}) {
-		printer := DefaultPrinter{Var: fmt.Sprint(value)}
+		printer := defaultPrinter{v: fmt.Sprint(value)}
 		result, err := m.Match(value)
 		statement, _ := printer.Print(m)
 		if err != nil {
@@ -308,7 +308,7 @@ func ExampleGte() {
 
 func ExampleNone() {
 	show := func(m Matcher, value interface{}) {
-		printer := DefaultPrinter{Var: fmt.Sprint(value)}
+		printer := defaultPrinter{v: fmt.Sprint(value)}
 		result, err := m.Match(value)
 		statement, _ := printer.Print(m)
 		if err != nil {
@@ -330,7 +330,7 @@ func ExampleNone() {
 
 func ExampleAny() {
 	show := func(m Matcher, value interface{}) {
-		printer := DefaultPrinter{Var: fmt.Sprint(value)}
+		printer := defaultPrinter{v: fmt.Sprint(value)}
 		result, err := m.Match(value)
 		statement, _ := printer.Print(m)
 		if err != nil {

@@ -5,10 +5,10 @@ import (
 	"testing"
 )
 
-func ExampleDefaultPrinter_Print_basic() {
+func ExampleNewDefaultPrinter_printBasic() {
 	//This is a quick example of how the pretty printer works
 	printAll := func(matchers ...Matcher) {
-		printer := DefaultPrinter{}
+		printer := NewDefaultPrinter()
 		for _, matcher := range matchers {
 			result, _ := printer.Print(matcher)
 			fmt.Println(result)
@@ -32,9 +32,9 @@ func ExampleDefaultPrinter_Print_basic() {
 	// _ = "Bacon"
 }
 
-func ExampleDefaultPrinter_Print_struct() {
+func ExampleNewDefaultPrinter_printStruct() {
 	//This demonstrates how the pretter printer will handle structs with complex expressions
-	printer := DefaultPrinter{}
+	printer := NewDefaultPrinter()
 
 	matcher := StructMatcher{}
 	matcher.AddField("A", Eq(int(1)))
@@ -61,7 +61,7 @@ func ExampleDefaultPrinter_Print_struct() {
 
 func TestDefaultPrinterFields(t *testing.T) {
 	assertMatch := func(expected string, matcher Matcher) {
-		printer := DefaultPrinter{}
+		printer := NewDefaultPrinter()
 		result, _ := printer.Print(matcher)
 		if result != expected {
 			t.Errorf("got:%v, want:%v", result, expected)
@@ -108,14 +108,14 @@ func TestDefaultPrinterFields(t *testing.T) {
 
 func TestSqlitePrinterFields(t *testing.T) {
 	assertMatch := func(expected string, matcher Matcher) {
-		printer := SqlitePrinter{}
+		printer := NewSqlitePrinter()
 		result, _ := printer.Print(matcher)
 		if result != expected {
 			t.Errorf("got:%v, want:%v", result, expected)
 		}
 	}
-	assertMatch("true", Any())
-	assertMatch("false", None())
+	assertMatch("1", Any())
+	assertMatch("0", None())
 	assertMatch("_ = 1", Eq(1))
 	assertMatch("_ = \"1\"", Eq("1"))
 	assertMatch("_ != 1", Neq(1))
@@ -145,13 +145,13 @@ func TestSqlitePrinterFields(t *testing.T) {
 	assertMatch("_ MATCH \"1\"", Match("1"))
 	assertMatch("_ NOT MATCH \"1\"", NotMatch("1"))
 
-	assertMatch("false", Not(Any()))
-	assertMatch("true", Not(None()))
-	assertMatch("true", Not(Not(Any())))
-	assertMatch("false", Not(Not(None())))
+	assertMatch("0", Not(Any()))
+	assertMatch("1", Not(None()))
+	assertMatch("1", Not(Not(Any())))
+	assertMatch("0", Not(Not(None())))
 
-	assertMatch("true", And(Any(), Any()))
-	assertMatch("true", Or(Any(), Any()))
+	assertMatch("1", And(Any(), Any()))
+	assertMatch("1", Or(Any(), Any()))
 
 	m := StructMatcher{}
 	m.AddField("A", Eq(1))
@@ -166,9 +166,9 @@ func TestSqlitePrinterFields(t *testing.T) {
 /*
 This demonstrates a very basic example of using a struct matcher to write an SQL where clause
 */
-func ExampleSqlitePrinter_Print_hello() {
+func ExampleNewSqlitePrinter_printHello() {
 	printMatcher := func(matcher Matcher) {
-		printer := SqlitePrinter{}
+		printer := NewSqlitePrinter()
 		result, _ := printer.Print(matcher)
 		fmt.Println(result)
 	}

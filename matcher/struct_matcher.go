@@ -1,12 +1,3 @@
-/*
-The plan is to use matcher objects to define projections in the product.  This can be used in multiple ways
-
-    A composable SQL querying API
-    A filtering mechansim
-    A way of validating data is valid for a struct
-    A way of providing a filtering mechanism for user interaction
-    A consistent rules API mechanism
-*/
 package matcher
 
 import (

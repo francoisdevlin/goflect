@@ -11,13 +11,21 @@ type Printer interface {
 	Print(m Matcher) (string, error)
 }
 
-type Literal string
-type DefaultPrinter struct {
-	Var string
+func NewSqlitePrinter() Printer {
+	return sqlitePrinter{}
 }
 
-type SqlitePrinter struct {
-	Var string
+func NewDefaultPrinter() Printer {
+	return defaultPrinter{}
+}
+
+type Literal string
+type defaultPrinter struct {
+	v string
+}
+
+type sqlitePrinter struct {
+	v string
 }
 
 func printAnd(p Printer, r AndMatch) (string, error) {
@@ -137,20 +145,20 @@ func stringToken(token FieldOps) string {
 /*
 This prints a human readable representation of the matcher.  It is
 */
-func (p DefaultPrinter) Print(m Matcher) (string, error) {
+func (p defaultPrinter) Print(m Matcher) (string, error) {
 	switch r := m.(type) {
 	case AndMatch:
 		return printAnd(p, r)
 	case OrMatch:
 		return printOr(p, r)
 	case StructMatcher:
-		return printStruct(func(name string) Printer { return DefaultPrinter{Var: name} }, r)
+		return printStruct(func(name string) Printer { return defaultPrinter{v: name} }, r)
 	case FieldMatcher:
 		output := ""
-		if p.Var == "" {
+		if p.v == "" {
 			output += "_"
 		} else {
-			output += p.Var
+			output += p.v
 		}
 		output += " " + stringToken(r.Op)
 		switch val := r.Value.(type) {
@@ -183,20 +191,20 @@ func (p DefaultPrinter) Print(m Matcher) (string, error) {
 /*
 This prints a human readable representation of the matcher.  It is specifically tweaks to provide a vlaid where clause for SQLite
 */
-func (p SqlitePrinter) Print(m Matcher) (string, error) {
+func (p sqlitePrinter) Print(m Matcher) (string, error) {
 	switch r := m.(type) {
 	case AndMatch:
 		return printAnd(p, r)
 	case OrMatch:
 		return printOr(p, r)
 	case StructMatcher:
-		return printStruct(func(name string) Printer { return SqlitePrinter{Var: name} }, r)
+		return printStruct(func(name string) Printer { return sqlitePrinter{v: name} }, r)
 	case FieldMatcher:
 		output := ""
-		if p.Var == "" {
+		if p.v == "" {
 			output += "_"
 		} else {
-			output += p.Var
+			output += p.v
 		}
 		output += " " + stringToken(r.Op)
 		makeInish := func(entries []string) string {
