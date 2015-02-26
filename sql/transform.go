@@ -5,7 +5,7 @@ import (
 )
 
 /*
-The
+The transform service transforms a record before sending it to a delegate
 */
 type transform struct {
 	transformer func(interface{}) (interface{}, error)
