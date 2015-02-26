@@ -1,41 +1,193 @@
 package records
 
-//import (
-//"database/sql"
-//"fmt"
-//"git.sevone.com/sdevlin/goflect.git/goflect"
-//mock "git.sevone.com/sdevlin/goflect.git/mock"
-//_ "github.com/mattn/go-sqlite3"
-//"reflect"
-//"testing"
-//)
+import (
+	"database/sql"
+	"fmt"
+	//"git.sevone.com/sdevlin/goflect.git/goflect"
+	//mock "git.sevone.com/sdevlin/goflect.git/mock"
+	_ "github.com/mattn/go-sqlite3"
+	//"reflect"
+	//"testing"
+)
 
-//type Foo struct {
-//Id int64  `sql:"primary,autoincrement"`
-//A  string `sql:"unique,nominal"`
-//B  int64  `desc:"This is a human readable description"`
-//}
+/*
+This is a basic example showing how the metadata maps to a sqlite service table creation.  It needs to be fixed to allow unique keys to be respected
+*/
+func ExampleSqlRecordDefiner_sqliteBasic() {
+	type Foo struct {
+		Id int64  `sql:"primary,autoincrement"`
+		A  string `sql:"unique,nominal"`
+		B  int64
+	}
 
-//type Bar struct {
-//Id uint64 `sql:"primary,autoincrement"`
-//A  string `sql:"unique,nominal"`
-//B  bool   `desc:"This is a human readable description"`
-//}
+	c, _ := sql.Open("sqlite3", ":memory:")
+	service := NewSqliteService(c)
+	sqlService, _ := service.(SqlRecordDefiner)
+	fmt.Println(sqlService.CreateStatement(Foo{}))
+
+	//Output:
+	//CREATE TABLE IF NOT EXISTS Foo(
+	//	Id integer primary key autoincrement not null,
+	//	A string not null,
+	//	B integer
+	//)
+}
+
+/*
+This is a verbose example of how to use the Insert API, with an accompanying read section for verification
+*/
+func ExampleRecordService_insertSqliteVerbose() {
+	type Foo struct {
+		Id int64  `sql:"primary,autoincrement"`
+		A  string `sql:"unique,nominal"`
+		B  int64
+	}
+
+	c, _ := sql.Open("sqlite3", ":memory:")
+	service := NewSqliteService(c)
+	sqlService, _ := service.(RecordDefiner)
+	err := sqlService.Create(&Foo{})
+	if err == nil {
+		fmt.Println("Table created properly")
+	}
+
+	foo := Foo{A: "Hello World", B: 10}
+	//Passing a pointer is important, so that the id can be placed in foo
+	err = service.Insert(&foo)
+	fmt.Println(foo)
+	if err == nil {
+		fmt.Println("Record Inserted properly")
+	}
+	next, err := service.ReadAll(&foo)
+	if err == nil {
+		fmt.Println("Records read properly")
+	}
+	newFoo := Foo{}
+	//The next function is an iterator, which stores the result in newFoo
+	//It returns true if there are more records to process
+	//It will close the statement when it is complete
+	//It must take a pointer
+	for next(&newFoo) {
+		fmt.Println(newFoo)
+	}
+
+	//Output:
+	//Table created properly
+	//{0 Hello World 10}
+	//Record Inserted properly
+	//Records read properly
+	//{1 Hello World 10}
+}
+
+/*
+This is a more idiomatic example of using the insert function
+*/
+func ExampleRecordService_insertSqliteIdiomatic() {
+	type Foo struct {
+		Id int64  `sql:"primary,autoincrement"`
+		A  string `sql:"unique,nominal"`
+		B  int64
+	}
+
+	c, _ := sql.Open("sqlite3", ":memory:")
+	service := NewSqliteService(c)
+	sqlService, _ := service.(RecordDefiner)
+	err := sqlService.Create(&Foo{})
+	if err != nil {
+		return
+	}
+
+	foo := Foo{A: "Hello World", B: 10}
+	err = service.Insert(&foo)
+	if err != nil {
+		return
+	}
+	next, err := service.ReadAll(&foo)
+	if err != nil {
+		return
+	}
+	newFoo := Foo{}
+	for next(&newFoo) {
+		fmt.Println(newFoo)
+	}
+
+	//Output:
+	//{1 Hello World 10}
+}
+
+/*
+This shows the power of the rails convention transform in action
+*/
+func Example_railsConvention1() {
+	//Use our types to define a schema
+	type (
+		Device struct {
+			Id   int64 `sql:"primary,autoincrement"`
+			Name string
+		}
+		Object struct {
+			Id       int64 `sql:"primary,autoincrement"`
+			DeviceId int64
+			Name     string
+		}
+	)
+	//Add boilerplate for table createion
+	c, _ := sql.Open("sqlite3", ":memory:")
+	service := NewSqliteService(c)
+	sqlService, _ := service.(RecordDefiner)
+	sqlService.Create(&Device{})
+	sqlService.Create(&Object{})
+
+	//insert our first device
+	service.Insert(Device{Name: "Device 1"})
+
+	//Print all the devices
+	device := Device{}
+	next, _ := service.ReadAll(&device)
+	fmt.Println("Devices")
+	for next(&device) {
+		fmt.Println(device)
+	}
+
+	//Create a new data service with the RailsConvention transform
+	deviceService := NewTransformService(RailsConvention(device), service)
+
+	//Create some objects
+	deviceService.Insert(&Object{Name: "Object 1"})
+	deviceService.Insert(&Object{Name: "Object 2"})
+	deviceService.Insert(&Object{Name: "Object 3"})
+
+	//And notice that the device id was handled for us automatically
+	object := Object{}
+	next, _ = service.ReadAll(&object)
+	fmt.Println("Objects")
+	for next(&object) {
+		fmt.Println(object)
+	}
+
+	//Output:
+	//Devices
+	//{1 Device 1}
+	//Objects
+	//{1 1 Object 1}
+	//{2 1 Object 2}
+	//{3 1 Object 3}
+}
 
 /*****
  * Begin The Tests
   ****/
 //func TestSqliteTableCreate(t *testing.T) {
-//c, _ := sql.Open("sqlite3", ":memory:")
-//message := CreateSQLiteTable(&Foo{})
-//_, err := c.Exec(message)
-//if err != nil {
-//t.Error("Miss creating table")
-//}
-//_, err = c.Exec(message)
-//if err != nil {
-//t.Error("Miss recreating creating table")
-//}
+////c, _ := sql.Open("sqlite3", ":memory:")
+////message := CreateSQLiteTable(&Foo{})
+////_, err := c.Exec(message)
+////if err != nil {
+////t.Error("Miss creating table")
+////}
+////_, err = c.Exec(message)
+////if err != nil {
+////t.Error("Miss recreating creating table")
+////}
 //}
 
 //func TestBasicTableOpsFoo(t *testing.T) {

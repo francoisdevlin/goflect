@@ -1,3 +1,6 @@
+/*
+This is a package for abstracting connection to record sources.  It is designed to do most of the heavy lifting in an application for the user.
+*/
 package records
 
 import (
@@ -18,6 +21,15 @@ type RecordService interface {
 	//Limit(int) (RecordService error)
 	//Offset(int) (RecordService error)
 	//OrderBy(...string) (RecordService error)
+}
+
+type RecordDefiner interface {
+	Create(record interface{}) error
+}
+
+type SqlRecordDefiner interface {
+	RecordDefiner
+	CreateStatement(record interface{}) string
 }
 
 type RecordError string

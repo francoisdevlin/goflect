@@ -282,9 +282,9 @@ func (p SqlitePrinter) Print(m Matcher) (string, error) {
 	case InvertMatch:
 		return printInvert(p, r)
 	case NoneMatch:
-		return "false", nil
+		return "0", nil
 	case AnyMatch:
-		return "true", nil
+		return "1", nil
 	}
 	return "", nil
 }
