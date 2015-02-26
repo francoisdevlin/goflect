@@ -107,21 +107,3 @@ type FieldDescription interface {
 	GetFieldUiInfo() UiInfo
 	GetFieldValidatorInfo() ValidatorInfo
 }
-
-/**
-This is yet another take on the active record pattern.
-**/
-type RecordService interface {
-	Insert(record interface{})
-	ReadAll(record interface{}) func(record interface{}) bool
-	ReadAllWhere(record interface{}, conditions map[string]interface{}) func(record interface{}) bool
-	ReadAllNominal(record interface{}) func(record *Nominal) bool
-	ReadAllNominalWhere(record interface{}, conditions map[string]interface{}) func(record *Nominal) bool
-	Get(id int64, record interface{})
-	GetNominal(id int64) (output Nominal)
-	GetByNominal(name string, record interface{})
-	GetNominalByNominal(name string) (output Nominal)
-	Update(record interface{})
-	Delete(record interface{})
-	DeleteById(id int64, record interface{})
-}
