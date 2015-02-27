@@ -8,18 +8,24 @@ import (
 	"regexp"
 )
 
-type ParseErrors int
+type parseErrors int
 
+/*
+This is the complete list of parse error codes
+*/
 const (
-	VALID ParseErrors = iota
+	VALID parseErrors = iota
 	INVALID_OPERATION
 	UNFINISHED_MESSAGE
 	TOKENIZE_ERROR
 	UNKNOWN_FIELD
 )
 
+/*
+This is the error struct that will be returned
+*/
 type MatchParseError struct {
-	Code    ParseErrors
+	Code    parseErrors
 	Message string
 }
 
@@ -37,7 +43,7 @@ func (service ParseStruct) Parse(input string) (Matcher, error) {
 		fmt.Println(tokens)
 		return nil, err
 	}
-	//output := StructMatcher{}
+	//output := structMatcher{}
 	output := And()
 	Lookup := map[string]fieldOps{
 		"=":         EQ,

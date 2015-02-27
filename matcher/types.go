@@ -15,6 +15,9 @@ package matcher
 
 type fieldOps int
 
+/*
+This is the complete list of allowed field ops
+*/
 const (
 	LT fieldOps = iota
 	LTE
@@ -28,8 +31,20 @@ const (
 	NOT_MATCH
 )
 
+/*
+This is the core abstraction in the matcher library. It is designed to be a conditional that can be passed around.
+*/
 type Matcher interface {
 	Match(record interface{}) (bool, error)
+}
+
+/*
+Bacon
+*/
+type StructMatcher interface {
+	Matcher
+	AddField(string, Matcher)
+	Field(string) Yielder
 }
 
 type Yielder interface {

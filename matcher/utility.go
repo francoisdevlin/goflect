@@ -247,6 +247,6 @@ func Or(matchers ...Matcher) Matcher {
 	return orMatch{Matchers: usedMatchers}
 }
 
-func NewStructMatcher() *StructMatcher {
-	return new(StructMatcher)
+func NewStructMatcher() StructMatcher {
+	return new(structMatcher)
 }

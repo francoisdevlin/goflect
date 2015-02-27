@@ -6,7 +6,7 @@ import (
 )
 
 func TestParseCodes(t *testing.T) {
-	render := func(input string, code ParseErrors) {
+	render := func(input string, code parseErrors) {
 		p := ParseStruct{Fields: map[string]int{"A": 1, "B": 2, "C": 3}}
 		_, e := p.Parse(input)
 		if e != nil {
@@ -49,7 +49,7 @@ func TestParseCodes(t *testing.T) {
 }
 
 func TestTokenize(t *testing.T) {
-	expectedLen := func(s string, length int, code ParseErrors) {
+	expectedLen := func(s string, length int, code parseErrors) {
 		tokens, e := tokenize(s)
 		if e != nil {
 			err, _ := e.(MatchParseError)

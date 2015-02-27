@@ -7,7 +7,7 @@ import (
 )
 
 type fieldYielder struct {
-	matcher *StructMatcher
+	matcher *structMatcher
 	Name    string
 }
 
@@ -37,23 +37,23 @@ func (y fieldYielder) Yield() (interface{}, error) {
 /*
 This type is the main item to use with the matcher API
 */
-type StructMatcher struct {
+type structMatcher struct {
 	record interface{} //This is used to make the yielder work
 	Fields map[string]Matcher
 }
 
-func (field *StructMatcher) AddField(name string, matcher Matcher) {
+func (field *structMatcher) AddField(name string, matcher Matcher) {
 	if field.Fields == nil {
 		field.Fields = make(map[string]Matcher)
 	}
 	field.Fields[name] = matcher
 }
 
-func (field *StructMatcher) Field(Name string) Yielder {
+func (field *structMatcher) Field(Name string) Yielder {
 	return fieldYielder{Name: Name, matcher: field}
 }
 
-func (field *StructMatcher) Match(record interface{}) (bool, error) {
+func (field *structMatcher) Match(record interface{}) (bool, error) {
 	if field.Fields == nil {
 		field.Fields = make(map[string]Matcher)
 	}
