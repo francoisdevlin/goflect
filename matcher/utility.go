@@ -7,7 +7,7 @@ type invertMatch struct {
 	M Matcher
 }
 
-type AndMatch struct {
+type andMatch struct {
 	Matchers []Matcher
 }
 
@@ -31,7 +31,7 @@ func (a invertMatch) Match(record interface{}) (bool, error) {
 	return !result, nil
 }
 
-func (a AndMatch) Match(record interface{}) (bool, error) {
+func (a andMatch) Match(record interface{}) (bool, error) {
 	accum := true
 	for _, m := range a.Matchers {
 		result, err := m.Match(record)
@@ -185,7 +185,7 @@ func And(matchers ...Matcher) Matcher {
 		switch m := matcher.(type) {
 		case anyMatch:
 			usedMatchers = usedMatchers
-		case AndMatch:
+		case andMatch:
 			for _, childMatch := range m.Matchers {
 				usedMatchers = append(usedMatchers, childMatch)
 			}
@@ -201,7 +201,7 @@ func And(matchers ...Matcher) Matcher {
 	if len(usedMatchers) == 1 {
 		return usedMatchers[0]
 	}
-	return AndMatch{Matchers: usedMatchers}
+	return andMatch{Matchers: usedMatchers}
 }
 
 /*

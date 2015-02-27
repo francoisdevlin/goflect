@@ -28,7 +28,7 @@ type sqlitePrinter struct {
 	v string
 }
 
-func printAnd(p Printer, r AndMatch) (string, error) {
+func printAnd(p Printer, r andMatch) (string, error) {
 	output := make([]string, 0)
 	for _, matcher := range r.Matchers {
 		result, err := p.Print(matcher)
@@ -59,7 +59,7 @@ func printOr(p Printer, r OrMatch) (string, error) {
 		}
 		needsParens := false
 		switch temp := matcher.(type) {
-		case AndMatch:
+		case andMatch:
 			needsParens = true
 		case *StructMatcher:
 			needsParens = true
@@ -147,7 +147,7 @@ This prints a human readable representation of the matcher.  It is
 */
 func (p defaultPrinter) Print(m Matcher) (string, error) {
 	switch r := m.(type) {
-	case AndMatch:
+	case andMatch:
 		return printAnd(p, r)
 	case OrMatch:
 		return printOr(p, r)
@@ -193,7 +193,7 @@ This prints a human readable representation of the matcher.  It is specifically 
 */
 func (p sqlitePrinter) Print(m Matcher) (string, error) {
 	switch r := m.(type) {
-	case AndMatch:
+	case andMatch:
 		return printAnd(p, r)
 	case OrMatch:
 		return printOr(p, r)
