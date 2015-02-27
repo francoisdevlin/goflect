@@ -20,6 +20,7 @@ const (
 	UNFINISHED_MESSAGE
 	TOKENIZE_ERROR
 	UNKNOWN_FIELD
+	PROMOTION_ERROR
 )
 
 /*
@@ -36,6 +37,51 @@ func (s MatchParseError) Error() string {
 
 type ParseStruct struct {
 	Fields map[string]reflect.Kind
+}
+
+func promoteToInterface(kind reflect.Kind, value string) (interface{}, error) {
+	var val interface{} = nil
+	var err error = nil
+	switch kind {
+	case reflect.Float64:
+		val, err = strconv.ParseFloat(value, 64)
+	case reflect.Float32:
+		val, err = strconv.ParseFloat(value, 32)
+		val = float32(val.(float64))
+	case reflect.Bool:
+		val, err = strconv.ParseBool(value)
+	case reflect.Int:
+		val, err = strconv.ParseInt(value, 10, 64)
+		val = int(val.(int64))
+	case reflect.Int64:
+		val, err = strconv.ParseInt(value, 10, 64)
+	case reflect.Int32:
+		val, err = strconv.ParseInt(value, 10, 32)
+		val = int32(val.(int64))
+	case reflect.Int16:
+		val, err = strconv.ParseInt(value, 10, 16)
+		val = int16(val.(int64))
+	case reflect.Int8:
+		val, err = strconv.ParseInt(value, 10, 8)
+		val = int8(val.(int64))
+	case reflect.Uint:
+		val, err = strconv.ParseUint(value, 10, 64)
+		val = uint(val.(uint64))
+	case reflect.Uint64:
+		val, err = strconv.ParseUint(value, 10, 64)
+	case reflect.Uint32:
+		val, err = strconv.ParseUint(value, 10, 32)
+		val = uint32(val.(uint64))
+	case reflect.Uint16:
+		val, err = strconv.ParseUint(value, 10, 16)
+		val = uint16(val.(uint64))
+	case reflect.Uint8:
+		val, err = strconv.ParseUint(value, 10, 8)
+		val = uint8(val.(uint64))
+	default:
+		val = value
+	}
+	return val, err
 }
 
 func (service ParseStruct) Parse(input string) (Matcher, error) {
@@ -120,52 +166,27 @@ func (service ParseStruct) Parse(input string) (Matcher, error) {
 			}
 
 			kind := service.Fields[field]
-			var val interface{} = nil
-			switch kind {
-			case reflect.Float64:
-				val, err = strconv.ParseFloat(value, 64)
-			case reflect.Float32:
-				val, err = strconv.ParseFloat(value, 32)
-				val = float32(val.(float64))
-			case reflect.Bool:
-				val, err = strconv.ParseBool(value)
-			case reflect.Int:
-				val, err = strconv.ParseInt(value, 10, 64)
-				val = int(val.(int64))
-			case reflect.Int64:
-				val, err = strconv.ParseInt(value, 10, 64)
-			case reflect.Int32:
-				val, err = strconv.ParseInt(value, 10, 32)
-				val = int32(val.(int64))
-			case reflect.Int16:
-				val, err = strconv.ParseInt(value, 10, 16)
-				val = int16(val.(int64))
-			case reflect.Int8:
-				val, err = strconv.ParseInt(value, 10, 8)
-				val = int8(val.(int64))
-			case reflect.Uint:
-				val, err = strconv.ParseUint(value, 10, 64)
-				val = uint(val.(uint64))
-			case reflect.Uint64:
-				val, err = strconv.ParseUint(value, 10, 64)
-			case reflect.Uint32:
-				val, err = strconv.ParseUint(value, 10, 32)
-				val = uint32(val.(uint64))
-			case reflect.Uint16:
-				val, err = strconv.ParseUint(value, 10, 16)
-				val = uint16(val.(uint64))
-			case reflect.Uint8:
-				val, err = strconv.ParseUint(value, 10, 8)
-				val = uint8(val.(uint64))
-			default:
-				val = value
+			val, promotionError := promoteToInterface(kind, value)
+			valKind, symbolHit := service.Fields[value]
+			if promotionError != nil {
+				if !symbolHit {
+					cleanParse = PROMOTION_ERROR
+					return returnF(fmt.Sprintf("Could not promote field %v to kind %v for value '%v'", field, kind, value))
+				} else if valKind != kind {
+					cleanParse = PROMOTION_ERROR
+					return returnF(fmt.Sprintf("Cannot compare fields %v and %v, they are different kinds", field, value))
+				}
 			}
 
 			if field == "_" {
 				step = And(step, fieldMatcher{Op: realOp, Value: val})
 			} else {
 				temp := NewStructMatcher()
-				temp.AddField(field, fieldMatcher{Op: realOp, Value: val})
+				if symbolHit {
+					temp.AddField(field, fieldMatcher{Op: realOp, Value: temp.Field(value)})
+				} else {
+					temp.AddField(field, fieldMatcher{Op: realOp, Value: val})
+				}
 				step = And(step, temp)
 			}
 			output = conjoin(output, step)

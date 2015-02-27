@@ -11,13 +11,13 @@ func TestParseCodes(t *testing.T) {
 		p := ParseStruct{Fields: map[string]reflect.Kind{
 			"A": reflect.String,
 			"B": reflect.String,
-			"C": reflect.String,
+			"C": reflect.Int,
 		}}
 		_, e := p.Parse(input)
 		if e != nil {
 			err, _ := e.(MatchParseError)
 			if err.Code != code {
-				t.Errorf("Expected Error code %v, got %v", code, err.Code)
+				t.Errorf("Expected Error code %v, got %v for:%v", code, err.Code, input)
 			}
 		}
 	}
@@ -36,6 +36,8 @@ func TestParseCodes(t *testing.T) {
 
 	render("A = 1", VALID)
 	render("A = B", VALID)
+	render("A = A", VALID)
+	render("C = C", VALID)
 	render("A = \"B\"", VALID)
 	render("A = 1 AND B != 2", VALID)
 
@@ -52,6 +54,11 @@ func TestParseCodes(t *testing.T) {
 	//Unknown Fields
 	render("D = 1", UNKNOWN_FIELD)
 	render("A = D", UNKNOWN_FIELD)
+
+	//Promotion Error
+	render("A = C", PROMOTION_ERROR)
+	render("C = A", PROMOTION_ERROR)
+	render("C = \"Fail\"", PROMOTION_ERROR)
 }
 
 func TestParsing(t *testing.T) {
