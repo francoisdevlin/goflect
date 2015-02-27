@@ -1,6 +1,6 @@
 package matcher
 
-type AnyMatch int
+type anyMatch int
 type NoneMatch int
 
 type invertMatch struct {
@@ -15,7 +15,7 @@ type OrMatch struct {
 	Matchers []Matcher
 }
 
-func (a AnyMatch) Match(record interface{}) (bool, error) {
+func (a anyMatch) Match(record interface{}) (bool, error) {
 	return true, nil
 }
 
@@ -65,7 +65,7 @@ func (a OrMatch) Match(record interface{}) (bool, error) {
 This returns a matcher that always returns true
 */
 func Any() Matcher {
-	return AnyMatch(1)
+	return anyMatch(1)
 }
 
 /*
@@ -140,7 +140,7 @@ func Not(matcher Matcher) Matcher {
 	switch r := matcher.(type) {
 	case invertMatch:
 		return r.M
-	case AnyMatch:
+	case anyMatch:
 		return None()
 	case NoneMatch:
 		return Any()
@@ -183,7 +183,7 @@ func And(matchers ...Matcher) Matcher {
 	usedMatchers := make([]Matcher, 0)
 	for _, matcher := range matchers {
 		switch m := matcher.(type) {
-		case AnyMatch:
+		case anyMatch:
 			usedMatchers = usedMatchers
 		case AndMatch:
 			for _, childMatch := range m.Matchers {
@@ -219,7 +219,7 @@ func Or(matchers ...Matcher) Matcher {
 			for _, childMatch := range m.Matchers {
 				usedMatchers = append(usedMatchers, childMatch)
 			}
-		case AnyMatch:
+		case anyMatch:
 			return Any()
 		default:
 			usedMatchers = append(usedMatchers, m)
