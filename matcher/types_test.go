@@ -191,3 +191,36 @@ func ExampleStructMatcher_4() {
 	//Id = 1 AND Value = 1
 	//A = B
 }
+
+/*
+ */
+func ExampleStructMatcher_5() {
+	idMatcher := NewStructMatcher()
+	idMatcher.AddField("Id", Eq(1))
+
+	valueMatcher := NewStructMatcher()
+	valueMatcher.AddField("Value", Eq(1))
+
+	printer := NewSqlitePrinter()
+	result, _ := printer.Print(idMatcher)
+	fmt.Println(result)
+
+	result, _ = printer.Print(valueMatcher)
+	fmt.Println(result)
+
+	//Here you can see that composition of filters is respected, producing the result you would expect
+	result, _ = printer.Print(And(idMatcher, valueMatcher))
+	fmt.Println(result)
+
+	fieldMatcher := NewStructMatcher()
+	fieldMatcher.AddField("A", Eq(fieldMatcher.Field("B")))
+
+	//Field bindings are respected as well
+	result, _ = printer.Print(fieldMatcher)
+	fmt.Println(result)
+	//Output:
+	//Id = 1
+	//Value = 1
+	//Id = 1 AND Value = 1
+	//A = B
+}

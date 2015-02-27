@@ -2,12 +2,17 @@ package matcher
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 )
 
 func TestParseCodes(t *testing.T) {
 	render := func(input string, code parseErrors) {
-		p := ParseStruct{Fields: map[string]int{"A": 1, "B": 2, "C": 3}}
+		p := ParseStruct{Fields: map[string]reflect.Kind{
+			"A": reflect.String,
+			"B": reflect.String,
+			"C": reflect.String,
+		}}
 		_, e := p.Parse(input)
 		if e != nil {
 			err, _ := e.(MatchParseError)
@@ -30,6 +35,8 @@ func TestParseCodes(t *testing.T) {
 	render("_ NOT IN (1, 2, 3)", VALID)
 
 	render("A = 1", VALID)
+	render("A = B", VALID)
+	render("A = \"B\"", VALID)
 	render("A = 1 AND B != 2", VALID)
 
 	//The unfinished Messages
@@ -45,7 +52,118 @@ func TestParseCodes(t *testing.T) {
 	//Unknown Fields
 	render("D = 1", UNKNOWN_FIELD)
 	render("A = D", UNKNOWN_FIELD)
+}
 
+func TestParsing(t *testing.T) {
+	withMatcher := withMatcherFactory(t)
+
+	p := ParseStruct{Fields: map[string]reflect.Kind{
+		"_": reflect.Int,
+	}}
+
+	//This should return an ANY matcher
+	matcher, _ := p.Parse("")
+	_, ok := matcher.(anyMatch)
+	if !ok {
+		t.Error("Expected an ANY matcher")
+	}
+
+	determineResults := func(op fieldOps, matcher Matcher) (A, B, C funcSig) {
+		T, F, E := withMatcher(matcher)
+		switch op {
+		case EQ:
+			return T, F, F
+		case NEQ:
+			return F, T, T
+		case LT:
+			return F, F, E
+		case LTE:
+			return T, F, E
+		case GT:
+			return F, T, E
+		case GTE:
+			return T, T, E
+		default:
+			return T, F, E
+		}
+	}
+
+	comparisonWorkout := func(parser ParseStruct, smaller, bigger, nonsense interface{}) {
+		ops := []fieldOps{EQ, NEQ, LT, LTE, GT, GTE}
+		for _, op := range ops {
+			input := fmt.Sprintf("_ %v %v", op, smaller)
+			matcher, _ = parser.Parse(input)
+			A, B, C := determineResults(op, matcher)
+			A(fmt.Sprintf("Matching %v,%v for %v", smaller, smaller, op), smaller)
+			B(fmt.Sprintf("Matching %v,%v for %v", smaller, bigger, op), bigger)
+			C(fmt.Sprintf("Matching %v,%v for %v", smaller, nonsense, op), nonsense)
+		}
+	}
+
+	p = ParseStruct{Fields: map[string]reflect.Kind{
+		"_": reflect.Int,
+	}}
+	comparisonWorkout(p, int(1), int(2), "Bacon")
+
+	p = ParseStruct{Fields: map[string]reflect.Kind{
+		"_": reflect.Int64,
+	}}
+	comparisonWorkout(p, int64(1), int64(2), "Bacon")
+
+	p = ParseStruct{Fields: map[string]reflect.Kind{
+		"_": reflect.Int32,
+	}}
+	comparisonWorkout(p, int32(1), int32(2), "Bacon")
+
+	p = ParseStruct{Fields: map[string]reflect.Kind{
+		"_": reflect.Int16,
+	}}
+	comparisonWorkout(p, int16(1), int16(2), "Bacon")
+
+	p = ParseStruct{Fields: map[string]reflect.Kind{
+		"_": reflect.Int8,
+	}}
+	comparisonWorkout(p, int8(1), int8(2), "Bacon")
+
+	p = ParseStruct{Fields: map[string]reflect.Kind{
+		"_": reflect.Uint,
+	}}
+	comparisonWorkout(p, uint(1), uint(2), "Bacon")
+
+	p = ParseStruct{Fields: map[string]reflect.Kind{
+		"_": reflect.Uint64,
+	}}
+	comparisonWorkout(p, uint64(1), uint64(2), "Bacon")
+
+	p = ParseStruct{Fields: map[string]reflect.Kind{
+		"_": reflect.Uint32,
+	}}
+	comparisonWorkout(p, uint32(1), uint32(2), "Bacon")
+
+	p = ParseStruct{Fields: map[string]reflect.Kind{
+		"_": reflect.Uint16,
+	}}
+	comparisonWorkout(p, uint16(1), uint16(2), "Bacon")
+
+	p = ParseStruct{Fields: map[string]reflect.Kind{
+		"_": reflect.Uint8,
+	}}
+	comparisonWorkout(p, uint8(1), uint8(2), "Bacon")
+
+	p = ParseStruct{Fields: map[string]reflect.Kind{
+		"_": reflect.Float64,
+	}}
+	comparisonWorkout(p, float64(1), float64(2), "Bacon")
+
+	p = ParseStruct{Fields: map[string]reflect.Kind{
+		"_": reflect.Float32,
+	}}
+	comparisonWorkout(p, float32(1), float32(2), "Bacon")
+
+	p = ParseStruct{Fields: map[string]reflect.Kind{
+		"_": reflect.String,
+	}}
+	comparisonWorkout(p, "A", "B", 1)
 }
 
 func TestTokenize(t *testing.T) {

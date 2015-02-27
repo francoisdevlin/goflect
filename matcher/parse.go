@@ -3,8 +3,9 @@ package matcher
 import (
 	"fmt"
 	//"sort"
-	//"strconv"
+	"strconv"
 	//"strings"
+	"reflect"
 	"regexp"
 )
 
@@ -34,7 +35,7 @@ func (s MatchParseError) Error() string {
 }
 
 type ParseStruct struct {
-	Fields map[string]int
+	Fields map[string]reflect.Kind
 }
 
 func (service ParseStruct) Parse(input string) (Matcher, error) {
@@ -117,11 +118,54 @@ func (service ParseStruct) Parse(input string) (Matcher, error) {
 				cleanParse = INVALID_OPERATION
 				return returnF("Operation type is not supported: " + op)
 			}
+
+			kind := service.Fields[field]
+			var val interface{} = nil
+			switch kind {
+			case reflect.Float64:
+				val, err = strconv.ParseFloat(value, 64)
+			case reflect.Float32:
+				val, err = strconv.ParseFloat(value, 32)
+				val = float32(val.(float64))
+			case reflect.Bool:
+				val, err = strconv.ParseBool(value)
+			case reflect.Int:
+				val, err = strconv.ParseInt(value, 10, 64)
+				val = int(val.(int64))
+			case reflect.Int64:
+				val, err = strconv.ParseInt(value, 10, 64)
+			case reflect.Int32:
+				val, err = strconv.ParseInt(value, 10, 32)
+				val = int32(val.(int64))
+			case reflect.Int16:
+				val, err = strconv.ParseInt(value, 10, 16)
+				val = int16(val.(int64))
+			case reflect.Int8:
+				val, err = strconv.ParseInt(value, 10, 8)
+				val = int8(val.(int64))
+			case reflect.Uint:
+				val, err = strconv.ParseUint(value, 10, 64)
+				val = uint(val.(uint64))
+			case reflect.Uint64:
+				val, err = strconv.ParseUint(value, 10, 64)
+			case reflect.Uint32:
+				val, err = strconv.ParseUint(value, 10, 32)
+				val = uint32(val.(uint64))
+			case reflect.Uint16:
+				val, err = strconv.ParseUint(value, 10, 16)
+				val = uint16(val.(uint64))
+			case reflect.Uint8:
+				val, err = strconv.ParseUint(value, 10, 8)
+				val = uint8(val.(uint64))
+			default:
+				val = value
+			}
+
 			if field == "_" {
-				step = And(step, fieldMatcher{Op: realOp, Value: value})
+				step = And(step, fieldMatcher{Op: realOp, Value: val})
 			} else {
 				temp := NewStructMatcher()
-				temp.AddField(field, fieldMatcher{Op: realOp, Value: value})
+				temp.AddField(field, fieldMatcher{Op: realOp, Value: val})
 				step = And(step, temp)
 			}
 			output = conjoin(output, step)
