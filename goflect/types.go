@@ -72,7 +72,7 @@ type SqlInfo struct {
 }
 
 type ValidatorInfo struct {
-	ValidExpr string
+	ValidExpr string `desc:"This stores a validation expresion that drives the default struct matcher"`
 }
 
 type UiInfo struct {
