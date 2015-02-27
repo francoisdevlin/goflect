@@ -7,10 +7,6 @@ import (
 	"strings"
 )
 
-type Printer interface {
-	Print(m Matcher) (string, error)
-}
-
 func NewSqlitePrinter() Printer {
 	return sqlitePrinter{}
 }
@@ -115,7 +111,7 @@ func q(name string) string {
 	return "\"" + name + "\""
 }
 
-func stringToken(token FieldOps) string {
+func stringToken(token fieldOps) string {
 	output := ""
 	switch token {
 	case EQ:

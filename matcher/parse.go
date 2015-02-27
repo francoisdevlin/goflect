@@ -39,7 +39,7 @@ func (service ParseStruct) Parse(input string) (Matcher, error) {
 	}
 	//output := StructMatcher{}
 	output := And()
-	Lookup := map[string]FieldOps{
+	Lookup := map[string]fieldOps{
 		"=":         EQ,
 		"!=":        NEQ,
 		"<":         LT,
