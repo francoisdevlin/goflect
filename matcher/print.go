@@ -74,7 +74,7 @@ func printOr(p Printer, r OrMatch) (string, error) {
 	return strings.Join(output, " OR "), nil
 }
 
-func printInvert(p Printer, r InvertMatch) (string, error) {
+func printInvert(p Printer, r invertMatch) (string, error) {
 	recurse, err := p.Print(r.M)
 	if err != nil {
 		return "", err
@@ -178,7 +178,7 @@ func (p defaultPrinter) Print(m Matcher) (string, error) {
 		default:
 			return output + " " + fmt.Sprint(r.Value), nil
 		}
-	case InvertMatch:
+	case invertMatch:
 		return printInvert(p, r)
 	case NoneMatch:
 		return "false", nil
@@ -287,7 +287,7 @@ func (p sqlitePrinter) Print(m Matcher) (string, error) {
 		default:
 			return output + " " + fmt.Sprint(r.Value), nil
 		}
-	case InvertMatch:
+	case invertMatch:
 		return printInvert(p, r)
 	case NoneMatch:
 		return "0", nil

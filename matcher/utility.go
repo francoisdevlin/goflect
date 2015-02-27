@@ -3,7 +3,7 @@ package matcher
 type AnyMatch int
 type NoneMatch int
 
-type InvertMatch struct {
+type invertMatch struct {
 	M Matcher
 }
 
@@ -23,7 +23,7 @@ func (a NoneMatch) Match(record interface{}) (bool, error) {
 	return false, nil
 }
 
-func (a InvertMatch) Match(record interface{}) (bool, error) {
+func (a invertMatch) Match(record interface{}) (bool, error) {
 	result, err := a.M.Match(record)
 	if err != nil {
 		return false, err
@@ -138,7 +138,7 @@ This function will return a matcher that is the logical inverse of the provided 
 */
 func Not(matcher Matcher) Matcher {
 	switch r := matcher.(type) {
-	case InvertMatch:
+	case invertMatch:
 		return r.M
 	case AnyMatch:
 		return None()
@@ -167,10 +167,10 @@ func Not(matcher Matcher) Matcher {
 		case NOT_MATCH:
 			return Match(r.Value.(string))
 		default:
-			return InvertMatch{M: matcher}
+			return invertMatch{M: matcher}
 		}
 	default:
-		return InvertMatch{M: matcher}
+		return invertMatch{M: matcher}
 	}
 }
 
