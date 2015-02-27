@@ -15,7 +15,6 @@ func NewDefaultPrinter() Printer {
 	return defaultPrinter{}
 }
 
-type Literal string
 type defaultPrinter struct {
 	v string
 }
@@ -111,7 +110,8 @@ func q(name string) string {
 	return "\"" + name + "\""
 }
 
-func stringToken(token fieldOps) string {
+//func stringToken(token fieldOps) string {
+func (token fieldOps) String() string {
 	output := ""
 	switch token {
 	case EQ:
@@ -156,7 +156,7 @@ func (p defaultPrinter) Print(m Matcher) (string, error) {
 		} else {
 			output += p.v
 		}
-		output += " " + stringToken(r.Op)
+		output += " " + r.Op.String()
 		switch val := r.Value.(type) {
 		case []string:
 			output += " ["
@@ -169,8 +169,8 @@ func (p defaultPrinter) Print(m Matcher) (string, error) {
 			return output, nil
 		case string:
 			return output + " " + q(val), nil
-		case Literal:
-			return output + " " + string(val), nil
+		case fieldYielder:
+			return output + " " + val.Name, nil
 		default:
 			return output + " " + fmt.Sprint(r.Value), nil
 		}
@@ -202,7 +202,7 @@ func (p sqlitePrinter) Print(m Matcher) (string, error) {
 		} else {
 			output += p.v
 		}
-		output += " " + stringToken(r.Op)
+		output += " " + r.Op.String()
 		makeInish := func(entries []string) string {
 			output += " ("
 			output += strings.Join(entries, ", ")
@@ -278,8 +278,8 @@ func (p sqlitePrinter) Print(m Matcher) (string, error) {
 			return makeInish(entries), nil
 		case string:
 			return output + " " + q(val), nil
-		case Literal:
-			return output + " " + string(val), nil
+		case fieldYielder:
+			return output + " " + val.Name, nil
 		default:
 			return output + " " + fmt.Sprint(r.Value), nil
 		}

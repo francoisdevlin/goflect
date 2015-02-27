@@ -49,7 +49,7 @@ func ExampleNewDefaultPrinter_printStruct() {
 	fmt.Println(result)
 
 	matcher = NewStructMatcher()
-	matcher.AddField("A", Eq(Literal("B")))
+	matcher.AddField("A", Eq(matcher.Field("B")))
 	result, _ = printer.Print(matcher)
 	fmt.Println(result)
 
@@ -102,7 +102,7 @@ func TestDefaultPrinterFields(t *testing.T) {
 	m.AddField("B", Eq(0))
 	assertMatch("A = 1 AND B = 0", m)
 	m = NewStructMatcher()
-	m.AddField("A", Eq(Literal("B")))
+	m.AddField("A", Eq(m.Field("B")))
 	assertMatch("A = B", m)
 }
 
@@ -159,7 +159,7 @@ func TestSqlitePrinterFields(t *testing.T) {
 	assertMatch("A = 1 AND B = 0", m)
 
 	m = NewStructMatcher()
-	m.AddField("A", Eq(Literal("B")))
+	m.AddField("A", Eq(m.Field("B")))
 	assertMatch("A = B", m)
 }
 
