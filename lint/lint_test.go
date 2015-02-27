@@ -307,7 +307,13 @@ func ExampleValidateType_defaultMistmatches() {
 		&UintIntMismatch{},
 	)
 	//Output:
-	//Bacon
+	//BAD_DEFAULT_VALUE Unable to convert "fail" to kind bool with field "Value"
+	//BAD_DEFAULT_VALUE Unable to convert "fail" to kind float64 with field "Value"
+	//BAD_DEFAULT_VALUE Unable to convert "fail" to kind int with field "Value"
+	//BAD_DEFAULT_VALUE Unable to convert "10.1" to kind int with field "Value"
+	//BAD_DEFAULT_VALUE Unable to convert "fail" to kind uint with field "Value"
+	//BAD_DEFAULT_VALUE Unable to convert "10.1" to kind uint with field "Value"
+	//BAD_DEFAULT_VALUE Unable to convert "-1" to kind uint with field "Value"
 }
 
 func TestErrorCodeSerialization(t *testing.T) {
