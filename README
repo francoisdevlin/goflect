@@ -1,8 +1,4 @@
-This is a tool centered around using relection to perform marshalling between an untyped information, and a concrete type.  This will let us have a standard way of doing many things.
-
-This is a key addition to the wiring project, and will allow us to move forward in becoming a platofrm effortlessly
-
-Please use the godoc tool to find the documetation for this project
+Please use the godoc tool to find the documetation for this project.  Start with the main documentation
 
 
 Things to generate
