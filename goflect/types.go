@@ -72,11 +72,7 @@ type SqlInfo struct {
 }
 
 type ValidatorInfo struct {
-	IsRequired bool `desc:"This determines if a field is required"`
-	MaxValue   string
-	MinValue   string
-	MatchRegex string
-	InEnum     []string
+	ValidExpr string
 }
 
 type UiInfo struct {
