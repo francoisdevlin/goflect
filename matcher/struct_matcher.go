@@ -6,12 +6,12 @@ import (
 	//"regexp"
 )
 
-type FieldYielder struct {
+type fieldYielder struct {
 	matcher *StructMatcher
 	Name    string
 }
 
-func (y FieldYielder) Yield() (interface{}, error) {
+func (y fieldYielder) Yield() (interface{}, error) {
 	record := y.matcher.record
 	switch r := record.(type) {
 	case map[string]interface{}:
@@ -50,7 +50,7 @@ func (field *StructMatcher) AddField(name string, matcher Matcher) {
 }
 
 func (field *StructMatcher) Field(Name string) Yielder {
-	return FieldYielder{Name: Name, matcher: field}
+	return fieldYielder{Name: Name, matcher: field}
 }
 
 func (field *StructMatcher) Match(record interface{}) (bool, error) {
