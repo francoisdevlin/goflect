@@ -233,3 +233,7 @@ func Or(matchers ...Matcher) Matcher {
 	}
 	return OrMatch{Matchers: usedMatchers}
 }
+
+func NewStructMatcher() *StructMatcher {
+	return new(StructMatcher)
+}

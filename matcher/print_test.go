@@ -36,19 +36,19 @@ func ExampleNewDefaultPrinter_printStruct() {
 	//This demonstrates how the pretter printer will handle structs with complex expressions
 	printer := NewDefaultPrinter()
 
-	matcher := StructMatcher{}
+	matcher := NewStructMatcher()
 	matcher.AddField("A", Eq(int(1)))
 	matcher.AddField("B", Eq(int(2)))
 	result, _ := printer.Print(matcher)
 	fmt.Println(result)
 
-	matcher = StructMatcher{}
+	matcher = NewStructMatcher()
 	matcher.AddField("A", And(Gte(int(1)), Lte(int(10))))
 	matcher.AddField("B", Eq(int(2)))
 	result, _ = printer.Print(matcher)
 	fmt.Println(result)
 
-	matcher = StructMatcher{}
+	matcher = NewStructMatcher()
 	matcher.AddField("A", Eq(Literal("B")))
 	result, _ = printer.Print(matcher)
 	fmt.Println(result)
@@ -97,11 +97,11 @@ func TestDefaultPrinterFields(t *testing.T) {
 
 	assertMatch("true", And(Any(), Any()))
 	assertMatch("true", Or(Any(), Any()))
-	m := StructMatcher{}
+	m := NewStructMatcher()
 	m.AddField("A", Eq(1))
 	m.AddField("B", Eq(0))
 	assertMatch("A = 1 AND B = 0", m)
-	m = StructMatcher{}
+	m = NewStructMatcher()
 	m.AddField("A", Eq(Literal("B")))
 	assertMatch("A = B", m)
 }
@@ -153,12 +153,12 @@ func TestSqlitePrinterFields(t *testing.T) {
 	assertMatch("1", And(Any(), Any()))
 	assertMatch("1", Or(Any(), Any()))
 
-	m := StructMatcher{}
+	m := NewStructMatcher()
 	m.AddField("A", Eq(1))
 	m.AddField("B", Eq(0))
 	assertMatch("A = 1 AND B = 0", m)
 
-	m = StructMatcher{}
+	m = NewStructMatcher()
 	m.AddField("A", Eq(Literal("B")))
 	assertMatch("A = B", m)
 }
@@ -172,7 +172,7 @@ func ExampleNewSqlitePrinter_printHello() {
 		result, _ := printer.Print(matcher)
 		fmt.Println(result)
 	}
-	m := StructMatcher{}
+	m := NewStructMatcher()
 	m.AddField("A", Eq(1))
 	m.AddField("B", Eq(0))
 

@@ -96,7 +96,7 @@ func (service ParseStruct) Parse(input string) (Matcher, error) {
 			if field == "_" {
 				step = And(step, FieldMatcher{Op: realOp, Value: value})
 			} else {
-				temp := StructMatcher{}
+				temp := NewStructMatcher()
 				temp.AddField(field, FieldMatcher{Op: realOp, Value: value})
 				step = And(step, temp)
 			}
@@ -114,7 +114,7 @@ func (service ParseStruct) Parse(input string) (Matcher, error) {
 			if field == "_" {
 				step = And(step, FieldMatcher{Op: realOp, Value: value})
 			} else {
-				temp := StructMatcher{}
+				temp := NewStructMatcher()
 				temp.AddField(field, FieldMatcher{Op: realOp, Value: value})
 				step = And(step, temp)
 			}

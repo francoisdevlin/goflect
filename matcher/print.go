@@ -61,7 +61,7 @@ func printOr(p Printer, r OrMatch) (string, error) {
 		switch temp := matcher.(type) {
 		case AndMatch:
 			needsParens = true
-		case StructMatcher:
+		case *StructMatcher:
 			needsParens = true
 		default:
 			temp = temp
@@ -82,7 +82,7 @@ func printInvert(p Printer, r InvertMatch) (string, error) {
 	return "NOT (" + recurse + ")", nil
 }
 
-func printStruct(factory func(name string) Printer, r StructMatcher) (string, error) {
+func printStruct(factory func(name string) Printer, r *StructMatcher) (string, error) {
 	output := make([]string, 0)
 	keys := make([]string, 0)
 	for name, _ := range r.Fields {
@@ -151,7 +151,7 @@ func (p defaultPrinter) Print(m Matcher) (string, error) {
 		return printAnd(p, r)
 	case OrMatch:
 		return printOr(p, r)
-	case StructMatcher:
+	case *StructMatcher:
 		return printStruct(func(name string) Printer { return defaultPrinter{v: name} }, r)
 	case FieldMatcher:
 		output := ""
@@ -197,7 +197,7 @@ func (p sqlitePrinter) Print(m Matcher) (string, error) {
 		return printAnd(p, r)
 	case OrMatch:
 		return printOr(p, r)
-	case StructMatcher:
+	case *StructMatcher:
 		return printStruct(func(name string) Printer { return sqlitePrinter{v: name} }, r)
 	case FieldMatcher:
 		output := ""
