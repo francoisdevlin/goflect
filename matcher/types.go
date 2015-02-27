@@ -39,7 +39,12 @@ type Matcher interface {
 }
 
 /*
-Bacon
+This is a specialization of the matcher designed to match a struct or dictionary.  It is designed to interact with the outside world as such
+
+	* Filter a stream of structs
+	* Serialize as a SQL WHERE clause
+	* Compose multiple SQL views on the fly
+	* Interact with the end user by using the pretty printer and parsing routines
 */
 type StructMatcher interface {
 	Matcher
