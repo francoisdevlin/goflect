@@ -37,7 +37,7 @@ func printAnd(p Printer, r andMatch) (string, error) {
 		}
 		needsParens := false
 		switch temp := matcher.(type) {
-		case OrMatch:
+		case orMatch:
 			needsParens = true
 		default:
 			temp = temp
@@ -50,7 +50,7 @@ func printAnd(p Printer, r andMatch) (string, error) {
 	return strings.Join(output, " AND "), nil
 }
 
-func printOr(p Printer, r OrMatch) (string, error) {
+func printOr(p Printer, r orMatch) (string, error) {
 	output := make([]string, 0)
 	for _, matcher := range r.Matchers {
 		result, err := p.Print(matcher)
@@ -98,7 +98,7 @@ func printStruct(factory func(name string) Printer, r *StructMatcher) (string, e
 		}
 		needsParens := false
 		switch temp := matcher.(type) {
-		case OrMatch:
+		case orMatch:
 			needsParens = true
 		default:
 			temp = temp
@@ -149,7 +149,7 @@ func (p defaultPrinter) Print(m Matcher) (string, error) {
 	switch r := m.(type) {
 	case andMatch:
 		return printAnd(p, r)
-	case OrMatch:
+	case orMatch:
 		return printOr(p, r)
 	case *StructMatcher:
 		return printStruct(func(name string) Printer { return defaultPrinter{v: name} }, r)
@@ -195,7 +195,7 @@ func (p sqlitePrinter) Print(m Matcher) (string, error) {
 	switch r := m.(type) {
 	case andMatch:
 		return printAnd(p, r)
-	case OrMatch:
+	case orMatch:
 		return printOr(p, r)
 	case *StructMatcher:
 		return printStruct(func(name string) Printer { return sqlitePrinter{v: name} }, r)

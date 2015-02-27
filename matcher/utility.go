@@ -11,7 +11,7 @@ type andMatch struct {
 	Matchers []Matcher
 }
 
-type OrMatch struct {
+type orMatch struct {
 	Matchers []Matcher
 }
 
@@ -46,7 +46,7 @@ func (a andMatch) Match(record interface{}) (bool, error) {
 	return accum, nil
 }
 
-func (a OrMatch) Match(record interface{}) (bool, error) {
+func (a orMatch) Match(record interface{}) (bool, error) {
 	accum := false
 	for _, m := range a.Matchers {
 		result, err := m.Match(record)
@@ -215,7 +215,7 @@ func Or(matchers ...Matcher) Matcher {
 		switch m := matcher.(type) {
 		case noneMatch:
 			usedMatchers = usedMatchers
-		case OrMatch:
+		case orMatch:
 			for _, childMatch := range m.Matchers {
 				usedMatchers = append(usedMatchers, childMatch)
 			}
@@ -231,7 +231,7 @@ func Or(matchers ...Matcher) Matcher {
 	if len(usedMatchers) == 1 {
 		return usedMatchers[0]
 	}
-	return OrMatch{Matchers: usedMatchers}
+	return orMatch{Matchers: usedMatchers}
 }
 
 func NewStructMatcher() *StructMatcher {
