@@ -6,7 +6,7 @@ import (
 )
 
 func TestView(t *testing.T) {
-	match := matcher.StructMatcher{}
+	match := matcher.NewStructMatcher()
 	match.AddField("Inserts", matcher.Gte(1))
 
 	dummy := dummyService{}
@@ -40,7 +40,7 @@ func TestView(t *testing.T) {
 		t.Errorf("The dummy is not the expected value, it is: %v", dummy)
 	}
 
-	match = matcher.StructMatcher{}
+	match = matcher.NewStructMatcher()
 	match.AddField("Updates", matcher.Gte(1))
 	service, _ = service.Restrict(match)
 

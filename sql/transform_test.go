@@ -17,7 +17,7 @@ func ExampleRecordService_basicTransform() {
 	}
 
 	//A simple match
-	match := matcher.StructMatcher{}
+	match := matcher.NewStructMatcher()
 	match.AddField("Inserts", matcher.Gte(1))
 
 	dummy := NewDummyService()

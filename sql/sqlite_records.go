@@ -130,7 +130,7 @@ func (service sqliteRecordService) Update(record interface{}) error {
 	fields := goflect.GetInfo(record)
 	statement := "UPDATE " + typ.Name() + " SET "
 	columns := make([]string, 0)
-	match := matcher.StructMatcher{}
+	match := matcher.NewStructMatcher()
 	for _, field := range fields {
 		fieldVal := val.FieldByName(field.Name)
 		if field.IsPrimary {
@@ -141,7 +141,7 @@ func (service sqliteRecordService) Update(record interface{}) error {
 	}
 	statement += strings.Join(columns, ", ")
 
-	printer := matcher.SqlitePrinter{}
+	printer := matcher.NewSqlitePrinter()
 	result, err := printer.Print(match)
 	if err != nil {
 		return err
@@ -157,7 +157,7 @@ func (service sqliteRecordService) Delete(record interface{}) error {
 
 	fields := goflect.GetInfo(record)
 	statement := "DELETE FROM " + typ.Name()
-	match := matcher.StructMatcher{}
+	match := matcher.NewStructMatcher()
 	for _, field := range fields {
 		fieldVal := val.FieldByName(field.Name)
 		if field.IsPrimary {
@@ -165,7 +165,7 @@ func (service sqliteRecordService) Delete(record interface{}) error {
 		}
 	}
 
-	printer := matcher.SqlitePrinter{}
+	printer := matcher.NewSqlitePrinter()
 	result, err := printer.Print(match)
 	if err != nil {
 		return err
@@ -191,7 +191,7 @@ func (service sqliteRecordService) readAll(record interface{}, match matcher.Mat
 	statement += strings.Join(columns, " , ")
 	statement += " FROM " + typ.Name()
 
-	printer := matcher.SqlitePrinter{}
+	printer := matcher.NewSqlitePrinter()
 	result, err := printer.Print(match)
 	if err != nil {
 		return nil, err

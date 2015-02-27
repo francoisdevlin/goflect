@@ -21,7 +21,7 @@ func TestDummyService(t *testing.T) {
 This shows how to use the a service to resetrict behavior
 */
 func ExampleRecordService_basicRestrict() {
-	match := matcher.StructMatcher{}
+	match := matcher.NewStructMatcher()
 	match.AddField("Inserts", matcher.Gte(1))
 
 	dummy := NewDummyService()
