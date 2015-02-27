@@ -15,6 +15,19 @@ type orMatch struct {
 	Matchers []Matcher
 }
 
+type lambdaYield func() (interface{}, error)
+
+func (y lambdaYield) Yield() (interface{}, error) {
+	return y()
+}
+
+/*
+This function is designed to convert a lambda to a Yieler
+*/
+func NewLambdaYield(f func() (interface{}, error)) Yielder {
+	return lambdaYield(f)
+}
+
 func (a anyMatch) Match(record interface{}) (bool, error) {
 	return true, nil
 }
@@ -79,58 +92,58 @@ func None() Matcher {
 This returns a matcher thay will test that a tested value is equal to a specified one
 */
 func Eq(record interface{}) Matcher {
-	return FieldMatcher{Op: EQ, Value: record}
+	return fieldMatcher{Op: EQ, Value: record}
 }
 
 /*
 This returns a matcher thay will test that a tested value is not equal to a specified one
 */
 func Neq(record interface{}) Matcher {
-	return FieldMatcher{Op: NEQ, Value: record}
+	return fieldMatcher{Op: NEQ, Value: record}
 }
 
 /*
 This returns a matcher thay will test that a tested value is less than a specified one
 */
 func Lt(record interface{}) Matcher {
-	return FieldMatcher{Op: LT, Value: record}
+	return fieldMatcher{Op: LT, Value: record}
 }
 
 /*
 This returns a matcher thay will test that a tested value is less than or equal to a specified one
 */
 func Lte(record interface{}) Matcher {
-	return FieldMatcher{Op: LTE, Value: record}
+	return fieldMatcher{Op: LTE, Value: record}
 }
 
 /*
 This returns a matcher thay will test that a tested value is greater than a specified one
 */
 func Gt(record interface{}) Matcher {
-	return FieldMatcher{Op: GT, Value: record}
+	return fieldMatcher{Op: GT, Value: record}
 }
 
 /*
 This returns a matcher thay will test that a tested value is greater than or equal to a specified one
 */
 func Gte(record interface{}) Matcher {
-	return FieldMatcher{Op: GTE, Value: record}
+	return fieldMatcher{Op: GTE, Value: record}
 }
 
 func In(record interface{}) Matcher {
-	return FieldMatcher{Op: IN, Value: record}
+	return fieldMatcher{Op: IN, Value: record}
 }
 
 func NotIn(record interface{}) Matcher {
-	return FieldMatcher{Op: NOT_IN, Value: record}
+	return fieldMatcher{Op: NOT_IN, Value: record}
 }
 
 func Match(record string) Matcher {
-	return FieldMatcher{Op: MATCH, Value: record}
+	return fieldMatcher{Op: MATCH, Value: record}
 }
 
 func NotMatch(record string) Matcher {
-	return FieldMatcher{Op: NOT_MATCH, Value: record}
+	return fieldMatcher{Op: NOT_MATCH, Value: record}
 }
 
 /*
@@ -144,7 +157,7 @@ func Not(matcher Matcher) Matcher {
 		return None()
 	case noneMatch:
 		return Any()
-	case FieldMatcher:
+	case fieldMatcher:
 		switch r.Op {
 		case EQ:
 			return Neq(r.Value)

@@ -94,10 +94,10 @@ func (service ParseStruct) Parse(input string) (Matcher, error) {
 			step := And()
 			realOp, _ := Lookup[op]
 			if field == "_" {
-				step = And(step, FieldMatcher{Op: realOp, Value: value})
+				step = And(step, fieldMatcher{Op: realOp, Value: value})
 			} else {
 				temp := NewStructMatcher()
-				temp.AddField(field, FieldMatcher{Op: realOp, Value: value})
+				temp.AddField(field, fieldMatcher{Op: realOp, Value: value})
 				step = And(step, temp)
 			}
 			output = conjoin(output, step)
@@ -112,10 +112,10 @@ func (service ParseStruct) Parse(input string) (Matcher, error) {
 				return returnF("Operation type is not supported: " + op)
 			}
 			if field == "_" {
-				step = And(step, FieldMatcher{Op: realOp, Value: value})
+				step = And(step, fieldMatcher{Op: realOp, Value: value})
 			} else {
 				temp := NewStructMatcher()
-				temp.AddField(field, FieldMatcher{Op: realOp, Value: value})
+				temp.AddField(field, fieldMatcher{Op: realOp, Value: value})
 				step = And(step, temp)
 			}
 			output = conjoin(output, step)

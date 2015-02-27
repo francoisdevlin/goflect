@@ -42,17 +42,7 @@ type Yielder interface {
 	Yield() (interface{}, error)
 }
 
-type lambdaYield func() (interface{}, error)
-
-func (y lambdaYield) Yield() (interface{}, error) {
-	return y()
-}
-
-func NewLambdaYield(f func() (interface{}, error)) Yielder {
-	return lambdaYield(f)
-}
-
-type FieldMatcher struct {
+type fieldMatcher struct {
 	Op         FieldOps
 	Value      interface{}
 	fieldCache interface{}
@@ -64,7 +54,7 @@ func (i InvalidCompare) Error() string {
 	return "Invalid comparoson operation"
 }
 
-func (field *FieldMatcher) warmCache() {
+func (field *fieldMatcher) warmCache() {
 	if field.fieldCache != nil {
 		return
 	}
@@ -160,7 +150,7 @@ func (field *FieldMatcher) warmCache() {
 	}
 }
 
-func (field FieldMatcher) Match(record interface{}) (bool, error) {
+func (field fieldMatcher) Match(record interface{}) (bool, error) {
 	field.warmCache()
 	invert := false
 	switch field.Op {

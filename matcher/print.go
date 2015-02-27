@@ -153,7 +153,7 @@ func (p defaultPrinter) Print(m Matcher) (string, error) {
 		return printOr(p, r)
 	case *StructMatcher:
 		return printStruct(func(name string) Printer { return defaultPrinter{v: name} }, r)
-	case FieldMatcher:
+	case fieldMatcher:
 		output := ""
 		if p.v == "" {
 			output += "_"
@@ -199,7 +199,7 @@ func (p sqlitePrinter) Print(m Matcher) (string, error) {
 		return printOr(p, r)
 	case *StructMatcher:
 		return printStruct(func(name string) Printer { return sqlitePrinter{v: name} }, r)
-	case FieldMatcher:
+	case fieldMatcher:
 		output := ""
 		if p.v == "" {
 			output += "_"
