@@ -247,6 +247,7 @@ func TestParsing(t *testing.T) {
 	}}
 	comparisonWorkout(p, float32(1), float32(2), "Bacon")
 
+	//Strings unknown ATM...
 	//p = ParseStruct{Fields: map[string]reflect.Kind{
 	//fieldName: reflect.String,
 	//}}
