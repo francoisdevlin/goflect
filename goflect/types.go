@@ -76,10 +76,10 @@ type ValidatorInfo struct {
 }
 
 type UiInfo struct {
-	Description string
-	FieldOrder  int64
-	Hidden      bool //This controls if the value can ever be interacted with
-	Default     string
+	Description string `desc:"This is the user facing description of a field"`
+	FieldOrder  int64  `desc:"This controls the field display order"`
+	Hidden      bool   `desc:"This controls if the user can see the field at all"`
+	Default     string `desc:"This is the default value of the field in the UI"`
 }
 
 /*
