@@ -6,12 +6,12 @@ import (
 	"strings"
 )
 
-type ReflectValue reflect.StructField
+type reflectValue reflect.StructField
 
 /*
 This is used to determine the Field Info using reflection on a structure.  It will use the field's name as the name, and the field's type's Kind as the Kind
 */
-func (field ReflectValue) GetFieldInfo() (output FieldInfo) {
+func (field reflectValue) GetFieldInfo() (output FieldInfo) {
 	output.Name = field.Name
 	output.Kind = field.Type.Kind()
 	return output
@@ -29,7 +29,7 @@ This is used to generate a SqlInfo field using reflection.  There is a struct ta
     nominal - denotes that the field is a name alias for a record
 
 */
-func (field ReflectValue) GetFieldSqlInfo() (output SqlInfo) {
+func (field reflectValue) GetFieldSqlInfo() (output SqlInfo) {
 	tags := field.Tag.Get(TAG_SQL)
 
 	output.IsPrimary = strings.Contains(tags, SQL_PRIMARY)
@@ -54,7 +54,7 @@ There is also a "flag tag", "ui", with the following entries possible
 
     hidden - This controls if the user can see the field
 */
-func (field ReflectValue) GetFieldUiInfo() (output UiInfo) {
+func (field reflectValue) GetFieldUiInfo() (output UiInfo) {
 	output.Description = field.Tag.Get("desc")
 	output.Default = field.Tag.Get("default")
 	output.FieldOrder, _ = strconv.ParseInt(field.Tag.Get("order"), 0, 64)
@@ -65,7 +65,7 @@ func (field ReflectValue) GetFieldUiInfo() (output UiInfo) {
 	return output
 }
 
-func (field ReflectValue) GetFieldValidatorInfo() (output ValidatorInfo) {
+func (field reflectValue) GetFieldValidatorInfo() (output ValidatorInfo) {
 	output.ValidExpr = field.Tag.Get(TAG_VALID)
 	return output
 }
@@ -113,7 +113,7 @@ func GetInfo(record interface{}) (output []Info) {
 		if _, present := knownFields[field.Name]; !present {
 			fieldNames = append(fieldNames, field.Name)
 		}
-		fieldInfo := ReflectValue(field)
+		fieldInfo := reflectValue(field)
 
 		knownFields[field.Name] = hydrateField(i, fieldInfo)
 	}
