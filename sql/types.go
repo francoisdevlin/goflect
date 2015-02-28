@@ -38,6 +38,11 @@ func (e RecordError) Error() string {
 	return string(e)
 }
 
+type Nominal struct {
+	Id   int64
+	Name string
+}
+
 //ReadAllWhere(record interface{}, conditions map[string]interface{}) func(record interface{}) bool
 //ReadAllNominalWhere(record interface{}, conditions map[string]interface{}) func(record *Nominal) bool
 //GetByNominal(name string, record interface{})

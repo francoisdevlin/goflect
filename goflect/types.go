@@ -92,11 +92,6 @@ type Info struct {
 	UiInfo
 }
 
-type Nominal struct {
-	Id   int64
-	Name string
-}
-
 type FieldDescription interface {
 	GetFieldInfo() FieldInfo
 	GetFieldSqlInfo() SqlInfo
