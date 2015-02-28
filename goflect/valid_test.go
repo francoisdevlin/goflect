@@ -5,6 +5,9 @@ import (
 	"git.sevone.com/sdevlin/goflect.git/matcher"
 )
 
+/*
+Here we can see how to specify the default matcher for the password change struct. This allows us to define stricter constaints than type types alone would allow
+*/
 func ExampleDefaultMatcher_1() {
 	type Password struct {
 		Current string
