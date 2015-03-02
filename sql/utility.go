@@ -26,6 +26,9 @@ func primaryMatcher(record interface{}) (matcher.Matcher, error) {
 	return nil, RecordError("No primary key found")
 }
 
+/*
+This method will delete the record specified by its primary key.  It will return an error if there is no primary key specified, or something goes wrong at a lower layer
+*/
 func (service RecordService) Delete(record interface{}) error {
 	match, err := primaryMatcher(record)
 	if err != nil {
@@ -34,14 +37,23 @@ func (service RecordService) Delete(record interface{}) error {
 	return service.delegate.deleteAll(record, match)
 }
 
+/*
+This method will delete all of the records associated with the record service
+*/
 func (service RecordService) DeleteAll(record interface{}) error {
 	return service.delegate.deleteAll(record, matcher.Any())
 }
 
+/*
+This method will delete all of the records associated with the record service, as restricted by the matcher
+*/
 func (service RecordService) DeleteAllWhere(record interface{}, match matcher.Matcher) error {
 	return service.delegate.deleteAll(record, match)
 }
 
+/*
+This method will update the record specified by its primary key.  It will return an error if there is no primary key specified, or something goes wrong at a lower layer
+*/
 func (service RecordService) Update(record interface{}) error {
 	match, err := primaryMatcher(record)
 	if err != nil {
@@ -50,14 +62,23 @@ func (service RecordService) Update(record interface{}) error {
 	return service.delegate.updateAll(record, match)
 }
 
+/*
+This method will update all of the records associated with the record service to use the values in the record.  Really should only be combined with a dictionary, as to limit the fields that are updated
+*/
 func (service RecordService) UpdateAll(record interface{}) error {
 	return service.delegate.updateAll(record, matcher.Any())
 }
 
+/*
+This method will update all of the records associated with the record service to use the values in the record, as restricted by teh matcher.  Really should only be combined with a dictionary, as to limit the fields that are updated
+*/
 func (service RecordService) UpdateAllWhere(record interface{}, match matcher.Matcher) error {
 	return service.delegate.updateAll(record, match)
 }
 
+/*
+This inserts a record into the service
+*/
 func (service RecordService) Insert(record interface{}) error {
 	sliceType := reflect.SliceOf(reflect.TypeOf(record))
 	slice := reflect.MakeSlice(sliceType, 0, 1)
