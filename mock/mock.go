@@ -37,6 +37,13 @@ func (service MockerStruct) Mock(n int64, record interface{}) interface{} {
 	}
 
 	fields := goflect.GetInfo(record)
+	coerce := func(v interface{}, fVal reflect.Value) {
+		localVal := reflect.ValueOf(v)
+		if fVal.Type() != localVal.Type() {
+			localVal = localVal.Convert(fVal.Type())
+		}
+		fVal.Set(localVal)
+	}
 	for _, field := range fields {
 		if field.IsAutoincrement && service.SkipId {
 			continue
@@ -47,32 +54,8 @@ func (service MockerStruct) Mock(n int64, record interface{}) interface{} {
 		fieldVal := val.FieldByName(field.Name)
 		switch field.Kind {
 		case reflect.Bool:
-			fieldVal.Set(reflect.ValueOf(n != 0))
-		case reflect.Float64:
-			fieldVal.Set(reflect.ValueOf(float64(n)))
-		case reflect.Float32:
-			fieldVal.Set(reflect.ValueOf(float32(n)))
-		case reflect.Int:
-			fieldVal.Set(reflect.ValueOf(int(n)))
-		case reflect.Int64:
-			fieldVal.Set(reflect.ValueOf(n))
-		case reflect.Int32:
-			fieldVal.Set(reflect.ValueOf(int32(n)))
-		case reflect.Int16:
-			fieldVal.Set(reflect.ValueOf(int16(n)))
-		case reflect.Int8:
-			fieldVal.Set(reflect.ValueOf(int8(n)))
-		case reflect.Uint:
-			fieldVal.Set(reflect.ValueOf(uint(n)))
-		case reflect.Uint64:
-			fieldVal.Set(reflect.ValueOf(uint64(n)))
-		case reflect.Uint32:
-			fieldVal.Set(reflect.ValueOf(uint32(n)))
-		case reflect.Uint16:
-			fieldVal.Set(reflect.ValueOf(uint16(n)))
-		case reflect.Uint8:
-			fieldVal.Set(reflect.ValueOf(uint8(n)))
-		default:
+			coerce(n != 0, fieldVal)
+		case reflect.String:
 			temp := strconv.FormatInt(n, 10)
 			switch n {
 			case 1:
@@ -84,7 +67,9 @@ func (service MockerStruct) Mock(n int64, record interface{}) interface{} {
 			default:
 				temp = temp + "th"
 			}
-			fieldVal.Set(reflect.ValueOf(temp))
+			coerce(temp, fieldVal)
+		default:
+			coerce(n, fieldVal)
 		}
 	}
 	return record

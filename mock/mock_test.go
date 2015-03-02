@@ -128,7 +128,28 @@ func TestMockImmutable(t *testing.T) {
 	}
 }
 
-func ExampleMockerStruct_Mock_set1() {
+func TestMockSubtype(t *testing.T) {
+	type EnumerationType int
+	type ErrorType uint
+	type UnitType float64
+	type Message string
+
+	type Baz struct {
+		A EnumerationType
+		B ErrorType
+		C UnitType
+		D Message
+	}
+	mocker := MockerStruct{}
+	result := Baz{}
+	mocker.Mock(1, &result)
+	if (result != Baz{A: 1, B: 1, C: 1.0, D: "1st"}) {
+		t.Error("Enumeration Type Not Set", result)
+	}
+
+}
+
+func ExampleMockerStruct_Mock_set() {
 	type Bar struct {
 		AString   string
 		AFloat    float64
@@ -139,21 +160,12 @@ func ExampleMockerStruct_Mock_set1() {
 	temp := Bar{}
 	mocker.Mock(1, &temp)
 	fmt.Println(temp.AString, temp.AFloat, temp.AnInteger, temp.ABool)
-	//Output: 1st 1 1 true
-}
 
-func ExampleMockerStruct_Mock_set2() {
-	type Bar struct {
-		AString   string
-		AFloat    float64
-		AnInteger int64
-		ABool     bool
-	}
-	mocker := MockerStruct{}
-	temp := Bar{}
 	mocker.Mock(2, &temp)
 	fmt.Println(temp.AString, temp.AFloat, temp.AnInteger, temp.ABool)
-	//Output: 2nd 2 2 true
+	//Output:
+	//1st 1 1 true
+	//2nd 2 2 true
 }
 
 func ExampleMockerStruct_Mock_skipImmutable() {
