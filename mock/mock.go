@@ -1,7 +1,7 @@
 /*
 This is a utility for creating mock records to help with testing
 */
-package goflect
+package mock
 
 import (
 	"git.sevone.com/sdevlin/goflect.git/goflect"
