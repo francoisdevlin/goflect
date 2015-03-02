@@ -1,7 +1,9 @@
 package records
 
 import (
+	//"fmt"
 	"git.sevone.com/sdevlin/goflect.git/matcher"
+	"reflect"
 )
 
 /*
@@ -9,19 +11,21 @@ The transform service transforms a record before sending it to a delegate
 */
 type transform struct {
 	transformer func(interface{}) (interface{}, error)
-	delegate    RecordService
+	delegate    privateRecordService
 }
 
-func (service transform) Insert(record interface{}) error {
-	trans, err := service.transformer(record)
-	if err != nil {
-		return err
+func (service transform) insertAll(record interface{}) error {
+	val := reflect.ValueOf(record)
+
+	slice := reflect.MakeSlice(val.Type(), 0, val.Len())
+	for i := 0; i < val.Len(); i++ {
+		trans, err := service.transformer(val.Index(i).Interface())
+		if err != nil {
+			return err
+		}
+		slice = reflect.Append(slice, reflect.ValueOf(trans))
 	}
-	return service.delegate.Insert(trans)
-}
-
-func (service transform) ReadAll(record interface{}) (func(record interface{}) bool, error) {
-	return service.readAll(record, matcher.Any())
+	return service.delegate.insertAll(slice.Interface())
 }
 
 func (service transform) readAll(record interface{}, match matcher.Matcher) (func(record interface{}) bool, error) {
@@ -32,29 +36,18 @@ func (service transform) readAll(record interface{}, match matcher.Matcher) (fun
 	return service.delegate.readAll(trans, match)
 }
 
-func (service transform) Update(record interface{}) error {
+func (service transform) updateAll(record interface{}, match matcher.Matcher) error {
 	trans, err := service.transformer(record)
 	if err != nil {
 		return err
 	}
-	return service.delegate.Update(trans)
+	return service.delegate.updateAll(trans, match)
 }
 
-func (service transform) Delete(record interface{}) error {
+func (service transform) deleteAll(record interface{}, match matcher.Matcher) error {
 	trans, err := service.transformer(record)
 	if err != nil {
 		return err
 	}
-	return service.delegate.Delete(trans)
-}
-
-func (service transform) Restrict(match matcher.Matcher) (RecordService, error) {
-	return view{match: match, delegate: service}, nil
-}
-
-/*
-This creates a new transform service that will route the request to the appropriate service underneath
-*/
-func NewTransformService(trans func(interface{}) (interface{}, error), deleg RecordService) RecordService {
-	return transform{transformer: trans, delegate: deleg}
+	return service.delegate.deleteAll(trans, match)
 }

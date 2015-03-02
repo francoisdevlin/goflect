@@ -9,24 +9,25 @@ func TestView(t *testing.T) {
 	match := matcher.NewStructMatcher()
 	match.AddField("Inserts", matcher.Gte(1))
 
-	dummy := dummyService{}
-	service, _ := dummy.Restrict(match)
+	service := NewDummyService()
+	dummy, _ := service.delegate.(*dummyService)
+	service, _ = NewViewService(match, service)
 	//Inserts are blocked
 	service.Insert(dummyService{})
-	if (dummy != dummyService{}) {
-		t.Errorf("The dummy is not the expected value, it is: %v", dummy)
+	if (*dummy != dummyService{}) {
+		t.Errorf("1. The dummy is not the expected value, it is: %v", dummy)
 	}
 
 	//Updates are blocked
 	service.Update(dummyService{})
-	if (dummy != dummyService{}) {
-		t.Errorf("The dummy is not the expected value, it is: %v", dummy)
+	if (*dummy != dummyService{}) {
+		t.Errorf("2. The dummy is not the expected value, it is: %v", dummy)
 	}
 
 	//Deletes are blocked
 	service.Delete(dummyService{})
-	if (dummy != dummyService{}) {
-		t.Errorf("The dummy is not the expected value, it is: %v", dummy)
+	if (*dummy != dummyService{}) {
+		t.Errorf("3. The dummy is not the expected value, it is: %v", dummy)
 	}
 
 	//The service methods work properly when the record meets the conditions
@@ -36,38 +37,38 @@ func TestView(t *testing.T) {
 	service.ReadAll(oneInsert)
 	service.Update(oneInsert)
 	service.Delete(oneInsert)
-	if dummy != oneAll {
-		t.Errorf("The dummy is not the expected value, it is: %v", dummy)
+	if *dummy != oneAll {
+		t.Errorf("4. The dummy is not the expected value, it is: %v", dummy)
 	}
 
 	match = matcher.NewStructMatcher()
 	match.AddField("Updates", matcher.Gte(1))
-	service, _ = service.Restrict(match)
+	service, _ = NewViewService(match, service)
 
 	//Inserts are blocked
 	service.Insert(oneInsert)
-	if dummy != oneAll {
-		t.Errorf("The dummy is not the expected value, it is: %v", dummy)
+	if *dummy != oneAll {
+		t.Errorf("5. The dummy is not the expected value, it is: %v", dummy)
 	}
 
 	//Updates are blocked
 	service.Update(oneInsert)
-	if dummy != oneAll {
-		t.Errorf("The dummy is not the expected value, it is: %v", dummy)
+	if *dummy != oneAll {
+		t.Errorf("6. The dummy is not the expected value, it is: %v", dummy)
 	}
 
 	//Deletes are blocked
 	service.Delete(oneInsert)
-	if dummy != oneAll {
-		t.Errorf("The dummy is not the expected value, it is: %v", dummy)
+	if *dummy != oneAll {
+		t.Errorf("7. The dummy is not the expected value, it is: %v", dummy)
 	}
 
 	service.Insert(oneAll)
 	service.ReadAll(oneAll)
 	service.Update(oneAll)
 	service.Delete(oneAll)
-	if (dummy != dummyService{Inserts: 2, Updates: 2, Reads: 2, Deletes: 2}) {
-		t.Errorf("The dummy is not the expected value, it is: %v", dummy)
+	if (*dummy != dummyService{Inserts: 2, Updates: 2, Reads: 2, Deletes: 2}) {
+		t.Errorf("8. The dummy is not the expected value, it is: %v", dummy)
 	}
 
 }

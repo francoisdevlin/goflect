@@ -14,13 +14,9 @@ type dummyService struct {
 	Deletes int
 }
 
-func (service *dummyService) Insert(record interface{}) error {
+func (service *dummyService) insertAll(record interface{}) error {
 	service.Inserts++
 	return nil
-}
-
-func (service *dummyService) ReadAll(record interface{}) (func(record interface{}) bool, error) {
-	return service.readAll(record, matcher.Any())
 }
 
 func (service *dummyService) readAll(record interface{}, match matcher.Matcher) (func(record interface{}) bool, error) {
@@ -28,20 +24,12 @@ func (service *dummyService) readAll(record interface{}, match matcher.Matcher) 
 	return nil, nil
 }
 
-func (service *dummyService) Update(record interface{}) error {
+func (service *dummyService) updateAll(record interface{}, match matcher.Matcher) error {
 	service.Updates++
 	return nil
 }
 
-func (service *dummyService) Delete(record interface{}) error {
+func (service *dummyService) deleteAll(record interface{}, match matcher.Matcher) error {
 	service.Deletes++
 	return nil
-}
-
-func (service *dummyService) Restrict(match matcher.Matcher) (RecordService, error) {
-	return view{match: match, delegate: service}, nil
-}
-
-func NewDummyService() RecordService {
-	return new(dummyService)
 }

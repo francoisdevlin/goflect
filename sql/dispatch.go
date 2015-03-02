@@ -2,6 +2,7 @@ package records
 
 import (
 	"git.sevone.com/sdevlin/goflect.git/matcher"
+	"reflect"
 )
 
 /*
@@ -9,20 +10,33 @@ The dispatch is a basic tool to route a request to a record service based on the
 */
 type dispatch struct {
 	dispatcher func(interface{}) (int, error)
-	delegates  []RecordService
+	delegates  []privateRecordService
 }
 
-func (service dispatch) Insert(record interface{}) error {
-	delegateId, err := service.dispatcher(record)
-	if err != nil {
-		return err
+func (service dispatch) insertAll(record interface{}) error {
+	index := -1
+	val := reflect.ValueOf(record)
+
+	for i := 0; i < val.Len(); i++ {
+		element := val.Index(i).Interface()
+		delegateId, err := service.dispatcher(element)
+		switch {
+		case err != nil:
+			return err
+		case index == -1:
+			index = delegateId
+		case index != delegateId:
+			return RecordError("Could not insert record, multiple dispatches detected")
+		}
+		if err != nil {
+			return err
+		}
 	}
-	delegate := service.delegates[delegateId]
-	return delegate.Insert(record)
-}
-
-func (service dispatch) ReadAll(record interface{}) (func(record interface{}) bool, error) {
-	return service.readAll(record, matcher.Any())
+	if index == -1 {
+		return RecordError("Could not insert record, no index detected")
+	}
+	delegate := service.delegates[index]
+	return delegate.insertAll(record)
 }
 
 func (service dispatch) readAll(record interface{}, match matcher.Matcher) (func(record interface{}) bool, error) {
@@ -34,31 +48,20 @@ func (service dispatch) readAll(record interface{}, match matcher.Matcher) (func
 	return delegate.readAll(record, match)
 }
 
-func (service dispatch) Update(record interface{}) error {
+func (service dispatch) updateAll(record interface{}, match matcher.Matcher) error {
 	delegateId, err := service.dispatcher(record)
 	if err != nil {
 		return err
 	}
 	delegate := service.delegates[delegateId]
-	return delegate.Update(record)
+	return delegate.updateAll(record, match)
 }
 
-func (service dispatch) Delete(record interface{}) error {
+func (service dispatch) deleteAll(record interface{}, match matcher.Matcher) error {
 	delegateId, err := service.dispatcher(record)
 	if err != nil {
 		return err
 	}
 	delegate := service.delegates[delegateId]
-	return delegate.Delete(record)
-}
-
-func (service dispatch) Restrict(match matcher.Matcher) (RecordService, error) {
-	return view{match: match, delegate: service}, nil
-}
-
-/*
-This creates a new dispatch service that will route the request to the appropriate service underneath
-*/
-func NewDispatchService(disp func(interface{}) (int, error), delegs []RecordService) RecordService {
-	return dispatch{dispatcher: disp, delegates: delegs}
+	return delegate.deleteAll(record, match)
 }

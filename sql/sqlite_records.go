@@ -14,13 +14,6 @@ type sqliteRecordService struct {
 	Conn *sql.DB
 }
 
-/*
-This function takes a connection to a sqlite service, and returns a Record Service.  Should only be used with application setup code
-*/
-func NewSqliteService(conn *sql.DB) RecordService {
-	return sqliteRecordService{Conn: conn}
-}
-
 func typeAndVal(record interface{}) (reflect.Type, reflect.Value) {
 	typ := reflect.TypeOf(record)
 	// if a pointer to a struct is passed, get the type of the dereferenced object
@@ -94,10 +87,14 @@ func (service sqliteRecordService) Create(record interface{}) error {
 	return err
 }
 
-func (service sqliteRecordService) Insert(record interface{}) error {
+func (service sqliteRecordService) insertAll(record interface{}) error {
 	typ, val := typeAndVal(record)
 
-	fields := goflect.GetInfo(record)
+	typ = reflect.TypeOf(record)
+	for typ.Kind() == reflect.Array || typ.Kind() == reflect.Ptr || typ.Kind() == reflect.Slice {
+		typ = typ.Elem()
+	}
+	fields := goflect.GetInfo(val.Index(0).Interface())
 	statement := ""
 	statement += "INSERT INTO " + typ.Name() + "("
 	columns := make([]string, 0)
@@ -108,9 +105,21 @@ func (service sqliteRecordService) Insert(record interface{}) error {
 		columns = append(columns, field.Name)
 	}
 	statement += strings.Join(columns, ", ")
-	statement += " ) VALUES ("
+	statement += " ) VALUES "
 
 	columns = make([]string, 0)
+	for i := 0; i < val.Len(); i++ {
+		columns = append(columns, uglyGuy(fields, val.Index(i).Interface()))
+	}
+	statement += strings.Join(columns, ", ")
+	//fmt.Println(statement)
+	_, err := service.Conn.Exec(statement)
+	return err
+}
+
+func uglyGuy(fields []goflect.Info, record interface{}) string {
+	_, val := typeAndVal(record)
+	columns := make([]string, 0)
 	for _, field := range fields {
 		if field.IsAutoincrement {
 			continue
@@ -118,11 +127,40 @@ func (service sqliteRecordService) Insert(record interface{}) error {
 		fieldVal := val.FieldByName(field.Name)
 		columns = append(columns, wrap(fieldVal, field))
 	}
-	statement += strings.Join(columns, ", ")
-	statement += " )"
-	_, err := service.Conn.Exec(statement)
-	return err
+	statement := strings.Join(columns, ", ")
+	statement = "( " + statement + " )"
+	return statement
 }
+
+//func (service sqliteRecordService) Insert(record interface{}) error {
+//typ, val := typeAndVal(record)
+
+//fields := goflect.GetInfo(record)
+//statement := ""
+//statement += "INSERT INTO " + typ.Name() + "("
+//columns := make([]string, 0)
+//for _, field := range fields {
+//if field.IsAutoincrement {
+//continue
+//}
+//columns = append(columns, field.Name)
+//}
+//statement += strings.Join(columns, ", ")
+//statement += " ) VALUES ("
+
+//columns = make([]string, 0)
+//for _, field := range fields {
+//if field.IsAutoincrement {
+//continue
+//}
+//fieldVal := val.FieldByName(field.Name)
+//columns = append(columns, wrap(fieldVal, field))
+//}
+//statement += strings.Join(columns, ", ")
+//statement += " )"
+//_, err := service.Conn.Exec(statement)
+//return err
+//}
 
 func (service sqliteRecordService) Update(record interface{}) error {
 	typ, val := typeAndVal(record)
@@ -152,6 +190,30 @@ func (service sqliteRecordService) Update(record interface{}) error {
 	return err
 }
 
+func (service sqliteRecordService) updateAll(record interface{}, match matcher.Matcher) error {
+	typ, val := typeAndVal(record)
+
+	fields := goflect.GetInfo(record)
+	statement := "UPDATE " + typ.Name() + " SET "
+	columns := make([]string, 0)
+	for _, field := range fields {
+		fieldVal := val.FieldByName(field.Name)
+		temp := field.Name + "=" + wrap(fieldVal, field)
+		columns = append(columns, temp)
+	}
+	statement += strings.Join(columns, ", ")
+
+	printer := matcher.NewSqlitePrinter()
+	result, err := printer.Print(match)
+	if err != nil {
+		return err
+	}
+	statement += " WHERE " + result
+
+	_, err = service.Conn.Exec(statement)
+	return err
+}
+
 func (service sqliteRecordService) Delete(record interface{}) error {
 	typ, val := typeAndVal(record)
 
@@ -164,6 +226,21 @@ func (service sqliteRecordService) Delete(record interface{}) error {
 			match.AddField(field.Name, matcher.Eq(fieldVal.Interface()))
 		}
 	}
+
+	printer := matcher.NewSqlitePrinter()
+	result, err := printer.Print(match)
+	if err != nil {
+		return err
+	}
+	statement += " WHERE " + result
+	_, err = service.Conn.Exec(statement)
+	return err
+}
+
+func (service sqliteRecordService) deleteAll(record interface{}, match matcher.Matcher) error {
+	typ, _ := typeAndVal(record)
+
+	statement := "DELETE FROM " + typ.Name()
 
 	printer := matcher.NewSqlitePrinter()
 	result, err := printer.Print(match)
@@ -284,10 +361,6 @@ func nextRow(rows *sql.Rows, record interface{}) bool {
 
 	}
 	return next
-}
-
-func (service sqliteRecordService) Restrict(match matcher.Matcher) (RecordService, error) {
-	return view{match: match, delegate: service}, nil
 }
 
 func RailsConvention(record interface{}) func(interface{}) (interface{}, error) {

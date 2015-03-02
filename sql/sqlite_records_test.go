@@ -22,7 +22,7 @@ func ExampleSqlRecordDefiner_sqliteBasic() {
 
 	c, _ := sql.Open("sqlite3", ":memory:")
 	service := NewSqliteService(c)
-	sqlService, _ := service.(SqlRecordDefiner)
+	sqlService, _ := service.delegate.(SqlRecordDefiner)
 	fmt.Println(sqlService.CreateStatement(Foo{}))
 
 	//Output:
@@ -45,7 +45,7 @@ func ExampleRecordService_insertSqliteVerbose() {
 
 	c, _ := sql.Open("sqlite3", ":memory:")
 	service := NewSqliteService(c)
-	sqlService, _ := service.(RecordDefiner)
+	sqlService, _ := service.delegate.(RecordDefiner)
 	err := sqlService.Create(&Foo{})
 	if err == nil {
 		fmt.Println("Table created properly")
@@ -91,7 +91,7 @@ func ExampleRecordService_insertSqliteIdiomatic() {
 
 	c, _ := sql.Open("sqlite3", ":memory:")
 	service := NewSqliteService(c)
-	sqlService, _ := service.(RecordDefiner)
+	sqlService, _ := service.delegate.(RecordDefiner)
 	err := sqlService.Create(&Foo{})
 	if err != nil {
 		return
@@ -134,7 +134,7 @@ func Example_railsConvention1() {
 	//Add boilerplate for table createion
 	c, _ := sql.Open("sqlite3", ":memory:")
 	service := NewSqliteService(c)
-	sqlService, _ := service.(RecordDefiner)
+	sqlService, _ := service.delegate.(RecordDefiner)
 	sqlService.Create(&Device{})
 	sqlService.Create(&Object{})
 

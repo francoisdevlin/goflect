@@ -7,21 +7,13 @@ import (
 	"git.sevone.com/sdevlin/goflect.git/matcher"
 )
 
-/*
-This is yet another take on the active record pattern, centered around the matcher
-*/
-type RecordService interface {
-	Insert(record interface{}) error
-	ReadAll(record interface{}) (func(record interface{}) bool, error)
-	readAll(record interface{}, match matcher.Matcher) (func(record interface{}) bool, error)
-	Update(record interface{}) error
-	Delete(record interface{}) error
-	Restrict(match matcher.Matcher) (RecordService, error)
-	//ReadAllNominal(record interface{}) (func(record *Nominal) bool, error)
-	//Limit(int) (RecordService error)
-	//Offset(int) (RecordService error)
-	//OrderBy(...string) (RecordService error)
-}
+//type RecordService interface {
+//Insert(record interface{}) error
+//ReadAll(record interface{}) (func(record interface{}) bool, error)
+//readAll(record interface{}, match matcher.Matcher) (func(record interface{}) bool, error)
+//Update(record interface{}) error
+//Delete(record interface{}) error
+//}
 
 type RecordDefiner interface {
 	Create(record interface{}) error
@@ -43,6 +35,20 @@ type Nominal struct {
 	Name string
 }
 
+type privateRecordService interface {
+	insertAll(rows interface{}) error
+	readAll(record interface{}, match matcher.Matcher) (func(record interface{}) bool, error)
+	updateAll(record interface{}, match matcher.Matcher) error
+	deleteAll(record interface{}, match matcher.Matcher) error
+}
+
+/*
+This is yet another take on the active record pattern, centered around the matcher.  It also includes also sort of distributed computing hotness by leveraging privateRecordServices
+*/
+type RecordService struct {
+	delegate privateRecordService
+}
+
 //ReadAllWhere(record interface{}, conditions map[string]interface{}) func(record interface{}) bool
 //ReadAllNominalWhere(record interface{}, conditions map[string]interface{}) func(record *Nominal) bool
 //GetByNominal(name string, record interface{})
@@ -50,3 +56,8 @@ type Nominal struct {
 //GetNominalByNominal(name string) (output Nominal)
 //Get(id int64, record interface{})
 //GetNominal(id int64) (output Nominal)
+//Restrict(match matcher.Matcher) (RecordService, error)
+//ReadAllNominal(record interface{}) (func(record *Nominal) bool, error)
+//Limit(int) (RecordService error)
+//Offset(int) (RecordService error)
+//OrderBy(...string) (RecordService error)

@@ -12,7 +12,7 @@ This shows how to use the a service to resetrict behavior
 func ExampleRecordService_basicTransform() {
 	//A basic printer
 	printStats := func(d1 RecordService) {
-		dum1, _ := d1.(*dummyService)
+		dum1, _ := d1.delegate.(*dummyService)
 		fmt.Println("Inserts - dummy:", dum1.Inserts)
 	}
 
@@ -21,7 +21,7 @@ func ExampleRecordService_basicTransform() {
 	match.AddField("Inserts", matcher.Gte(1))
 
 	dummy := NewDummyService()
-	service, _ := dummy.Restrict(match)
+	service, _ := NewViewService(match, dummy)
 	//Inserts are blocked
 	err := service.Insert(dummyService{})
 	fmt.Println(err)
@@ -33,7 +33,7 @@ func ExampleRecordService_basicTransform() {
 		dummy.Inserts++
 		return dummy, nil
 	}
-	//But, if we add a transform to the service...
+	////But, if we add a transform to the service...
 	service = NewTransformService(insertTransform, service)
 	service.Insert(dummyService{})
 	printStats(dummy)

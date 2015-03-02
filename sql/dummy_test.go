@@ -7,12 +7,13 @@ import (
 )
 
 func TestDummyService(t *testing.T) {
-	dummy := dummyService{}
-	dummy.Insert(&dummy)
-	dummy.ReadAll(&dummy)
-	dummy.Update(&dummy)
-	dummy.Delete(&dummy)
-	if (dummy != dummyService{Inserts: 1, Updates: 1, Reads: 1, Deletes: 1}) {
+	service := NewDummyService()
+	dummy, _ := service.delegate.(*dummyService)
+	service.Insert(dummy)
+	service.ReadAll(dummy)
+	service.Update(dummy)
+	service.Delete(dummy)
+	if (*dummy != dummyService{Inserts: 1, Updates: 1, Reads: 1, Deletes: 1}) {
 		t.Errorf("The dummy is not the expected value, it is: %v", dummy)
 	}
 }
@@ -25,7 +26,7 @@ func ExampleRecordService_basicRestrict() {
 	match.AddField("Inserts", matcher.Gte(1))
 
 	dummy := NewDummyService()
-	service, _ := dummy.Restrict(match)
+	service, _ := NewViewService(match, dummy)
 	//Inserts are blocked
 	err := service.Insert(dummyService{})
 	fmt.Println(err)

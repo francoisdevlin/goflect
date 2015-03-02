@@ -11,8 +11,8 @@ This shows how to use the a service to resetrict behavior
 func ExampleRecordService_basicDispatch() {
 	//A basic printer
 	printStats := func(d1, d2 RecordService) {
-		dum1, _ := d1.(*dummyService)
-		dum2, _ := d2.(*dummyService)
+		dum1, _ := d1.delegate.(*dummyService)
+		dum2, _ := d2.delegate.(*dummyService)
 		fmt.Println("Inserts - dummy 1, dummy 2:", dum1.Inserts, dum2.Inserts)
 	}
 

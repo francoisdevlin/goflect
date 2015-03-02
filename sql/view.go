@@ -2,6 +2,7 @@ package records
 
 import (
 	"git.sevone.com/sdevlin/goflect.git/matcher"
+	"reflect"
 )
 
 /*
@@ -9,22 +10,24 @@ The view is a basic tool to ensure that only well formed records are every passe
 */
 type view struct {
 	match    matcher.Matcher
-	delegate RecordService
+	delegate privateRecordService
 }
 
-func (service view) Insert(record interface{}) error {
-	ok, err := service.match.Match(record)
-	if err != nil {
-		return err
-	}
-	if !ok {
-		return RecordError("Could not insert record, does not match")
-	}
-	return service.delegate.Insert(record)
-}
+func (service view) insertAll(record interface{}) error {
+	val := reflect.ValueOf(record)
 
-func (service view) ReadAll(record interface{}) (func(record interface{}) bool, error) {
-	return service.readAll(record, matcher.Any())
+	for i := 0; i < val.Len(); i++ {
+		element := val.Index(i).Interface()
+		ok, err := service.match.Match(element)
+		if err != nil {
+			return err
+		}
+		if !ok {
+			return RecordError("Could not insert record, does not match")
+		}
+	}
+
+	return service.delegate.insertAll(record)
 }
 
 func (service view) readAll(record interface{}, match matcher.Matcher) (func(record interface{}) bool, error) {
@@ -32,7 +35,7 @@ func (service view) readAll(record interface{}, match matcher.Matcher) (func(rec
 		matcher.And(service.match, match))
 }
 
-func (service view) Update(record interface{}) error {
+func (service view) updateAll(record interface{}, match matcher.Matcher) error {
 	ok, err := service.match.Match(record)
 	if err != nil {
 		return err
@@ -40,10 +43,10 @@ func (service view) Update(record interface{}) error {
 	if !ok {
 		return RecordError("Could not update record, does not match")
 	}
-	return service.delegate.Update(record)
+	return service.delegate.updateAll(record, match)
 }
 
-func (service view) Delete(record interface{}) error {
+func (service view) deleteAll(record interface{}, match matcher.Matcher) error {
 	ok, err := service.match.Match(record)
 	if err != nil {
 		return err
@@ -51,10 +54,5 @@ func (service view) Delete(record interface{}) error {
 	if !ok {
 		return RecordError("Could not delete record, does not match")
 	}
-	return service.delegate.Delete(record)
-}
-
-func (service view) Restrict(match matcher.Matcher) (RecordService, error) {
-	newMatch := matcher.And(service.match, match)
-	return view{match: newMatch, delegate: service.delegate}, nil
+	return service.delegate.deleteAll(record, match)
 }
