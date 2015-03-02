@@ -180,6 +180,8 @@ func (p defaultPrinter) Print(m Matcher) (string, error) {
 		return "false", nil
 	case anyMatch:
 		return "true", nil
+	case errorMatch:
+		return "error", nil
 	}
 	return "", nil
 }
@@ -289,6 +291,8 @@ func (p sqlitePrinter) Print(m Matcher) (string, error) {
 		return "0", nil
 	case anyMatch:
 		return "1", nil
+	case errorMatch:
+		return "", InvalidCompare(0)
 	}
 	return "", nil
 }

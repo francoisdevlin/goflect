@@ -2,6 +2,7 @@ package matcher
 
 type anyMatch int
 type noneMatch int
+type errorMatch int
 
 type invertMatch struct {
 	M Matcher
@@ -34,6 +35,10 @@ func (a anyMatch) Match(record interface{}) (bool, error) {
 
 func (a noneMatch) Match(record interface{}) (bool, error) {
 	return false, nil
+}
+
+func (a errorMatch) Match(record interface{}) (bool, error) {
+	return false, InvalidCompare(0)
 }
 
 func (a invertMatch) Match(record interface{}) (bool, error) {
@@ -86,6 +91,13 @@ This returns a matcher that always returns false
 */
 func None() Matcher {
 	return noneMatch(1)
+}
+
+/*
+This returns a matcher that always returns an error.  Used for testing
+*/
+func Buggy() Matcher {
+	return errorMatch(1)
 }
 
 /*

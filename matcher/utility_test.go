@@ -349,3 +349,38 @@ func ExampleAny() {
 	//true : true
 	//true : true
 }
+
+func ExampleBuggy() {
+	show := func(m Matcher, value interface{}) {
+		printer := defaultPrinter{v: fmt.Sprint(value)}
+		result, err := m.Match(value)
+		statement, _ := printer.Print(m)
+		if err != nil {
+			fmt.Println(statement, ":", "ERROR")
+		} else {
+			fmt.Println(statement, ":", result)
+		}
+	}
+
+	show(Buggy(), 1)
+	show(Buggy(), 1)
+	show(Buggy(), int64(1))
+
+	//Buggy still behaves like a normal matcher, so rewrite rules apply
+	show(And(Buggy(), Eq(1)), 1)
+	show(And(Buggy(), Any()), 1)
+	show(And(Buggy(), None()), 1)
+	show(Or(Buggy(), Eq(1)), 1)
+	show(Or(Buggy(), Any()), 1)
+	show(Or(Buggy(), None()), 1)
+	//Output:
+	//error : ERROR
+	//error : ERROR
+	//error : ERROR
+	//error AND 1 = 1 : ERROR
+	//error : ERROR
+	//false : false
+	//error OR 1 = 1 : ERROR
+	//true : true
+	//error : ERROR
+}
