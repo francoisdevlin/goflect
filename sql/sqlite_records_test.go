@@ -305,14 +305,6 @@ func basicWriteHelper(t *testing.T, retrieved, expected interface{}) {
 
 }
 
-//func TestBasicTableOpsBar(t *testing.T) {
-//basicWriteHelper(t, &Bar{}, &Bar{})
-//}
-
-//func TestBasicTableOpsFoo2(t *testing.T) {
-//basicWriteHelper(t, &Foo{}, &Foo{})
-//}
-
 func TestBasicTableOpsInts(t *testing.T) {
 	type Baz struct {
 		Id  int64 `sql:"primary,autoincrement"`

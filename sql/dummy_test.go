@@ -11,8 +11,8 @@ func TestDummyService(t *testing.T) {
 	dummy, _ := service.delegate.(*dummyService)
 	service.Insert(dummy)
 	service.ReadAll(dummy)
-	service.Update(dummy)
-	service.Delete(dummy)
+	service.UpdateAll(dummy)
+	service.DeleteAll(dummy)
 	if (*dummy != dummyService{Inserts: 1, Updates: 1, Reads: 1, Deletes: 1}) {
 		t.Errorf("The dummy is not the expected value, it is: %v", dummy)
 	}

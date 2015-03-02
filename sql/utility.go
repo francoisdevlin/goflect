@@ -12,25 +12,50 @@ func primaryMatcher(record interface{}) (matcher.Matcher, error) {
 
 	fields := goflect.GetInfo(record)
 	match := matcher.NewStructMatcher()
+	primaryFound := false
 	for _, field := range fields {
 		fieldVal := val.FieldByName(field.Name)
 		if field.IsPrimary {
 			match.AddField(field.Name, matcher.Eq(fieldVal.Interface()))
+			primaryFound = true
 		}
 	}
-	return match, nil
+	if primaryFound {
+		return match, nil
+	}
+	return nil, RecordError("No primary key found")
 }
 
 func (service RecordService) Delete(record interface{}) error {
-	match, _ := primaryMatcher(record)
-	service.delegate.deleteAll(record, match)
-	return nil
+	match, err := primaryMatcher(record)
+	if err != nil {
+		return err
+	}
+	return service.delegate.deleteAll(record, match)
+}
+
+func (service RecordService) DeleteAll(record interface{}) error {
+	return service.delegate.deleteAll(record, matcher.Any())
+}
+
+func (service RecordService) DeleteAllWhere(record interface{}, match matcher.Matcher) error {
+	return service.delegate.deleteAll(record, match)
 }
 
 func (service RecordService) Update(record interface{}) error {
-	match, _ := primaryMatcher(record)
-	service.delegate.updateAll(record, match)
-	return nil
+	match, err := primaryMatcher(record)
+	if err != nil {
+		return err
+	}
+	return service.delegate.updateAll(record, match)
+}
+
+func (service RecordService) UpdateAll(record interface{}) error {
+	return service.delegate.updateAll(record, matcher.Any())
+}
+
+func (service RecordService) UpdateAllWhere(record interface{}, match matcher.Matcher) error {
+	return service.delegate.updateAll(record, match)
 }
 
 func (service RecordService) Insert(record interface{}) error {
@@ -40,7 +65,7 @@ func (service RecordService) Insert(record interface{}) error {
 	return service.delegate.insertAll(slice.Interface())
 }
 
-func (service RecordService) Get(id int64, record interface{}) {
+func (service RecordService) Get(id int64, record interface{}) error {
 	fields := goflect.GetInfo(record)
 	match := matcher.NewStructMatcher()
 	for _, field := range fields {
@@ -48,12 +73,16 @@ func (service RecordService) Get(id int64, record interface{}) {
 			match.AddField(field.Name, matcher.Eq(id))
 		}
 	}
-	next, _ := service.ReadWhere(record, match)
+	next, err := service.ReadWhere(record, match)
+	if err != nil {
+		return err
+	}
 	for next(record) {
 	} //The last call closes the result set, important!
+	return nil
 }
 
-func (service RecordService) DeleteById(id int64, record interface{}) {
+func (service RecordService) DeleteById(id int64, record interface{}) error {
 	fields := goflect.GetInfo(record)
 	match := matcher.NewStructMatcher()
 	for _, field := range fields {
@@ -61,7 +90,7 @@ func (service RecordService) DeleteById(id int64, record interface{}) {
 			match.AddField(field.Name, matcher.Eq(id))
 		}
 	}
-	_ = service.delegate.deleteAll(record, match)
+	return service.delegate.deleteAll(record, match)
 }
 
 /*
@@ -119,4 +148,11 @@ This function takes a connection to a sqlite service, and returns a Record Servi
 */
 func NewSqliteService(conn *sql.DB) RecordService {
 	return RecordService{delegate: sqliteRecordService{Conn: conn}}
+}
+
+/*
+This returns a new buggy serivce, that always returns an error.  Useful for testing
+*/
+func NewBuggyService() RecordService {
+	return RecordService{delegate: buggyService{}}
 }

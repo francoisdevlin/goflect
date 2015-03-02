@@ -19,13 +19,13 @@ func TestView(t *testing.T) {
 	}
 
 	//Updates are blocked
-	service.Update(dummyService{})
+	service.UpdateAll(dummyService{})
 	if (*dummy != dummyService{}) {
 		t.Errorf("2. The dummy is not the expected value, it is: %v", dummy)
 	}
 
 	//Deletes are blocked
-	service.Delete(dummyService{})
+	service.DeleteAll(dummyService{})
 	if (*dummy != dummyService{}) {
 		t.Errorf("3. The dummy is not the expected value, it is: %v", dummy)
 	}
@@ -35,8 +35,8 @@ func TestView(t *testing.T) {
 	oneAll := dummyService{Inserts: 1, Updates: 1, Reads: 1, Deletes: 1}
 	service.Insert(oneInsert)
 	service.ReadAll(oneInsert)
-	service.Update(oneInsert)
-	service.Delete(oneInsert)
+	service.UpdateAll(oneInsert)
+	service.DeleteAll(oneInsert)
 	if *dummy != oneAll {
 		t.Errorf("4. The dummy is not the expected value, it is: %v", dummy)
 	}
@@ -52,21 +52,21 @@ func TestView(t *testing.T) {
 	}
 
 	//Updates are blocked
-	service.Update(oneInsert)
+	service.UpdateAll(oneInsert)
 	if *dummy != oneAll {
 		t.Errorf("6. The dummy is not the expected value, it is: %v", dummy)
 	}
 
 	//Deletes are blocked
-	service.Delete(oneInsert)
+	service.DeleteAll(oneInsert)
 	if *dummy != oneAll {
 		t.Errorf("7. The dummy is not the expected value, it is: %v", dummy)
 	}
 
 	service.Insert(oneAll)
 	service.ReadAll(oneAll)
-	service.Update(oneAll)
-	service.Delete(oneAll)
+	service.UpdateAll(oneAll)
+	service.DeleteAll(oneAll)
 	if (*dummy != dummyService{Inserts: 2, Updates: 2, Reads: 2, Deletes: 2}) {
 		t.Errorf("8. The dummy is not the expected value, it is: %v", dummy)
 	}
