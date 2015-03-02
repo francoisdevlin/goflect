@@ -3,11 +3,10 @@ package records
 import (
 	"database/sql"
 	"fmt"
-	//"git.sevone.com/sdevlin/goflect.git/goflect"
 	"git.sevone.com/sdevlin/goflect.git/matcher"
 	"git.sevone.com/sdevlin/goflect.git/mock"
 	_ "github.com/mattn/go-sqlite3"
-	//"reflect"
+	"reflect"
 	"testing"
 )
 
@@ -234,77 +233,77 @@ func TestBasicTableOpsFoo(t *testing.T) {
 
 }
 
-//func basicWriteHelper(t *testing.T, retrieved, expected interface{}) {
-//c, _ := sql.Open("sqlite3", ":memory:")
-//service := SqliteRecordService{c}
-//message := CreateSQLiteTable(retrieved)
-//_, err := c.Exec(message)
-//if err != nil {
-//t.Error("Miss creating table")
-//}
+func basicWriteHelper(t *testing.T, retrieved, expected interface{}) {
+	c, _ := sql.Open("sqlite3", ":memory:")
+	service := NewSqliteService(c)
+	sqlService, _ := service.delegate.(RecordDefiner)
+	err := sqlService.Create(retrieved)
+	if err != nil {
+		t.Error("Miss creating table")
+	}
 
-//MAX_COUNT := 4 //Why not 4?
-//mocker := mock.MockerStruct{SkipId: true}
-//for i := 0; i < MAX_COUNT; i++ {
-//service.Insert((mocker.Mock(int64(i+1), retrieved)))
-//}
+	MAX_COUNT := 4 //Why not 4?
+	mocker := mock.MockerStruct{SkipId: true}
+	for i := 0; i < MAX_COUNT; i++ {
+		service.Insert((mocker.Mock(int64(i+1), retrieved)))
+	}
 
-//mocker = mock.MockerStruct{SkipId: false}
-//service.Get(1, retrieved)
-//mocker.Mock(1, expected)
-////fmt.Println(retrieved)
-////fmt.Println(expected)
+	mocker = mock.MockerStruct{SkipId: false}
+	service.Get(1, retrieved)
+	mocker.Mock(1, expected)
+	//fmt.Println(retrieved)
+	//fmt.Println(expected)
 
-//if !reflect.DeepEqual(retrieved, expected) {
-//t.Error("Error on first record equality")
-//}
+	if !reflect.DeepEqual(retrieved, expected) {
+		t.Error("Error on first record equality")
+	}
 
-//next := service.ReadAll(retrieved)
-//i := 0
-//for next(retrieved) {
-//i++
-//mocker.Mock(int64(i), expected)
-//if !reflect.DeepEqual(retrieved, expected) {
-//t.Error(fmt.Sprintf("Error with autoincrement, R: %v E: %v", retrieved, expected))
-//}
-//}
-//if i != MAX_COUNT {
-//t.Errorf("Too few records found, expected %v, found %v", MAX_COUNT, i)
-//}
+	next, _ := service.ReadAll(retrieved)
+	i := 0
+	for next(retrieved) {
+		i++
+		mocker.Mock(int64(i), expected)
+		if !reflect.DeepEqual(retrieved, expected) {
+			t.Error(fmt.Sprintf("Error with autoincrement, R: %v E: %v", retrieved, expected))
+		}
+	}
+	if i != MAX_COUNT {
+		t.Errorf("Too few records found, expected %v, found %v", MAX_COUNT, i)
+	}
 
-//mocker.Mock(1, expected)
-//mocker = mock.MockerStruct{SkipId: true}
-//service.Get(1, retrieved)
-//mocker.Mock(10, retrieved)
-//mocker.Mock(10, expected)
-//service.Update(retrieved)
-//service.Get(1, retrieved)
-//if !reflect.DeepEqual(retrieved, expected) {
-//t.Error("Error on first record update")
-//}
-//service.Delete(retrieved)
+	mocker.Mock(1, expected)
+	mocker = mock.MockerStruct{SkipId: true}
+	service.Get(1, retrieved)
+	mocker.Mock(10, retrieved)
+	mocker.Mock(10, expected)
+	service.Update(retrieved)
+	service.Get(1, retrieved)
+	if !reflect.DeepEqual(retrieved, expected) {
+		t.Error("Error on first record update")
+	}
+	service.Delete(retrieved)
 
-//next = service.ReadAll(retrieved)
-//i = 0
-//for next(retrieved) {
-//i++
-//}
-//if i != MAX_COUNT-1 {
-//t.Errorf("Too few records found, expected %v, found %v", MAX_COUNT-1, i)
-//}
+	next, _ = service.ReadAll(retrieved)
+	i = 0
+	for next(retrieved) {
+		i++
+	}
+	if i != MAX_COUNT-1 {
+		t.Errorf("Too few records found, expected %v, found %v", MAX_COUNT-1, i)
+	}
 
-//service.DeleteById(2, retrieved)
+	service.DeleteById(2, retrieved)
 
-//next = service.ReadAll(retrieved)
-//i = 0
-//for next(retrieved) {
-//i++
-//}
-//if i != MAX_COUNT-2 {
-//t.Errorf("Too few records found, expected %v, found %v", MAX_COUNT-2, i)
-//}
+	next, _ = service.ReadAll(retrieved)
+	i = 0
+	for next(retrieved) {
+		i++
+	}
+	if i != MAX_COUNT-2 {
+		t.Errorf("Too few records found, expected %v, found %v", MAX_COUNT-2, i)
+	}
 
-//}
+}
 
 //func TestBasicTableOpsBar(t *testing.T) {
 //basicWriteHelper(t, &Bar{}, &Bar{})
@@ -314,91 +313,91 @@ func TestBasicTableOpsFoo(t *testing.T) {
 //basicWriteHelper(t, &Foo{}, &Foo{})
 //}
 
-//func TestBasicTableOpsInts(t *testing.T) {
-//type Baz struct {
-//Id  int64 `sql:"primary,autoincrement"`
-//I   int
-//I64 int64
-//I32 int32
-//I16 int16
-//I8  int8
-//}
-//basicWriteHelper(t, &Baz{}, &Baz{})
-//}
+func TestBasicTableOpsInts(t *testing.T) {
+	type Baz struct {
+		Id  int64 `sql:"primary,autoincrement"`
+		I   int
+		I64 int64
+		I32 int32
+		I16 int16
+		I8  int8
+	}
+	basicWriteHelper(t, &Baz{}, &Baz{})
+}
 
-//func TestBasicTableOpsUints(t *testing.T) {
-//type Baz struct {
-//Id  int64 `sql:"primary,autoincrement"`
-//U   uint
-//U64 uint64
-//U32 uint32
-//U16 uint16
-//U8  uint8
-//}
-//basicWriteHelper(t, &Baz{}, &Baz{})
-//}
+func TestBasicTableOpsUints(t *testing.T) {
+	type Baz struct {
+		Id  int64 `sql:"primary,autoincrement"`
+		U   uint
+		U64 uint64
+		U32 uint32
+		U16 uint16
+		U8  uint8
+	}
+	basicWriteHelper(t, &Baz{}, &Baz{})
+}
 
-//func TestBasicTableOpsFloats(t *testing.T) {
-//type Baz struct {
-//Id  int64 `sql:"primary,autoincrement"`
-//F32 float32
-//F64 float64
-//}
-//basicWriteHelper(t, &Baz{}, &Baz{})
-//}
+func TestBasicTableOpsFloats(t *testing.T) {
+	type Baz struct {
+		Id  int64 `sql:"primary,autoincrement"`
+		F32 float32
+		F64 float64
+	}
+	basicWriteHelper(t, &Baz{}, &Baz{})
+}
 
-//func TestBasicTableOpsBasicEmbed(t *testing.T) {
-//type Embed struct {
-//F32 float32
-//F64 float64
-//}
-//type Baz struct {
-//Id int64 `sql:"primary,autoincrement"`
-//Embed
-//}
-//basicWriteHelper(t, &Baz{}, &Baz{})
-//}
+func TestBasicTableOpsBasicEmbed(t *testing.T) {
+	type Embed struct {
+		F32 float32
+		F64 float64
+	}
+	type Baz struct {
+		Id int64 `sql:"primary,autoincrement"`
+		Embed
+	}
+	basicWriteHelper(t, &Baz{}, &Baz{})
+}
 
-//func TestSQLDeepEmbed(t *testing.T) {
-//type E00 struct{ I00 int64 }
-//type E01 struct{ E00, I01 int64 }
-//type E02 struct{ E01, I02 int64 }
-//type E03 struct{ E02, I03 int64 }
-//type E04 struct{ E03, I04 int64 }
-//type E05 struct{ E04, I05 int64 }
-//type E06 struct{ E05, I06 int64 }
-//type E07 struct{ E06, I07 int64 }
-//type E08 struct{ E07, I08 int64 }
-//type E09 struct{ E08, I09 int64 }
-//type E10 struct{ E09, I10 int64 }
-//type E11 struct{ E10, I11 int64 }
-//type E12 struct{ E11, I12 int64 }
-//type E13 struct{ E12, I13 int64 }
-//type E14 struct{ E13, I14 int64 }
-//type E15 struct{ E14, I15 int64 }
-//type E16 struct{ E15, I16 int64 }
-//type E17 struct{ E16, I17 int64 }
-//type E18 struct{ E17, I18 int64 }
-//type E19 struct{ E18, I19 int64 }
-//type E20 struct{ E19, I20 int64 }
-//type Baz struct {
-//Id int64 `sql:"primary,autoincrement"`
-//E20
-//}
-//basicWriteHelper(t, &Baz{}, &Baz{})
-//}
+func TestSQLDeepEmbed(t *testing.T) {
+	type E00 struct{ I00 int64 }
+	type E01 struct{ E00, I01 int64 }
+	type E02 struct{ E01, I02 int64 }
+	type E03 struct{ E02, I03 int64 }
+	type E04 struct{ E03, I04 int64 }
+	type E05 struct{ E04, I05 int64 }
+	type E06 struct{ E05, I06 int64 }
+	type E07 struct{ E06, I07 int64 }
+	type E08 struct{ E07, I08 int64 }
+	type E09 struct{ E08, I09 int64 }
+	type E10 struct{ E09, I10 int64 }
+	type E11 struct{ E10, I11 int64 }
+	type E12 struct{ E11, I12 int64 }
+	type E13 struct{ E12, I13 int64 }
+	type E14 struct{ E13, I14 int64 }
+	type E15 struct{ E14, I15 int64 }
+	type E16 struct{ E15, I16 int64 }
+	type E17 struct{ E16, I17 int64 }
+	type E18 struct{ E17, I18 int64 }
+	type E19 struct{ E18, I19 int64 }
+	type E20 struct{ E19, I20 int64 }
+	type Baz struct {
+		Id int64 `sql:"primary,autoincrement"`
+		E20
+	}
+	basicWriteHelper(t, &Baz{}, &Baz{})
+}
 
-//func TestSQLEmbedAttributes(t *testing.T) {
-//type IdStruct struct {
-//Id int64 `sql:"primary,autoincrement"`
-//}
-//type BazStruct struct {
-//F32 float32
-//F64 float64
-//}
-//type Baz struct {
-//IdStruct
-//BazStruct
-//}
-//basicWriteHelper(t, &Baz{}, &Baz{})
-//}
+func TestSQLEmbedAttributes(t *testing.T) {
+	type IdStruct struct {
+		Id int64 `sql:"primary,autoincrement"`
+	}
+	type BazStruct struct {
+		F32 float32
+		F64 float64
+	}
+	type Baz struct {
+		IdStruct
+		BazStruct
+	}
+	basicWriteHelper(t, &Baz{}, &Baz{})
+}

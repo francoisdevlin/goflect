@@ -53,6 +53,17 @@ func (service RecordService) Get(id int64, record interface{}) {
 	} //The last call closes the result set, important!
 }
 
+func (service RecordService) DeleteById(id int64, record interface{}) {
+	fields := goflect.GetInfo(record)
+	match := matcher.NewStructMatcher()
+	for _, field := range fields {
+		if field.IsPrimary {
+			match.AddField(field.Name, matcher.Eq(id))
+		}
+	}
+	_ = service.delegate.deleteAll(record, match)
+}
+
 /*
 This function can be used to return a set of records that match a set of criteria.  It accepts a matcher that describes a record set.
 */
