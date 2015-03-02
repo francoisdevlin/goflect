@@ -4,10 +4,11 @@ import (
 	"database/sql"
 	"fmt"
 	//"git.sevone.com/sdevlin/goflect.git/goflect"
-	//mock "git.sevone.com/sdevlin/goflect.git/mock"
+	"git.sevone.com/sdevlin/goflect.git/matcher"
+	"git.sevone.com/sdevlin/goflect.git/mock"
 	_ "github.com/mattn/go-sqlite3"
 	//"reflect"
-	//"testing"
+	"testing"
 )
 
 /*
@@ -177,94 +178,61 @@ func Example_railsConvention1() {
 /*****
  * Begin The Tests
   ****/
-//func TestSqliteTableCreate(t *testing.T) {
-////c, _ := sql.Open("sqlite3", ":memory:")
-////message := CreateSQLiteTable(&Foo{})
-////_, err := c.Exec(message)
-////if err != nil {
-////t.Error("Miss creating table")
-////}
-////_, err = c.Exec(message)
-////if err != nil {
-////t.Error("Miss recreating creating table")
-////}
-//}
+func TestBasicTableOpsFoo(t *testing.T) {
+	type Foo struct {
+		Id int64  `sql:"primary,autoincrement"`
+		A  string `sql:"unique,nominal"`
+		B  int64
+	}
 
-//func TestBasicTableOpsFoo(t *testing.T) {
-//c, _ := sql.Open("sqlite3", ":memory:")
-//service := SqliteRecordService{c}
-//message := CreateSQLiteTable(&Foo{})
-//_, err := c.Exec(message)
-//if err != nil {
-//t.Error("Miss creating table")
-//}
+	c, _ := sql.Open("sqlite3", ":memory:")
+	service := NewSqliteService(c)
+	sqlService, _ := service.delegate.(RecordDefiner)
+	err := sqlService.Create(&Foo{})
+	if err != nil {
+		t.Error("Miss creating table")
+	}
 
-//mocker := mock.MockerStruct{SkipId: true}
-//service.Insert((mocker.Mock(1, &Foo{})))
-//service.Insert((mocker.Mock(2, &Foo{})))
-//service.Insert((mocker.Mock(3, &Foo{})))
-//service.Insert((mocker.Mock(4, &Foo{})))
+	mocker := mock.MockerStruct{SkipId: true}
+	service.Insert((mocker.Mock(1, &Foo{})))
+	service.Insert((mocker.Mock(2, &Foo{})))
+	service.Insert((mocker.Mock(3, &Foo{})))
+	service.Insert((mocker.Mock(4, &Foo{})))
 
-//temp := Foo{}
-//service.Get(1, &temp)
+	temp := Foo{}
+	service.Get(1, &temp)
 
-//if (temp != Foo{Id: 1, A: "1st", B: 1}) {
-//t.Error("Error Retrieving Record")
-//}
+	if (temp != Foo{Id: 1, A: "1st", B: 1}) {
+		t.Error("Error Retrieving Record")
+	}
 
-//next := service.ReadAll(&Foo{})
-//for next(&temp) {
-//if temp.Id != temp.B {
-//t.Error(fmt.Sprintf("Error with autoincrement, Id: %v B: %v", temp.Id, temp.B))
-//}
-//}
+	next, _ := service.ReadAll(&Foo{})
+	for next(&temp) {
+		if temp.Id != temp.B {
+			t.Error(fmt.Sprintf("Error with autoincrement, Id: %v B: %v", temp.Id, temp.B))
+		}
+	}
 
-//i := 0
-//nominalTemp := goflect.Nominal{}
-//nextNom := service.ReadAllNominal(&Foo{})
-//for nextNom(&nominalTemp) {
-//i++
-//if nominalTemp.Id != int64(i) {
-//t.Error("There was an issue reading the nominal fields")
-//}
-//}
+	match := matcher.NewStructMatcher()
+	match.AddField("B", matcher.Eq(1))
+	next, _ = service.ReadWhere(&Foo{}, match)
 
-//nextNom = service.ReadAllNominalWhere(&Foo{}, map[string]interface{}{
-//"B": &i,
-//})
-//for nextNom(&nominalTemp) {
-//if nominalTemp.Id != int64(i) {
-//t.Error("There was an issue reading the nominal fields with a pointer")
-//}
-//}
+	for next(&temp) {
+		if temp.A != "1st" {
+			t.Error(fmt.Sprintf("Error with ID lookup, Id: %v A: %v", temp.Id, temp.A))
+		}
+	}
 
-//next = service.ReadAllWhere(&Foo{}, map[string]interface{}{
-//"B": 1,
-//})
+	mocker = mock.MockerStruct{SkipId: true}
+	service.Get(1, &temp)
+	mocker.Mock(10, &temp)
+	service.Update(&temp)
+	service.Get(1, &temp)
+	if (temp != Foo{Id: 1, A: "10th", B: 10}) {
+		t.Error("Update Failed")
+	}
 
-//for next(&temp) {
-//if temp.A != "1st" {
-//t.Error(fmt.Sprintf("Error with ID lookup, Id: %v A: %v", temp.Id, temp.A))
-//}
-//}
-
-//service.GetByNominal("2nd", &temp)
-
-//for next(&temp) {
-//if temp.B != 2 {
-//t.Error(fmt.Sprintf("Error with lookup, Id: %v A: %v", temp.Id, temp.A))
-//}
-//}
-//mocker = mock.MockerStruct{SkipId: true}
-//service.Get(1, &temp)
-//mocker.Mock(10, &temp)
-//service.Update(&temp)
-//service.Get(1, &temp)
-//if (temp != Foo{Id: 1, A: "10th", B: 10}) {
-//t.Error("Update Failed")
-//}
-
-//}
+}
 
 //func basicWriteHelper(t *testing.T, retrieved, expected interface{}) {
 //c, _ := sql.Open("sqlite3", ":memory:")

@@ -40,13 +40,36 @@ func (service RecordService) Insert(record interface{}) error {
 	return service.delegate.insertAll(slice.Interface())
 }
 
+func (service RecordService) Get(id int64, record interface{}) {
+	fields := goflect.GetInfo(record)
+	match := matcher.NewStructMatcher()
+	for _, field := range fields {
+		if field.IsPrimary {
+			match.AddField(field.Name, matcher.Eq(id))
+		}
+	}
+	next, _ := service.ReadWhere(record, match)
+	for next(record) {
+	} //The last call closes the result set, important!
+}
+
+/*
+This function can be used to return a set of records that match a set of criteria.  It accepts a matcher that describes a record set.
+*/
 func (service RecordService) ReadWhere(record interface{}, match matcher.Matcher) (func(record interface{}) bool, error) {
 	return service.delegate.readAll(record, match)
 }
 
+/*
+This returns all of the records that the service has access to
+*/
 func (service RecordService) ReadAll(record interface{}) (func(record interface{}) bool, error) {
 	return service.delegate.readAll(record, matcher.Any())
 }
+
+/***
+These are the constructors
+***/
 
 /*
 This creates a new dispatch service that will route the request to the appropriate service underneath
@@ -73,6 +96,9 @@ func NewDummyService() RecordService {
 	return RecordService{delegate: new(dummyService)}
 }
 
+/*
+This creates a new view based on the underlying service
+*/
 func NewViewService(match matcher.Matcher, delegate RecordService) (RecordService, error) {
 	return RecordService{delegate: view{match: match, delegate: delegate.delegate}}, nil
 }

@@ -7,14 +7,6 @@ import (
 	"git.sevone.com/sdevlin/goflect.git/matcher"
 )
 
-//type RecordService interface {
-//Insert(record interface{}) error
-//ReadAll(record interface{}) (func(record interface{}) bool, error)
-//readAll(record interface{}, match matcher.Matcher) (func(record interface{}) bool, error)
-//Update(record interface{}) error
-//Delete(record interface{}) error
-//}
-
 type RecordDefiner interface {
 	Create(record interface{}) error
 }
@@ -49,14 +41,12 @@ type RecordService struct {
 	delegate privateRecordService
 }
 
-//ReadAllWhere(record interface{}, conditions map[string]interface{}) func(record interface{}) bool
 //ReadAllNominalWhere(record interface{}, conditions map[string]interface{}) func(record *Nominal) bool
 //GetByNominal(name string, record interface{})
 //DeleteById(id int64, record interface{})
 //GetNominalByNominal(name string) (output Nominal)
 //Get(id int64, record interface{})
 //GetNominal(id int64) (output Nominal)
-//Restrict(match matcher.Matcher) (RecordService, error)
 //ReadAllNominal(record interface{}) (func(record *Nominal) bool, error)
 //Limit(int) (RecordService error)
 //Offset(int) (RecordService error)
