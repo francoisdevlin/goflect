@@ -20,8 +20,12 @@ func (service *dummyService) createAll(record interface{}) error {
 }
 
 func (service *dummyService) readAll(record interface{}, match matcher.Matcher) (func(record interface{}) bool, error) {
+	_, err := match.Match(record)
+	if err != nil {
+		return nil, err
+	}
 	service.Reads++
-	return nil, nil
+	return func(record interface{}) bool { return false }, nil
 }
 
 func (service *dummyService) updateAll(record interface{}, match matcher.Matcher) error {

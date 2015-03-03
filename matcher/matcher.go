@@ -15,7 +15,7 @@ type fieldMatcher struct {
 type InvalidCompare int
 
 func (i InvalidCompare) Error() string {
-	return "Invalid comparoson operation"
+	return "Invalid comparison operation"
 }
 
 func (field *fieldMatcher) warmCache() {

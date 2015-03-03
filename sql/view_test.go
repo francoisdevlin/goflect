@@ -72,3 +72,74 @@ func TestView(t *testing.T) {
 	}
 
 }
+
+func TestBuggyMatcher(t *testing.T) {
+	type Foo struct {
+		Id int `sql:"primary"`
+	}
+	dummy := NewDummyService()
+
+	service, _ := NewViewService(matcher.Buggy(), dummy)
+	err := service.Create(Foo{})
+	if err.Error() != "Invalid comparison operation" {
+		t.Errorf("The error message was wrong, got %v", err)
+	}
+	err = service.Update(Foo{})
+	if err.Error() != "Invalid comparison operation" {
+		t.Errorf("The error message was wrong, got %v", err)
+	}
+	err = service.Delete(Foo{})
+	if err.Error() != "Invalid comparison operation" {
+		t.Errorf("The error message was wrong, got %v", err)
+	}
+	err = service.Read(Foo{})
+	if err.Error() != "Invalid comparison operation" {
+		t.Errorf("The error message was wrong, got %v", err)
+	}
+
+	//A simple dispatch function
+	//nilTransform := func(record interface{}) (interface{}, error) {
+	//return nil, nil
+	//}
+
+	//service = NewTransformService(nilTransform, dummy)
+	//err = service.Create(Foo{})
+	//if err.Error() != "Tranform returned nil" {
+	//t.Errorf("The error message was wrong, got %v", err)
+	//}
+	//err = service.Update(Foo{})
+	//if err.Error() != "Tranform returned nil" {
+	//t.Errorf("The error message was wrong, got %v", err)
+	//}
+	//err = service.Delete(Foo{})
+	//if err.Error() != "Tranform returned nil" {
+	//t.Errorf("The error message was wrong, got %v", err)
+	//}
+	//err = service.Read(Foo{})
+	//if err.Error() != "Tranform returned nil" {
+	//t.Errorf("The error message was wrong, got %v", err)
+	//}
+
+	////A simple dispatch function
+	//identityTransform := func(record interface{}) (interface{}, error) {
+	//return record, nil
+	//}
+
+	//service = NewTransformService(identityTransform, NewBuggyService())
+	//err = service.Create(Foo{})
+	//if err.Error() != "Intentional Create Error" {
+	//t.Errorf("The error message was wrong, got %v", err)
+	//}
+	//err = service.Update(Foo{})
+	//if err.Error() != "Intentional Update Error" {
+	//t.Errorf("The error message was wrong, got %v", err)
+	//}
+	//err = service.Delete(Foo{})
+	//if err.Error() != "Intentional Delete Error" {
+	//t.Errorf("The error message was wrong, got %v", err)
+	//}
+	//err = service.Read(Foo{})
+	//if err.Error() != "Intentional Read Error" {
+	//t.Errorf("The error message was wrong, got %v", err)
+	//}
+}
