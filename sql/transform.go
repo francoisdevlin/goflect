@@ -23,6 +23,9 @@ func (service transform) createAll(record interface{}) error {
 		if err != nil {
 			return err
 		}
+		if trans == nil {
+			return RecordError("Tranform returned nil")
+		}
 		slice = reflect.Append(slice, reflect.ValueOf(trans))
 	}
 	return service.delegate.createAll(slice.Interface())
@@ -33,6 +36,9 @@ func (service transform) readAll(record interface{}, match matcher.Matcher) (fun
 	if err != nil {
 		return nil, err
 	}
+	if trans == nil {
+		return nil, RecordError("Tranform returned nil")
+	}
 	return service.delegate.readAll(trans, match)
 }
 
@@ -41,6 +47,9 @@ func (service transform) updateAll(record interface{}, match matcher.Matcher) er
 	if err != nil {
 		return err
 	}
+	if trans == nil {
+		return RecordError("Tranform returned nil")
+	}
 	return service.delegate.updateAll(trans, match)
 }
 
@@ -48,6 +57,9 @@ func (service transform) deleteAll(record interface{}, match matcher.Matcher) er
 	trans, err := service.transformer(record)
 	if err != nil {
 		return err
+	}
+	if trans == nil {
+		return RecordError("Tranform returned nil")
 	}
 	return service.delegate.deleteAll(trans, match)
 }

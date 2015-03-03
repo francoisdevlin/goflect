@@ -3,7 +3,7 @@ package records
 import (
 	"fmt"
 	"git.sevone.com/sdevlin/goflect.git/matcher"
-	//"testing"
+	"testing"
 )
 
 /*
@@ -42,4 +42,57 @@ func ExampleRecordService_basicTransform() {
 	//Could not create record, does not match
 	//Creates - dummy: 0
 	//Creates - dummy: 1
+}
+
+func TestBuggyTransform(t *testing.T) {
+	type Foo struct {
+		Id int `sql:"primary"`
+	}
+	dummy := NewDummyService()
+
+	//A simple dispatch function
+	buggyTransform := func(record interface{}) (interface{}, error) {
+		return nil, RecordError("Transform has a bug")
+	}
+
+	service := NewTransformService(buggyTransform, dummy)
+	err := service.Create(Foo{})
+	if err.Error() != "Transform has a bug" {
+		t.Errorf("The error message was wrong, got %v", err)
+	}
+	err = service.Update(Foo{})
+	if err.Error() != "Transform has a bug" {
+		t.Errorf("The error message was wrong, got %v", err)
+	}
+	err = service.Delete(Foo{})
+	if err.Error() != "Transform has a bug" {
+		t.Errorf("The error message was wrong, got %v", err)
+	}
+	err = service.Read(Foo{})
+	if err.Error() != "Transform has a bug" {
+		t.Errorf("The error message was wrong, got %v", err)
+	}
+
+	//A simple dispatch function
+	nilTransform := func(record interface{}) (interface{}, error) {
+		return nil, nil
+	}
+
+	service = NewTransformService(nilTransform, dummy)
+	err = service.Create(Foo{})
+	if err.Error() != "Tranform returned nil" {
+		t.Errorf("The error message was wrong, got %v", err)
+	}
+	err = service.Update(Foo{})
+	if err.Error() != "Tranform returned nil" {
+		t.Errorf("The error message was wrong, got %v", err)
+	}
+	err = service.Delete(Foo{})
+	if err.Error() != "Tranform returned nil" {
+		t.Errorf("The error message was wrong, got %v", err)
+	}
+	err = service.Read(Foo{})
+	if err.Error() != "Tranform returned nil" {
+		t.Errorf("The error message was wrong, got %v", err)
+	}
 }
