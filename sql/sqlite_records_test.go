@@ -119,35 +119,15 @@ func ExampleRecordService_createSqliteIdiomatic() {
 This shows the power of the rails convention transform in action
 */
 func Example_railsConvention1() {
-	//Use our types to define a schema
-	type (
-		Device struct {
-			Id   int64 `sql:"primary,autoincrement"`
-			Name string
-		}
-		Object struct {
-			Id       int64 `sql:"primary,autoincrement"`
-			DeviceId int64
-			Name     string
-		}
-	)
-	//Add boilerplate for table createion
-	c, _ := sql.Open("sqlite3", ":memory:")
-	service := NewSqliteService(c)
-	sqlService, _ := service.delegate.(Definer)
-	sqlService.Define(&Device{})
-	sqlService.Define(&Object{})
+	//See Package reference example for definition
+	service := tableCreationBoilerplate()
 
 	//create our first device
 	service.Create(Device{Name: "Device 1"})
 
 	//Print all the devices
 	device := Device{}
-	next, _ := service.ReadAll(&device)
-	fmt.Println("Devices")
-	for next(&device) {
-		fmt.Println(device)
-	}
+	printAll(service, &device)
 
 	//Create a new data service with the RailsConvention transform
 	deviceService := NewTransformService(RailsConvention(device), service)
@@ -159,11 +139,7 @@ func Example_railsConvention1() {
 
 	//And notice that the device id was handled for us automatically
 	object := Object{}
-	next, _ = service.ReadAll(&object)
-	fmt.Println("Objects")
-	for next(&object) {
-		fmt.Println(object)
-	}
+	printAll(service, &object)
 
 	//Output:
 	//Devices
