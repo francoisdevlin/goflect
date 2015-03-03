@@ -3,6 +3,7 @@ package records
 import (
 	"database/sql"
 	"fmt"
+	"git.sevone.com/sdevlin/goflect.git/goflect"
 	"git.sevone.com/sdevlin/goflect.git/matcher"
 	"git.sevone.com/sdevlin/goflect.git/mock"
 	_ "github.com/mattn/go-sqlite3"
@@ -27,9 +28,9 @@ func ExampleSqlDefiner_sqliteBasic() {
 
 	//Output:
 	//CREATE TABLE IF NOT EXISTS Foo(
-	//	Id integer primary key autoincrement not null,
-	//	A string not null,
-	//	B integer
+	//	`Id` integer primary key autoincrement not null,
+	//	`A` string not null,
+	//	`B` integer
 	//)
 }
 
@@ -109,6 +110,24 @@ func ExampleRecordService_createSqliteIdiomatic() {
 	newFoo := Foo{}
 	for next(&newFoo) {
 		fmt.Println(newFoo)
+	}
+
+	//Output:
+	//{1 Hello World 10}
+}
+
+/*
+This is a more idiomatic example of using the create function
+*/
+func ExampleRecordService_infoTest() {
+
+	c, _ := sql.Open("sqlite3", ":memory:")
+	service := NewSqliteService(c)
+	sqlService, _ := service.delegate.(Definer)
+	err := sqlService.Define(&goflect.Info{})
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
 
 	//Output:

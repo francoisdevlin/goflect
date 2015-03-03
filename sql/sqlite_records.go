@@ -63,7 +63,7 @@ func (service sqliteRecordService) CreateStatement(record interface{}) string {
 			kind = "string"
 		}
 
-		statement += "\n\t" + field.Name + " " + kind
+		statement += "\n\t`" + field.Name + "` " + kind
 		if field.IsPrimary {
 			statement += " primary key"
 		}
