@@ -170,3 +170,42 @@ func Example_2() {
 	//{1 Device 1}
 	//No Devices Match Query
 }
+
+/*
+This demonstrates how to update a record using the API.  You will notice that the API requires objects to be passed by reference frequently.  This is to allow the API to be more flexible, which we'll see in the next section
+*/
+func Example_3() {
+	//Create a database with blank tables, for example only
+	service := tableCreationBoilerplate()
+
+	//Insert a device into the database
+	service.Create(Device{Name: "Device 1"})
+
+	device := Device{}
+	//Create an iterator over all of the devices
+	next, _ := service.ReadAll(device)
+	fmt.Println("Device at the start")
+	//Iterate over the deivces
+	for next(&device) {
+		fmt.Println(device)
+	}
+
+	//Passing the record in by reference is very important.  It allows the API to be more flexible, which we'll see later
+	service.ReadById(1, &device)
+
+	device.Name = "A New Name"
+	service.Update(&device)
+
+	next, _ = service.ReadAll(device)
+	fmt.Println("Device at the end")
+	//Iterate over the deivces
+	for next(&device) {
+		fmt.Println(device)
+	}
+
+	//Output:
+	//Device at the start
+	//{1 Device 1}
+	//Device at the end
+	//{1 A New Name}
+}

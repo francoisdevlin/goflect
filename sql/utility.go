@@ -87,6 +87,10 @@ func (service RecordService) Create(record interface{}) error {
 }
 
 func (service RecordService) Get(id int64, record interface{}) error {
+	return service.ReadById(id, record)
+}
+
+func (service RecordService) ReadById(id int64, record interface{}) error {
 	fields := goflect.GetInfo(record)
 	match := matcher.NewStructMatcher()
 	for _, field := range fields {
