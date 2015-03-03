@@ -54,5 +54,5 @@ func (service view) deleteAll(record interface{}, match matcher.Matcher) error {
 	if !ok {
 		return RecordError("Could not delete record, does not match")
 	}
-	return service.delegate.deleteAll(record, match)
+	return service.delegate.deleteAll(record, matcher.And(service.match, match))
 }

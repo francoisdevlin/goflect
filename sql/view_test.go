@@ -1,6 +1,7 @@
 package records
 
 import (
+	"fmt"
 	"git.sevone.com/sdevlin/goflect.git/matcher"
 	"testing"
 )
@@ -97,49 +98,61 @@ func TestBuggyMatcher(t *testing.T) {
 		t.Errorf("The error message was wrong, got %v", err)
 	}
 
-	//A simple dispatch function
-	//nilTransform := func(record interface{}) (interface{}, error) {
-	//return nil, nil
-	//}
+	service, _ = NewViewService(matcher.Any(), NewBuggyService())
+	err = service.Create(Foo{})
+	if err.Error() != "Intentional Create Error" {
+		t.Errorf("The error message was wrong, got %v", err)
+	}
+	err = service.Update(Foo{})
+	if err.Error() != "Intentional Update Error" {
+		t.Errorf("The error message was wrong, got %v", err)
+	}
+	err = service.Delete(Foo{})
+	if err.Error() != "Intentional Delete Error" {
+		t.Errorf("The error message was wrong, got %v", err)
+	}
+	err = service.Read(Foo{})
+	if err.Error() != "Intentional Read Error" {
+		t.Errorf("The error message was wrong, got %v", err)
+	}
+}
 
-	//service = NewTransformService(nilTransform, dummy)
-	//err = service.Create(Foo{})
-	//if err.Error() != "Tranform returned nil" {
-	//t.Errorf("The error message was wrong, got %v", err)
-	//}
-	//err = service.Update(Foo{})
-	//if err.Error() != "Tranform returned nil" {
-	//t.Errorf("The error message was wrong, got %v", err)
-	//}
-	//err = service.Delete(Foo{})
-	//if err.Error() != "Tranform returned nil" {
-	//t.Errorf("The error message was wrong, got %v", err)
-	//}
-	//err = service.Read(Foo{})
-	//if err.Error() != "Tranform returned nil" {
-	//t.Errorf("The error message was wrong, got %v", err)
-	//}
+func ExampleNewViewService_deleteRecords() {
+	//Start with our service boilerplate, record insertion
+	service := tableCreationBoilerplate()
+	service.Create(Device{Name: "Device 1"})
+	service.Create(Device{Name: "Device 2"})
+	service.Create(Device{Name: "Device 3"})
+	service.Create(Device{Name: "Device 4"})
 
-	////A simple dispatch function
-	//identityTransform := func(record interface{}) (interface{}, error) {
-	//return record, nil
-	//}
+	//Create a matcher that looks for Ids greater than 2
+	constraint := matcher.NewStructMatcher()
+	constraint.AddField("Id", matcher.Gt(int64(2)))
 
-	//service = NewTransformService(identityTransform, NewBuggyService())
-	//err = service.Create(Foo{})
-	//if err.Error() != "Intentional Create Error" {
-	//t.Errorf("The error message was wrong, got %v", err)
-	//}
-	//err = service.Update(Foo{})
-	//if err.Error() != "Intentional Update Error" {
-	//t.Errorf("The error message was wrong, got %v", err)
-	//}
-	//err = service.Delete(Foo{})
-	//if err.Error() != "Intentional Delete Error" {
-	//t.Errorf("The error message was wrong, got %v", err)
-	//}
-	//err = service.Read(Foo{})
-	//if err.Error() != "Intentional Read Error" {
-	//t.Errorf("The error message was wrong, got %v", err)
-	//}
+	//Create the view service
+	viewService, _ := NewViewService(constraint, service)
+	device := Device{}
+	fmt.Println("Printing devices in view")
+	printAll(viewService, &device)
+
+	//Delete all of the devices in the view
+	device = Device{Id: 3, Name: "Bacon"}
+	viewService.DeleteAll(&device)
+	fmt.Println("Printing devices in view")
+	printAll(viewService, &device)
+
+	//Print the remaining devices
+	fmt.Println("Printing all remaining devices")
+	printAll(service, &device)
+	//Output:
+	//Printing devices in view
+	//Devices
+	//{3 Device 3}
+	//{4 Device 4}
+	//Printing devices in view
+	//Devices
+	//Printing all remaining devices
+	//Devices
+	//{1 Device 1}
+	//{2 Device 2}
 }
