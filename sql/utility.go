@@ -90,6 +90,20 @@ func (service RecordService) Get(id int64, record interface{}) error {
 	return service.ReadById(id, record)
 }
 
+func (service RecordService) Read(record interface{}) error {
+	match, err := primaryMatcher(record)
+	if err != nil {
+		return err
+	}
+	next, err := service.ReadAllWhere(record, match)
+	if err != nil {
+		return err
+	}
+	for next(record) {
+	} //The last call closes the result set, important!
+	return nil
+}
+
 func (service RecordService) ReadById(id int64, record interface{}) error {
 	fields := goflect.GetInfo(record)
 	match := matcher.NewStructMatcher()

@@ -35,6 +35,10 @@ func (service dispatch) createAll(record interface{}) error {
 	if index == -1 {
 		return RecordError("Could not create record, no index detected")
 	}
+
+	if index >= len(service.delegates) {
+		return RecordError("Dispatch index out of range")
+	}
 	delegate := service.delegates[index]
 	return delegate.createAll(record)
 }
@@ -43,6 +47,9 @@ func (service dispatch) readAll(record interface{}, match matcher.Matcher) (func
 	delegateId, err := service.dispatcher(record)
 	if err != nil {
 		return nil, err
+	}
+	if delegateId >= len(service.delegates) {
+		return nil, RecordError("Dispatch index out of range")
 	}
 	delegate := service.delegates[delegateId]
 	return delegate.readAll(record, match)
@@ -53,6 +60,9 @@ func (service dispatch) updateAll(record interface{}, match matcher.Matcher) err
 	if err != nil {
 		return err
 	}
+	if delegateId >= len(service.delegates) {
+		return RecordError("Dispatch index out of range")
+	}
 	delegate := service.delegates[delegateId]
 	return delegate.updateAll(record, match)
 }
@@ -61,6 +71,9 @@ func (service dispatch) deleteAll(record interface{}, match matcher.Matcher) err
 	delegateId, err := service.dispatcher(record)
 	if err != nil {
 		return err
+	}
+	if delegateId >= len(service.delegates) {
+		return RecordError("Dispatch index out of range")
 	}
 	delegate := service.delegates[delegateId]
 	return delegate.deleteAll(record, match)
