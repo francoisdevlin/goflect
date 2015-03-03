@@ -26,7 +26,7 @@ func ExampleNewBuggyService_1() {
 	//Read Errors
 	_, err = service.ReadAll(&Foo{})
 	fmt.Println(err)
-	_, err = service.ReadWhere(&Foo{}, matcher.Any())
+	_, err = service.ReadAllWhere(&Foo{}, matcher.Any())
 	fmt.Println(err)
 	err = service.Get(0, &Foo{})
 	fmt.Println(err)

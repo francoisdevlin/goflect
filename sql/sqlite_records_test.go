@@ -214,7 +214,7 @@ func TestBasicTableOpsFoo(t *testing.T) {
 
 	match := matcher.NewStructMatcher()
 	match.AddField("B", matcher.Eq(1))
-	next, _ = service.ReadWhere(&Foo{}, match)
+	next, _ = service.ReadAllWhere(&Foo{}, match)
 
 	for next(&temp) {
 		if temp.A != "1st" {

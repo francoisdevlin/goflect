@@ -94,7 +94,7 @@ func (service RecordService) Get(id int64, record interface{}) error {
 			match.AddField(field.Name, matcher.Eq(id))
 		}
 	}
-	next, err := service.ReadWhere(record, match)
+	next, err := service.ReadAllWhere(record, match)
 	if err != nil {
 		return err
 	}
@@ -117,7 +117,7 @@ func (service RecordService) DeleteById(id int64, record interface{}) error {
 /*
 This function can be used to return a set of records that match a set of criteria.  It accepts a matcher that describes a record set.
 */
-func (service RecordService) ReadWhere(record interface{}, match matcher.Matcher) (func(record interface{}) bool, error) {
+func (service RecordService) ReadAllWhere(record interface{}, match matcher.Matcher) (func(record interface{}) bool, error) {
 	return service.delegate.readAll(record, match)
 }
 
