@@ -13,7 +13,7 @@ import (
 /*
 This is a basic example showing how the metadata maps to a sqlite service table creation.  It needs to be fixed to allow unique keys to be respected
 */
-func ExampleSqlRecordDefiner_sqliteBasic() {
+func ExampleSqlDefiner_sqliteBasic() {
 	type Foo struct {
 		Id int64  `sql:"primary,autoincrement"`
 		A  string `sql:"unique,nominal"`
@@ -22,7 +22,7 @@ func ExampleSqlRecordDefiner_sqliteBasic() {
 
 	c, _ := sql.Open("sqlite3", ":memory:")
 	service := NewSqliteService(c)
-	sqlService, _ := service.delegate.(SqlRecordDefiner)
+	sqlService, _ := service.delegate.(SqlDefiner)
 	fmt.Println(sqlService.CreateStatement(Foo{}))
 
 	//Output:
@@ -45,8 +45,8 @@ func ExampleRecordService_insertSqliteVerbose() {
 
 	c, _ := sql.Open("sqlite3", ":memory:")
 	service := NewSqliteService(c)
-	sqlService, _ := service.delegate.(RecordDefiner)
-	err := sqlService.Create(&Foo{})
+	sqlService, _ := service.delegate.(Definer)
+	err := sqlService.Define(&Foo{})
 	if err == nil {
 		fmt.Println("Table created properly")
 	}
@@ -91,8 +91,8 @@ func ExampleRecordService_insertSqliteIdiomatic() {
 
 	c, _ := sql.Open("sqlite3", ":memory:")
 	service := NewSqliteService(c)
-	sqlService, _ := service.delegate.(RecordDefiner)
-	err := sqlService.Create(&Foo{})
+	sqlService, _ := service.delegate.(Definer)
+	err := sqlService.Define(&Foo{})
 	if err != nil {
 		return
 	}
@@ -134,9 +134,9 @@ func Example_railsConvention1() {
 	//Add boilerplate for table createion
 	c, _ := sql.Open("sqlite3", ":memory:")
 	service := NewSqliteService(c)
-	sqlService, _ := service.delegate.(RecordDefiner)
-	sqlService.Create(&Device{})
-	sqlService.Create(&Object{})
+	sqlService, _ := service.delegate.(Definer)
+	sqlService.Define(&Device{})
+	sqlService.Define(&Object{})
 
 	//insert our first device
 	service.Insert(Device{Name: "Device 1"})
@@ -186,8 +186,8 @@ func TestBasicTableOpsFoo(t *testing.T) {
 
 	c, _ := sql.Open("sqlite3", ":memory:")
 	service := NewSqliteService(c)
-	sqlService, _ := service.delegate.(RecordDefiner)
-	err := sqlService.Create(&Foo{})
+	sqlService, _ := service.delegate.(Definer)
+	err := sqlService.Define(&Foo{})
 	if err != nil {
 		t.Error("Miss creating table")
 	}
@@ -236,8 +236,8 @@ func TestBasicTableOpsFoo(t *testing.T) {
 func basicWriteHelper(t *testing.T, retrieved, expected interface{}) {
 	c, _ := sql.Open("sqlite3", ":memory:")
 	service := NewSqliteService(c)
-	sqlService, _ := service.delegate.(RecordDefiner)
-	err := sqlService.Create(retrieved)
+	sqlService, _ := service.delegate.(Definer)
+	err := sqlService.Define(retrieved)
 	if err != nil {
 		t.Error("Miss creating table")
 	}

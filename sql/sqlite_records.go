@@ -81,7 +81,7 @@ func (service sqliteRecordService) CreateStatement(record interface{}) string {
 	return statement
 }
 
-func (service sqliteRecordService) Create(record interface{}) error {
+func (service sqliteRecordService) Define(record interface{}) error {
 	statement := service.CreateStatement(record)
 	_, err := service.Conn.Exec(statement)
 	return err

@@ -7,12 +7,12 @@ import (
 	"git.sevone.com/sdevlin/goflect.git/matcher"
 )
 
-type RecordDefiner interface {
-	Create(record interface{}) error
+type Definer interface {
+	Define(record interface{}) error
 }
 
-type SqlRecordDefiner interface {
-	RecordDefiner
+type SqlDefiner interface {
+	Definer
 	CreateStatement(record interface{}) string
 }
 

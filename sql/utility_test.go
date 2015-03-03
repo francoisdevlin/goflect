@@ -14,7 +14,7 @@ func ExampleRecordService_Delete_primaryKeyRequired() {
 	}
 	service := NewDummyService()
 
-	err = service.Delete(&Foo{})
+	err := service.Delete(&Foo{})
 	fmt.Println(err)
 
 	//Output:
@@ -30,7 +30,7 @@ func ExampleRecordService_Update_primaryKeyRequired() {
 	}
 	service := NewDummyService()
 
-	err = service.Update(&Foo{})
+	err := service.Update(&Foo{})
 	fmt.Println(err)
 
 	//Output:
