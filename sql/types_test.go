@@ -209,3 +209,41 @@ func Example_3() {
 	//Device at the end
 	//{1 A New Name}
 }
+
+/*
+The API is polymorphic, so it is possible to use the same service to query multiple types of records.  This is why it is important to always pass a pointer to the API
+*/
+func Example_4() {
+	//Create a database with blank tables, for example only
+	service := tableCreationBoilerplate()
+
+	//Insert a device into the database
+	service.Create(Device{Name: "Device 1"})
+
+	//And now we insert an object into the database
+	service.Create(Object{Name: "Object 1", DeviceId: 1})
+
+	device := Device{}
+	//Create an iterator over all of the devices
+	next, _ := service.ReadAll(device)
+	fmt.Println("Devices")
+	//Iterate over the deivces
+	for next(&device) {
+		fmt.Println(device)
+	}
+
+	object := Object{}
+	//Create an iterator over all of the objects
+	next, _ = service.ReadAll(object)
+	fmt.Println("Objects")
+	//Iterate over the deivces
+	for next(&object) {
+		fmt.Println(object)
+	}
+
+	//Output:
+	//Devices
+	//{1 Device 1}
+	//Objects
+	//{1 1 Object 1}
+}
