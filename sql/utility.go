@@ -86,6 +86,13 @@ func (service RecordService) Create(record interface{}) error {
 	return service.delegate.createAll(slice.Interface())
 }
 
+/*
+This creates many records with one call
+*/
+func (service RecordService) CreateAll(record interface{}) error {
+	return service.delegate.createAll(record)
+}
+
 func (service RecordService) Get(id int64, record interface{}) error {
 	return service.ReadById(id, record)
 }

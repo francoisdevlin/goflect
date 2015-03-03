@@ -117,21 +117,37 @@ func ExampleRecordService_createSqliteIdiomatic() {
 }
 
 /*
-This is a more idiomatic example of using the create function
+The goflect Info type has many interesting use cases, including an integer subtype (kind), and a keyword in the name (default).  It uses the CreateAll method to insert many records in one query
 */
-func ExampleRecordService_infoTest() {
+func ExampleRecordService_CreateAll_infoTest() {
 
+	//Standard connection setup, ensuring our table exists
 	c, _ := sql.Open("sqlite3", ":memory:")
 	service := NewSqliteService(c)
 	sqlService, _ := service.delegate.(Definer)
 	err := sqlService.Define(&goflect.Info{})
 	if err != nil {
-		fmt.Println(err)
 		return
 	}
 
+	//Get an array of items back, and use the create all method to store them in the database
+	rows := goflect.GetInfo(&goflect.Info{})
+	err = service.CreateAll(&rows)
+	if err != nil {
+		return
+	}
+
+	//And here we lookup the attirbutes of the "Name" field, bringing everything full circle
+	info := goflect.Info{}
+	info.Name = "Name"
+	err = service.Read(&info)
+	if err != nil {
+		return
+	}
+	fmt.Println(info)
+
 	//Output:
-	//{1 Hello World 10}
+	//{{Name string} {true false true false true false false} {} {This is the name of the field in the struct.  It is authoritative 0 false }}
 }
 
 /*

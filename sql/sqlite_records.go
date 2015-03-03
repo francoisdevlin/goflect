@@ -96,13 +96,13 @@ func (service sqliteRecordService) createAll(record interface{}) error {
 	}
 	fields := goflect.GetInfo(val.Index(0).Interface())
 	statement := ""
-	statement += "INSERT INTO " + typ.Name() + "("
+	statement += "INSERT INTO `" + typ.Name() + "`("
 	columns := make([]string, 0)
 	for _, field := range fields {
 		if field.IsAutoincrement {
 			continue
 		}
-		columns = append(columns, field.Name)
+		columns = append(columns, "`"+field.Name+"`")
 	}
 	statement += strings.Join(columns, ", ")
 	statement += " ) VALUES "
@@ -112,7 +112,6 @@ func (service sqliteRecordService) createAll(record interface{}) error {
 		columns = append(columns, uglyGuy(fields, val.Index(i).Interface()))
 	}
 	statement += strings.Join(columns, ", ")
-	//fmt.Println(statement)
 	_, err := service.Conn.Exec(statement)
 	return err
 }
@@ -263,7 +262,7 @@ func (service sqliteRecordService) readAll(record interface{}, match matcher.Mat
 	statement := "SELECT "
 	columns := make([]string, 0)
 	for _, field := range fields {
-		columns = append(columns, field.Name)
+		columns = append(columns, "`"+field.Name+"`")
 	}
 	statement += strings.Join(columns, " , ")
 	statement += " FROM " + typ.Name()
@@ -275,6 +274,7 @@ func (service sqliteRecordService) readAll(record interface{}, match matcher.Mat
 	}
 	statement += " WHERE " + result
 
+	//fmt.Println(statement)
 	rows, err := service.Conn.Query(statement)
 	if err != nil {
 		return nil, err
@@ -325,37 +325,20 @@ func nextRow(rows *sql.Rows, record interface{}) bool {
 			addrs[i] = &vals[i]
 		}
 		rows.Scan(addrs...)
+		coerce := func(v interface{}, fVal reflect.Value) {
+			localVal := reflect.ValueOf(v)
+			if fVal.Type() != localVal.Type() {
+				localVal = localVal.Convert(fVal.Type())
+			}
+			fVal.Set(localVal)
+		}
 		for i, field := range fields {
 			fieldVal := val.FieldByName(field.Name)
 			switch field.Kind {
 			case reflect.Bool:
-				fieldVal.Set(reflect.ValueOf(vals[i].(int64) != 0))
-			case reflect.Float64:
-				fieldVal.Set(reflect.ValueOf(float64(vals[i].(float64))))
-			case reflect.Float32:
-				fieldVal.Set(reflect.ValueOf(float32(vals[i].(float64))))
-			case reflect.Int:
-				fieldVal.Set(reflect.ValueOf(int(vals[i].(int64))))
-			case reflect.Int64:
-				fieldVal.Set(reflect.ValueOf(vals[i]))
-			case reflect.Int32:
-				fieldVal.Set(reflect.ValueOf(int32(vals[i].(int64))))
-			case reflect.Int16:
-				fieldVal.Set(reflect.ValueOf(int16(vals[i].(int64))))
-			case reflect.Int8:
-				fieldVal.Set(reflect.ValueOf(int8(vals[i].(int64))))
-			case reflect.Uint:
-				fieldVal.Set(reflect.ValueOf(uint(vals[i].(int64))))
-			case reflect.Uint64:
-				fieldVal.Set(reflect.ValueOf(uint64(vals[i].(int64))))
-			case reflect.Uint32:
-				fieldVal.Set(reflect.ValueOf(uint32(vals[i].(int64))))
-			case reflect.Uint16:
-				fieldVal.Set(reflect.ValueOf(uint16(vals[i].(int64))))
-			case reflect.Uint8:
-				fieldVal.Set(reflect.ValueOf(uint8(vals[i].(int64))))
+				coerce(vals[i].(int64) != 0, fieldVal)
 			default:
-				fieldVal.Set(reflect.ValueOf(string(vals[i].([]uint8))))
+				coerce(vals[i], fieldVal)
 			}
 		}
 
