@@ -275,11 +275,11 @@ func (p sqlitePrinter) Print(m Matcher) (string, error) {
 			return makeInish(entries), nil
 		case []string:
 			for _, v := range val {
-				entries = append(entries, q(v))
+				entries = append(entries, "'"+v+"'")
 			}
 			return makeInish(entries), nil
 		case string:
-			return output + " " + q(val), nil
+			return output + " " + "'" + val + "'", nil
 		case fieldYielder:
 			return output + " " + val.Name, nil
 		default:
