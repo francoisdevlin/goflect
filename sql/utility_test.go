@@ -18,7 +18,7 @@ func ExampleRecordService_Delete_primaryKeyRequired() {
 	fmt.Println(err)
 
 	//Output:
-	//Bacon
+	//No primary key found
 }
 
 /*
@@ -34,5 +34,5 @@ func ExampleRecordService_Update_primaryKeyRequired() {
 	fmt.Println(err)
 
 	//Output:
-	//Bacon
+	//No primary key found
 }
