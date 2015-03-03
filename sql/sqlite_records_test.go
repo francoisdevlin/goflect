@@ -34,9 +34,9 @@ func ExampleSqlDefiner_sqliteBasic() {
 }
 
 /*
-This is a verbose example of how to use the Insert API, with an accompanying read section for verification
+This is a verbose example of how to use the Create API, with an accompanying read section for verification
 */
-func ExampleRecordService_insertSqliteVerbose() {
+func ExampleRecordService_createSqliteVerbose() {
 	type Foo struct {
 		Id int64  `sql:"primary,autoincrement"`
 		A  string `sql:"unique,nominal"`
@@ -53,10 +53,10 @@ func ExampleRecordService_insertSqliteVerbose() {
 
 	foo := Foo{A: "Hello World", B: 10}
 	//Passing a pointer is important, so that the id can be placed in foo
-	err = service.Insert(&foo)
+	err = service.Create(&foo)
 	fmt.Println(foo)
 	if err == nil {
-		fmt.Println("Record Inserted properly")
+		fmt.Println("Record Createed properly")
 	}
 	next, err := service.ReadAll(&foo)
 	if err == nil {
@@ -74,15 +74,15 @@ func ExampleRecordService_insertSqliteVerbose() {
 	//Output:
 	//Table created properly
 	//{0 Hello World 10}
-	//Record Inserted properly
+	//Record Createed properly
 	//Records read properly
 	//{1 Hello World 10}
 }
 
 /*
-This is a more idiomatic example of using the insert function
+This is a more idiomatic example of using the create function
 */
-func ExampleRecordService_insertSqliteIdiomatic() {
+func ExampleRecordService_createSqliteIdiomatic() {
 	type Foo struct {
 		Id int64  `sql:"primary,autoincrement"`
 		A  string `sql:"unique,nominal"`
@@ -98,7 +98,7 @@ func ExampleRecordService_insertSqliteIdiomatic() {
 	}
 
 	foo := Foo{A: "Hello World", B: 10}
-	err = service.Insert(&foo)
+	err = service.Create(&foo)
 	if err != nil {
 		return
 	}
@@ -138,8 +138,8 @@ func Example_railsConvention1() {
 	sqlService.Define(&Device{})
 	sqlService.Define(&Object{})
 
-	//insert our first device
-	service.Insert(Device{Name: "Device 1"})
+	//create our first device
+	service.Create(Device{Name: "Device 1"})
 
 	//Print all the devices
 	device := Device{}
@@ -153,9 +153,9 @@ func Example_railsConvention1() {
 	deviceService := NewTransformService(RailsConvention(device), service)
 
 	//Create some objects
-	deviceService.Insert(&Object{Name: "Object 1"})
-	deviceService.Insert(&Object{Name: "Object 2"})
-	deviceService.Insert(&Object{Name: "Object 3"})
+	deviceService.Create(&Object{Name: "Object 1"})
+	deviceService.Create(&Object{Name: "Object 2"})
+	deviceService.Create(&Object{Name: "Object 3"})
 
 	//And notice that the device id was handled for us automatically
 	object := Object{}
@@ -193,10 +193,10 @@ func TestBasicTableOpsFoo(t *testing.T) {
 	}
 
 	mocker := mock.MockerStruct{SkipId: true}
-	service.Insert((mocker.Mock(1, &Foo{})))
-	service.Insert((mocker.Mock(2, &Foo{})))
-	service.Insert((mocker.Mock(3, &Foo{})))
-	service.Insert((mocker.Mock(4, &Foo{})))
+	service.Create((mocker.Mock(1, &Foo{})))
+	service.Create((mocker.Mock(2, &Foo{})))
+	service.Create((mocker.Mock(3, &Foo{})))
+	service.Create((mocker.Mock(4, &Foo{})))
 
 	temp := Foo{}
 	service.Get(1, &temp)
@@ -245,7 +245,7 @@ func basicWriteHelper(t *testing.T, retrieved, expected interface{}) {
 	MAX_COUNT := 4 //Why not 4?
 	mocker := mock.MockerStruct{SkipId: true}
 	for i := 0; i < MAX_COUNT; i++ {
-		service.Insert((mocker.Mock(int64(i+1), retrieved)))
+		service.Create((mocker.Mock(int64(i+1), retrieved)))
 	}
 
 	mocker = mock.MockerStruct{SkipId: false}

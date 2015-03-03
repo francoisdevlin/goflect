@@ -13,8 +13,8 @@ func ExampleNewBuggyService_1() {
 		A int `sql:"primary"`
 	}
 	service := NewBuggyService()
-	//Insert Errors
-	err := service.Insert(&Foo{})
+	//Create Errors
+	err := service.Create(&Foo{})
 	fmt.Println(err)
 	//Update Errors
 	err = service.Update(&Foo{})
@@ -41,7 +41,7 @@ func ExampleNewBuggyService_1() {
 	fmt.Println(err)
 
 	//Output:
-	//Intentional Insert Error
+	//Intentional Create Error
 	//Intentional Update Error
 	//Intentional Update Error
 	//Intentional Update Error

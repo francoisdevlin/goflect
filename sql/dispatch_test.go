@@ -13,7 +13,7 @@ func ExampleRecordService_basicDispatch() {
 	printStats := func(d1, d2 RecordService) {
 		dum1, _ := d1.delegate.(*dummyService)
 		dum2, _ := d2.delegate.(*dummyService)
-		fmt.Println("Inserts - dummy 1, dummy 2:", dum1.Inserts, dum2.Inserts)
+		fmt.Println("Creates - dummy 1, dummy 2:", dum1.Creates, dum2.Creates)
 	}
 
 	//Create our dummy services
@@ -23,7 +23,7 @@ func ExampleRecordService_basicDispatch() {
 	//A simple dispatch function
 	disp := func(record interface{}) (int, error) {
 		dummy, _ := record.(dummyService)
-		return dummy.Inserts % 2, nil
+		return dummy.Creates % 2, nil
 	}
 
 	//Create the dispatch service
@@ -32,15 +32,15 @@ func ExampleRecordService_basicDispatch() {
 	//We start with nothing
 	printStats(dummy1, dummy2)
 
-	//The insert only goes to one dummy
-	service.Insert(dummyService{Inserts: 1})
+	//The create only goes to one dummy
+	service.Create(dummyService{Creates: 1})
 	printStats(dummy1, dummy2)
 
-	//The insert goes to the other dummy
-	service.Insert(dummyService{Inserts: 2})
+	//The create goes to the other dummy
+	service.Create(dummyService{Creates: 2})
 	printStats(dummy1, dummy2)
 	//Output:
-	//Inserts - dummy 1, dummy 2: 0 0
-	//Inserts - dummy 1, dummy 2: 0 1
-	//Inserts - dummy 1, dummy 2: 1 1
+	//Creates - dummy 1, dummy 2: 0 0
+	//Creates - dummy 1, dummy 2: 0 1
+	//Creates - dummy 1, dummy 2: 1 1
 }

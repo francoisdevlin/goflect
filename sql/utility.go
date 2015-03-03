@@ -77,13 +77,13 @@ func (service RecordService) UpdateAllWhere(record interface{}, match matcher.Ma
 }
 
 /*
-This inserts a record into the service
+This creates a record into the service
 */
-func (service RecordService) Insert(record interface{}) error {
+func (service RecordService) Create(record interface{}) error {
 	sliceType := reflect.SliceOf(reflect.TypeOf(record))
 	slice := reflect.MakeSlice(sliceType, 0, 1)
 	slice = reflect.Append(slice, reflect.ValueOf(record))
-	return service.delegate.insertAll(slice.Interface())
+	return service.delegate.createAll(slice.Interface())
 }
 
 func (service RecordService) Get(id int64, record interface{}) error {

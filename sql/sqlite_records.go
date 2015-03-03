@@ -87,7 +87,7 @@ func (service sqliteRecordService) Define(record interface{}) error {
 	return err
 }
 
-func (service sqliteRecordService) insertAll(record interface{}) error {
+func (service sqliteRecordService) createAll(record interface{}) error {
 	typ, val := typeAndVal(record)
 
 	typ = reflect.TypeOf(record)
@@ -132,7 +132,7 @@ func uglyGuy(fields []goflect.Info, record interface{}) string {
 	return statement
 }
 
-//func (service sqliteRecordService) Insert(record interface{}) error {
+//func (service sqliteRecordService) Create(record interface{}) error {
 //typ, val := typeAndVal(record)
 
 //fields := goflect.GetInfo(record)

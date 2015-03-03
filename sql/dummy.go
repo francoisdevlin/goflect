@@ -8,14 +8,14 @@ import (
 This is a dummy service intended for use with testing.  It can be consumed both within and external to this package
 */
 type dummyService struct {
-	Inserts int
+	Creates int
 	Updates int
 	Reads   int
 	Deletes int
 }
 
-func (service *dummyService) insertAll(record interface{}) error {
-	service.Inserts++
+func (service *dummyService) createAll(record interface{}) error {
+	service.Creates++
 	return nil
 }
 

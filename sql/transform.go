@@ -14,7 +14,7 @@ type transform struct {
 	delegate    privateRecordService
 }
 
-func (service transform) insertAll(record interface{}) error {
+func (service transform) createAll(record interface{}) error {
 	val := reflect.ValueOf(record)
 
 	slice := reflect.MakeSlice(val.Type(), 0, val.Len())
@@ -25,7 +25,7 @@ func (service transform) insertAll(record interface{}) error {
 		}
 		slice = reflect.Append(slice, reflect.ValueOf(trans))
 	}
-	return service.delegate.insertAll(slice.Interface())
+	return service.delegate.createAll(slice.Interface())
 }
 
 func (service transform) readAll(record interface{}, match matcher.Matcher) (func(record interface{}) bool, error) {

@@ -28,7 +28,7 @@ type Nominal struct {
 }
 
 type privateRecordService interface {
-	insertAll(rows interface{}) error
+	createAll(rows interface{}) error
 	readAll(record interface{}, match matcher.Matcher) (func(record interface{}) bool, error)
 	updateAll(record interface{}, match matcher.Matcher) error
 	deleteAll(record interface{}, match matcher.Matcher) error

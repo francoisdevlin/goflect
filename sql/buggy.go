@@ -10,8 +10,8 @@ This is a dummy service intended for use with testing.  It can be consumed both 
 type buggyService struct {
 }
 
-func (service buggyService) insertAll(record interface{}) error {
-	return RecordError("Intentional Insert Error")
+func (service buggyService) createAll(record interface{}) error {
+	return RecordError("Intentional Create Error")
 }
 
 func (service buggyService) readAll(record interface{}, match matcher.Matcher) (func(record interface{}) bool, error) {

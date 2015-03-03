@@ -13,7 +13,7 @@ type dispatch struct {
 	delegates  []privateRecordService
 }
 
-func (service dispatch) insertAll(record interface{}) error {
+func (service dispatch) createAll(record interface{}) error {
 	index := -1
 	val := reflect.ValueOf(record)
 
@@ -26,17 +26,17 @@ func (service dispatch) insertAll(record interface{}) error {
 		case index == -1:
 			index = delegateId
 		case index != delegateId:
-			return RecordError("Could not insert record, multiple dispatches detected")
+			return RecordError("Could not create record, multiple dispatches detected")
 		}
 		if err != nil {
 			return err
 		}
 	}
 	if index == -1 {
-		return RecordError("Could not insert record, no index detected")
+		return RecordError("Could not create record, no index detected")
 	}
 	delegate := service.delegates[index]
-	return delegate.insertAll(record)
+	return delegate.createAll(record)
 }
 
 func (service dispatch) readAll(record interface{}, match matcher.Matcher) (func(record interface{}) bool, error) {

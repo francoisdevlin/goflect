@@ -13,7 +13,7 @@ type view struct {
 	delegate privateRecordService
 }
 
-func (service view) insertAll(record interface{}) error {
+func (service view) createAll(record interface{}) error {
 	val := reflect.ValueOf(record)
 
 	for i := 0; i < val.Len(); i++ {
@@ -23,11 +23,11 @@ func (service view) insertAll(record interface{}) error {
 			return err
 		}
 		if !ok {
-			return RecordError("Could not insert record, does not match")
+			return RecordError("Could not create record, does not match")
 		}
 	}
 
-	return service.delegate.insertAll(record)
+	return service.delegate.createAll(record)
 }
 
 func (service view) readAll(record interface{}, match matcher.Matcher) (func(record interface{}) bool, error) {
