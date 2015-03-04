@@ -8,7 +8,7 @@ import (
 
 func TestParseCodes(t *testing.T) {
 	render := func(input string, code parseErrors) {
-		p := ParseStruct{Fields: map[string]reflect.Kind{
+		p := parseStruct{Fields: map[string]reflect.Kind{
 			"A": reflect.String,
 			"B": reflect.String,
 			"C": reflect.Int,
@@ -181,12 +181,12 @@ func TestParsing(t *testing.T) {
 	moreWorkouts(reflect.Float32, float32(1), float32(1), float32(2), "Bacon")
 
 	//Strings unknown ATM...
-	//p = ParseStruct{Fields: map[string]reflect.Kind{
+	//p = parseStruct{Fields: map[string]reflect.Kind{
 	//fieldName: reflect.String,
 	//}}
 	//comparisonWorkout(p, "A", "B", 1)
 
-	//p = ParseStruct{Fields: map[string]reflect.Kind{
+	//p = parseStruct{Fields: map[string]reflect.Kind{
 	//fieldName: reflect.String,
 	//}}
 	//comparisonWorkout(p, "A", "B", 1)

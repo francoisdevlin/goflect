@@ -38,7 +38,7 @@ func (s MatchParseError) Error() string {
 type Parser interface {
 	Parse(string) (Matcher, error)
 }
-type ParseStruct struct {
+type parseStruct struct {
 	Fields map[string]reflect.Kind
 }
 
@@ -87,7 +87,7 @@ func promoteToInterface(kind reflect.Kind, value string) (interface{}, error) {
 	return val, err
 }
 
-func (service ParseStruct) Parse(input string) (Matcher, error) {
+func (service parseStruct) Parse(input string) (Matcher, error) {
 	tokens, err := tokenize(input)
 	if err != nil {
 		fmt.Println(tokens)
@@ -280,5 +280,5 @@ func NewParser(context interface{}) (Parser, error) {
 		}
 	}
 
-	return ParseStruct{Fields: localContext}, nil
+	return parseStruct{Fields: localContext}, nil
 }
