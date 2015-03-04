@@ -114,6 +114,7 @@ func TestParsing(t *testing.T) {
 			A(fmt.Sprintf("Matching %v,%v for %v", smaller, smaller, op), smaller)
 			B(fmt.Sprintf("Matching %v,%v for %v", smaller, bigger, op), bigger)
 			C(fmt.Sprintf("Matching %v,%v for %v", smaller, nonsense, op), nonsense)
+			C(fmt.Sprintf("Matching %v,%v for %v", smaller, nil, op), nil)
 		}
 	}
 
@@ -169,6 +170,8 @@ func TestParsing(t *testing.T) {
 			A(fmt.Sprintf("Matching %v,%v for %v", smaller, smaller, op), buildMap(smaller))
 			B(fmt.Sprintf("Matching %v,%v for %v", smaller, bigger, op), buildMap(bigger))
 			C(fmt.Sprintf("Matching %v,%v for %v", smaller, nonsense, op), buildMap(nonsense))
+			C(fmt.Sprintf("Matching %v,%v for %v", smaller, nil, op), buildMap(nil))
+			C(fmt.Sprintf("Matching %v,%v for %v", smaller, nil, op), nil)
 		}
 	}
 

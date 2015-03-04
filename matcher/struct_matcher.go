@@ -1,9 +1,7 @@
 package matcher
 
 import (
-	//"fmt"
 	"reflect"
-	//"regexp"
 )
 
 type fieldYielder struct {
