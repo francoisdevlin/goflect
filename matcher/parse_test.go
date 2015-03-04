@@ -48,6 +48,11 @@ func TestParseCodes(t *testing.T) {
 	render("(((A = 2))) OR (A = 1)", VALID)
 	render("((((A = 2))) OR (A = 1))", VALID)
 
+	//Not requires a paren
+	render("NOT (A = 1)", VALID)
+	render("(A = 2) OR NOT (A = 1)", VALID)
+	render("NOT ((((A = 2))) OR (A = 1))", VALID)
+
 	//The unfinished Messages
 	render("A = 1 AND", UNFINISHED_MESSAGE)
 	render("A =", UNFINISHED_MESSAGE)
@@ -56,6 +61,7 @@ func TestParseCodes(t *testing.T) {
 	render("_ NOT IN (1, 2, 3", UNFINISHED_MESSAGE)
 	render("( A = 1", UNFINISHED_MESSAGE)
 	render("(( A = 1 )", UNFINISHED_MESSAGE)
+	render("NOT A = 1", UNFINISHED_MESSAGE)
 
 	//Invalid Operations
 	render("_ BACON 1", INVALID_OPERATION)
@@ -391,11 +397,15 @@ func ExampleParser_3() {
 	printIt(p, "A = 0 AND B = 0 OR Name = \"Bacon\"", Foo{A: 1, Name: "Bacon"})
 	printIt(p, "A = 0 AND B = 0 OR Name = \"Bacon\"", Foo{A: 1})
 
-	//Associativity is right to left
+	//Parens overide associativity
 	printIt(p, "A = 0 AND (B = 0 OR Name = \"Bacon\")", Foo{})
 	printIt(p, "A = 0 AND (B = 0 OR Name = \"Bacon\")", Foo{B: 1, Name: "Bacon"})
 	printIt(p, "A = 0 AND (B = 0 OR Name = \"Bacon\")", Foo{A: 1, Name: "Bacon"})
 	printIt(p, "A = 0 AND (B = 0 OR Name = \"Bacon\")", Foo{A: 1, B: 0})
+
+	//Not inverts any predicate
+	printIt(p, "A = 0 AND NOT (B = 0 OR Name = \"Bacon\")", Foo{})
+	printIt(p, "A = 0 AND NOT (B = 0 OR Name = \"Bacon\")", Foo{B: 1})
 
 	printIt(p, "A = C", Foo{}) //Field equlity not parsing, because A and C are different
 
@@ -412,5 +422,7 @@ func ExampleParser_3() {
 	//Expression 'A = 0 AND (B = 0 OR Name = "Bacon")' matches '{0 1 Bacon}'
 	//Expression 'A = 0 AND (B = 0 OR Name = "Bacon")' does not match '{1 0 Bacon}'
 	//Expression 'A = 0 AND (B = 0 OR Name = "Bacon")' does not match '{1 0 }'
+	//Expression 'A = 0 AND NOT (B = 0 OR Name = "Bacon")' does not match '{0 0 }'
+	//Expression 'A = 0 AND NOT (B = 0 OR Name = "Bacon")' matches '{0 1 }'
 	//There was an error parsing the expression: A = C
 }
