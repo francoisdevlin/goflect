@@ -376,8 +376,21 @@ func ExampleParser_3() {
 	printIt(p, "A = B", Foo{A: 1, B: 1})                         //Field equality matching still matching
 	printIt(p, "A = B AND Name = \"Bacon\"", Foo{Name: "Bacon"}) //Bacon makes things work :)
 
+	//Associativity is right to left
+	printIt(p, "A = 0 AND B = 0 OR Name = \"Bacon\"", Foo{})
+	printIt(p, "A = 0 AND B = 0 OR Name = \"Bacon\"", Foo{A: 1, Name: "Bacon"})
+	printIt(p, "A = 0 AND B = 0 OR Name = \"Bacon\"", Foo{A: 1})
+
 	printIt(p, "A = C", Foo{}) //Field equlity not parsing, because A and C are different
 
 	//Output:
-	//Bacon
+	//Expression 'A = 0' matches '{0 0 }'
+	//Expression 'A > 0' does not match '{0 0 }'
+	//Expression 'A = B' matches '{0 0 }'
+	//Expression 'A = B' matches '{1 1 }'
+	//Expression 'A = B AND Name = "Bacon"' matches '{0 0 Bacon}'
+	//Expression 'A = 0 AND B = 0 OR Name = "Bacon"' matches '{0 0 }'
+	//Expression 'A = 0 AND B = 0 OR Name = "Bacon"' matches '{1 0 Bacon}'
+	//Expression 'A = 0 AND B = 0 OR Name = "Bacon"' does not match '{1 0 }'
+	//There was an error parsing the expression: A = C
 }
