@@ -35,6 +35,9 @@ func (s MatchParseError) Error() string {
 	return s.Message
 }
 
+type Parser interface {
+	Parse(string) (Matcher, error)
+}
 type ParseStruct struct {
 	Fields map[string]reflect.Kind
 }
@@ -240,4 +243,42 @@ func tokenize(message string) ([]string, error) {
 		}
 	}
 	return output, nil
+}
+
+func NewParser(context interface{}) (Parser, error) {
+	localContext := make(map[string]reflect.Kind)
+	switch c := context.(type) {
+	case map[string]reflect.Kind:
+		localContext = c
+	case reflect.Kind:
+		localContext["_"] = c
+	case map[string]interface{}:
+		for name, value := range c {
+			typ := reflect.TypeOf(value)
+			localContext[name] = typ.Kind()
+		}
+	default:
+		typ := reflect.TypeOf(c)
+		switch typ.Kind() {
+		case reflect.Bool,
+			reflect.String,
+			reflect.Float64,
+			reflect.Float32,
+			reflect.Uint,
+			reflect.Uint64,
+			reflect.Uint32,
+			reflect.Uint16,
+			reflect.Uint8,
+			reflect.Int,
+			reflect.Int64,
+			reflect.Int32,
+			reflect.Int16,
+			reflect.Int8:
+			localContext["_"] = typ.Kind()
+		default:
+			return nil, nil
+		}
+	}
+
+	return ParseStruct{Fields: localContext}, nil
 }
