@@ -100,7 +100,6 @@ func (service parseStruct) Parse(input string) (Matcher, error) {
 		fmt.Println(tokens)
 		return nil, err
 	}
-	//output := structMatcher{}
 	output := And()
 	Lookup := map[string]fieldOps{
 		"=":         EQ,
@@ -122,6 +121,7 @@ func (service parseStruct) Parse(input string) (Matcher, error) {
 	returnF := func(message string) (Matcher, error) {
 		return nil, MatchParseError{Code: cleanParse, Message: message}
 	}
+	invert := false
 	for iteration < len(tokens) {
 		switch {
 		case tokens[iteration] == "(" && (op != "IN" && op != "NOT IN"):
@@ -146,8 +146,12 @@ func (service parseStruct) Parse(input string) (Matcher, error) {
 			if err != nil {
 				return nil, err
 			}
+			if invert {
+				m = Not(m)
+			}
 			output = conjoin(output, m)
 			iteration = localIteration
+			invert = false
 			cleanParse = VALID
 		case tokens[iteration] == "AND":
 			conjoin = And
@@ -156,31 +160,15 @@ func (service parseStruct) Parse(input string) (Matcher, error) {
 			conjoin = Or
 			cleanParse = UNFINISHED_MESSAGE
 		case field == "" && tokens[iteration] == "NOT":
-			iteration++
-			cleanParse = UNFINISHED_MESSAGE
-			vals := make([]string, 0)
-			localIteration := iteration + 1
-			depth := 1
-			for localIteration < len(tokens) && (depth > 1 || (depth == 1 && tokens[localIteration] != ")")) {
-				if tokens[localIteration] == ")" {
-					depth--
-				} else if tokens[localIteration] == "(" {
-					depth++
-				}
-				vals = append(vals, tokens[localIteration])
-				localIteration++
+			if iteration+1 == len(tokens) {
+				cleanParse = UNFINISHED_MESSAGE
+				return returnF("Dangling NOT qualifier")
 			}
-			subExpr := strings.Join(vals, " ")
-			if localIteration >= len(tokens) {
-				return returnF("There is an leading paren without its mate")
+			if tokens[iteration+1] != "(" {
+				cleanParse = UNFINISHED_MESSAGE
+				return returnF("NOT clause requires paren")
 			}
-			m, err := service.Parse(subExpr)
-			if err != nil {
-				return nil, err
-			}
-			output = conjoin(output, Not(m))
-			iteration = localIteration
-			cleanParse = VALID
+			invert = true
 		case field == "":
 			field = tokens[iteration]
 			if _, present := service.Fields[field]; !present && field != "_" {

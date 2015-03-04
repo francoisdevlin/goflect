@@ -26,92 +26,26 @@ func (field *fieldMatcher) warmCache() {
 	if y, ok := v.(Yielder); ok {
 		v, _ = y.Yield()
 	}
-	switch r := v.(type) {
-	case []int:
-		temp := make(map[int]int8)
-		for _, val := range r {
-			temp[val] = 0
-		}
-		field.fieldCache = temp
-	case []int64:
-		temp := make(map[int64]int8)
-		for _, val := range r {
-			temp[val] = 0
-		}
-		field.fieldCache = temp
-	case []int32:
-		temp := make(map[int32]int8)
-		for _, val := range r {
-			temp[val] = 0
-		}
-		field.fieldCache = temp
-	case []int16:
-		temp := make(map[int16]int8)
-		for _, val := range r {
-			temp[val] = 0
-		}
-		field.fieldCache = temp
-	case []int8:
-		temp := make(map[int8]int8)
-		for _, val := range r {
-			temp[val] = 0
-		}
-		field.fieldCache = temp
-	case []uint:
-		temp := make(map[uint]int8)
-		for _, val := range r {
-			temp[val] = 0
-		}
-		field.fieldCache = temp
-	case []uint64:
-		temp := make(map[uint64]int8)
-		for _, val := range r {
-			temp[val] = 0
-		}
-		field.fieldCache = temp
-	case []uint32:
-		temp := make(map[uint32]int8)
-		for _, val := range r {
-			temp[val] = 0
-		}
-		field.fieldCache = temp
-	case []uint16:
-		temp := make(map[uint16]int8)
-		for _, val := range r {
-			temp[val] = 0
-		}
-		field.fieldCache = temp
-	case []uint8:
-		temp := make(map[uint8]int8)
-		for _, val := range r {
-			temp[val] = 0
-		}
-		field.fieldCache = temp
-	case []float64:
-		temp := make(map[float64]int8)
-		for _, val := range r {
-			temp[val] = 0
-		}
-		field.fieldCache = temp
-	case []float32:
-		temp := make(map[float32]int8)
-		for _, val := range r {
-			temp[val] = 0
-		}
-		field.fieldCache = temp
-	case []string:
-		temp := make(map[string]int8)
-		for _, val := range r {
-			temp[val] = 0
-		}
-		field.fieldCache = temp
-	case []bool:
-		temp := make(map[bool]int8)
-		for _, val := range r {
-			temp[val] = 0
-		}
-		field.fieldCache = temp
+	if v == nil {
+		return
 	}
+	typ := reflect.TypeOf(v)
+	if typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
+	}
+	val := reflect.ValueOf(v)
+	if !(val.Kind() == reflect.Array || val.Kind() == reflect.Slice) {
+		return
+	}
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+	temp := reflect.MakeMap(reflect.MapOf(typ.Elem(), reflect.TypeOf(int8(0))))
+	zero := reflect.ValueOf(int8(0))
+	for i := 0; i < val.Len(); i++ {
+		temp.SetMapIndex(val.Index(i), zero)
+	}
+	field.fieldCache = temp.Interface()
 }
 
 func (field fieldMatcher) Match(record interface{}) (bool, error) {
