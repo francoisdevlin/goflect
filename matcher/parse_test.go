@@ -246,3 +246,91 @@ func TestTokenize(t *testing.T) {
 	//This has a trailing \"
 	expectedLen("Bacon!=\"Hi\\\"", 3, TOKENIZE_ERROR)
 }
+
+/*
+It is possible to parse a matcher from a string.  This is obviously great for user input.  See the parse interface documentation for examples
+*/
+func ExampleParser_1() {
+	//We need to give the parser a context.  In this case it is a single field, of type int
+	p, _ := NewParser(int(1))
+
+	match, _ := p.Parse("_ = 1")
+
+	//Confirm that the mater works
+	result, _ := match.Match(1)
+	if result {
+		fmt.Println("The parsed matcher is true")
+	} else {
+		fmt.Println("The parsed matcher is false")
+	}
+	//Output:
+	//The parsed matcher is true
+}
+
+/*
+This is more of a reference of how the parse works...
+*/
+func ExampleParser_2() {
+	printIt := func(parser Parser, expr string, entity interface{}) {
+		match, err := parser.Parse(expr)
+		if err != nil {
+			fmt.Println("There was an error parsing the expression:", expr)
+			return
+		}
+		result, err := match.Match(entity)
+		if err != nil {
+			fmt.Printf("There was an error matching entity %v for expression %v\n", entity, expr)
+			return
+		}
+		if result {
+			fmt.Printf("Expression '%v' matches '%v'\n", expr, entity)
+		} else {
+			fmt.Printf("Expression '%v' does not match '%v'\n", expr, entity)
+		}
+
+	}
+	//We need to give the parser a context.  In this case it is a single field, of type int
+	p, _ := NewParser(int(1))
+
+	//Equals
+	printIt(p, "_ = 1", int(1))
+	printIt(p, "_ = 1", int(2))
+
+	//Not equals
+	printIt(p, "_ != 1", int(1))
+	printIt(p, "_ != 1", int(2))
+
+	//Other comparison operators
+	printIt(p, "_ < 1", int(1))
+	printIt(p, "_ <= 1", int(1))
+	printIt(p, "_ > 1", int(1))
+	printIt(p, "_ >= 1", int(1))
+
+	//Compound expressions
+	printIt(p, "_ = 1 AND _ = 2", int(1))
+	printIt(p, "_ = 1 OR _ = 2", int(1))
+
+	//The empty parser always matches
+	printIt(p, "", int(1))
+
+	//Unparsable expressions
+	printIt(p, "_ = \"Bacon\"", int(1)) //Can't parse a string when the context is set to an int
+	printIt(p, "_ = \"1\"", int(1))     //String conversion does not happen
+	printIt(p, "_ = 1.0", int(1))       //Can't parse a floar when context is set to int
+
+	//Output:
+	//Expression '_ = 1' matches '1'
+	//Expression '_ = 1' does not match '2'
+	//Expression '_ != 1' does not match '1'
+	//Expression '_ != 1' matches '2'
+	//Expression '_ < 1' does not match '1'
+	//Expression '_ <= 1' matches '1'
+	//Expression '_ > 1' does not match '1'
+	//Expression '_ >= 1' matches '1'
+	//Expression '_ = 1 AND _ = 2' does not match '1'
+	//Expression '_ = 1 OR _ = 2' matches '1'
+	//Expression '' matches '1'
+	//There was an error parsing the expression: _ = "Bacon"
+	//There was an error parsing the expression: _ = "1"
+	//There was an error parsing the expression: _ = 1.0
+}

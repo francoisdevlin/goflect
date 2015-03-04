@@ -35,9 +35,13 @@ func (s MatchParseError) Error() string {
 	return s.Message
 }
 
+/*
+This is an interface for parsing a string, and creating a matcher from it.  It requires a context, which is provided to the constructor (see NewParser for more information about this).  It uses the context to determine what symbols are valid, and if it is possible to use the type in the resultant matcher
+*/
 type Parser interface {
 	Parse(string) (Matcher, error)
 }
+
 type parseStruct struct {
 	Fields map[string]reflect.Kind
 }
