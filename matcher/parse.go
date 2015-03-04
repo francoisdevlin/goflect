@@ -139,16 +139,11 @@ func (service parseStruct) Parse(input string) (Matcher, error) {
 				localIteration++
 			}
 			subExpr := strings.Join(vals, " ")
-			//fmt.Println(subExpr)
 			if localIteration >= len(tokens) {
-				fmt.Println("Here")
-				fmt.Println(subExpr)
 				return returnF("There is an leading paren without its mate")
 			}
 			m, err := service.Parse(subExpr)
 			if err != nil {
-				fmt.Println("There")
-				fmt.Println(subExpr)
 				return nil, err
 			}
 			output = conjoin(output, m)

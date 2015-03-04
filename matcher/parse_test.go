@@ -45,6 +45,8 @@ func TestParseCodes(t *testing.T) {
 	render("(A = 1)", VALID)
 	render("(A = 2) OR (A = 1)", VALID)
 	render("((A = 2)) OR (A = 1)", VALID)
+	render("(((A = 2))) OR (A = 1)", VALID)
+	render("((((A = 2))) OR (A = 1))", VALID)
 
 	//The unfinished Messages
 	render("A = 1 AND", UNFINISHED_MESSAGE)
@@ -52,6 +54,8 @@ func TestParseCodes(t *testing.T) {
 	render("A", UNFINISHED_MESSAGE)
 	render("_ IN (1, 2, 3", UNFINISHED_MESSAGE)
 	render("_ NOT IN (1, 2, 3", UNFINISHED_MESSAGE)
+	render("( A = 1", UNFINISHED_MESSAGE)
+	render("(( A = 1 )", UNFINISHED_MESSAGE)
 
 	//Invalid Operations
 	render("_ BACON 1", INVALID_OPERATION)
@@ -59,6 +63,7 @@ func TestParseCodes(t *testing.T) {
 	//Unknown Fields
 	render("D = 1", UNKNOWN_FIELD)
 	render("A = D", UNKNOWN_FIELD)
+	render("A = 1 )", UNKNOWN_FIELD) //Dangling parens show up as unknown fields
 
 	//Promotion Error
 	render("A = C", PROMOTION_ERROR)
