@@ -199,6 +199,42 @@ func TestParsing(t *testing.T) {
 	moreWorkouts(reflect.Float64, float64(1), float64(1), float64(2), "Bacon")
 	moreWorkouts(reflect.Float32, float32(1), float32(1), float32(2), "Bacon")
 
+	fieldName = "_"
+	comparisonWorkout = func(parser Parser, smaller, bigger, nonsense interface{}) {
+		matcher, _ := parser.Parse("")
+		_, ok := matcher.(anyMatch)
+		if !ok {
+			t.Error("Expected an ANY matcher")
+		}
+		ops := []fieldOps{EQ, NEQ, LT, LTE, GT, GTE}
+		for _, op := range ops {
+			input := fmt.Sprintf("_ %v \"%v\"", op, smaller)
+			matcher, err := parser.Parse(input)
+			if err != nil {
+				t.Errorf("Unexpected parse error '%v'", input)
+			}
+			A, B, C := determineResults(op, matcher)
+			A(fmt.Sprintf("Matching %v,%v for %v", smaller, smaller, op), smaller)
+			B(fmt.Sprintf("Matching %v,%v for %v", smaller, bigger, op), bigger)
+			C(fmt.Sprintf("Matching %v,%v for %v", smaller, nonsense, op), nonsense)
+			C(fmt.Sprintf("Matching %v,%v for %v", smaller, nil, op), nil)
+		}
+	}
+
+	moreWorkouts = func(k reflect.Kind, target, smaller, bigger, nonsense interface{}) {
+		p, _ := NewParser(map[string]reflect.Kind{fieldName: k})
+		comparisonWorkout(p, smaller, bigger, nonsense)
+		p, _ = NewParser(k)
+		comparisonWorkout(p, smaller, bigger, nonsense)
+
+		p, _ = NewParser(map[string]interface{}{fieldName: target})
+		comparisonWorkout(p, smaller, bigger, nonsense)
+		p, _ = NewParser(target)
+		comparisonWorkout(p, smaller, bigger, nonsense)
+	}
+
+	moreWorkouts(reflect.String, "A", "A", "B", 1)
+
 	//Strings unknown ATM...
 	//p = parseStruct{Fields: map[string]reflect.Kind{
 	//fieldName: reflect.String,
