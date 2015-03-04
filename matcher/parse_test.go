@@ -41,6 +41,11 @@ func TestParseCodes(t *testing.T) {
 	render("A = \"B\"", VALID)
 	render("A = 1 AND B != 2", VALID)
 
+	//And here come the parens...
+	render("(A = 1)", VALID)
+	render("(A = 2) OR (A = 1)", VALID)
+	render("((A = 2)) OR (A = 1)", VALID)
+
 	//The unfinished Messages
 	render("A = 1 AND", UNFINISHED_MESSAGE)
 	render("A =", UNFINISHED_MESSAGE)

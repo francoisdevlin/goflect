@@ -3,10 +3,10 @@ package matcher
 import (
 	"fmt"
 	//"sort"
-	"strconv"
-	//"strings"
 	"reflect"
 	"regexp"
+	"strconv"
+	"strings"
 )
 
 type parseErrors int
@@ -124,6 +124,36 @@ func (service parseStruct) Parse(input string) (Matcher, error) {
 	}
 	for iteration < len(tokens) {
 		switch {
+		case tokens[iteration] == "(" && (op != "IN" && op != "NOT IN"):
+			cleanParse = UNFINISHED_MESSAGE
+			vals := make([]string, 0)
+			localIteration := iteration + 1
+			depth := 1
+			for localIteration < len(tokens) && (depth > 1 || (depth == 1 && tokens[localIteration] != ")")) {
+				if tokens[localIteration] == ")" {
+					depth--
+				} else if tokens[localIteration] == "(" {
+					depth++
+				}
+				vals = append(vals, tokens[localIteration])
+				localIteration++
+			}
+			subExpr := strings.Join(vals, " ")
+			//fmt.Println(subExpr)
+			if localIteration >= len(tokens) {
+				fmt.Println("Here")
+				fmt.Println(subExpr)
+				return returnF("There is an leading paren without its mate")
+			}
+			m, err := service.Parse(subExpr)
+			if err != nil {
+				fmt.Println("There")
+				fmt.Println(subExpr)
+				return nil, err
+			}
+			output = conjoin(output, m)
+			iteration = localIteration
+			cleanParse = VALID
 		case tokens[iteration] == "AND":
 			conjoin = And
 			cleanParse = UNFINISHED_MESSAGE
