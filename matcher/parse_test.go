@@ -268,7 +268,7 @@ func ExampleParser_1() {
 }
 
 /*
-This is more of a reference of how the parse works...
+This is more of a reference of how the parser works for a lone field
 */
 func ExampleParser_2() {
 	printIt := func(parser Parser, expr string, entity interface{}) {
@@ -333,4 +333,51 @@ func ExampleParser_2() {
 	//There was an error parsing the expression: _ = "Bacon"
 	//There was an error parsing the expression: _ = "1"
 	//There was an error parsing the expression: _ = 1.0
+}
+
+/*
+This is more of a reference of how the parser works with a composite field
+*/
+func ExampleParser_3() {
+	printIt := func(parser Parser, expr string, entity interface{}) {
+		match, err := parser.Parse(expr)
+		if err != nil {
+			fmt.Println("There was an error parsing the expression:", expr)
+			return
+		}
+		result, err := match.Match(entity)
+		if err != nil {
+			fmt.Printf("There was an error matching entity %v for expression %v\n", entity, expr)
+			return
+		}
+		if result {
+			fmt.Printf("Expression '%v' matches '%v'\n", expr, entity)
+		} else {
+			fmt.Printf("Expression '%v' does not match '%v'\n", expr, entity)
+		}
+
+	}
+	//We need to give the parser a context.  In this case it three fields, of type int,int and string
+	p, _ := NewParser(map[string]interface{}{
+		"A":    int(1),
+		"B":    int(1),
+		"Name": "",
+	})
+
+	type Foo struct {
+		A    int
+		B    int
+		Name string
+	}
+
+	printIt(p, "A = 0", Foo{})                                   //A simple equlity test matching the zero object
+	printIt(p, "A > 0", Foo{})                                   //A simple greater than not matching
+	printIt(p, "A = B", Foo{})                                   //Field equality matching
+	printIt(p, "A = B", Foo{A: 1, B: 1})                         //Field equality matching still matching
+	printIt(p, "A = B AND Name = \"Bacon\"", Foo{Name: "Bacon"}) //Bacon makes things work :)
+
+	printIt(p, "A = C", Foo{}) //Field equlity not parsing, because A and C are different
+
+	//Output:
+	//Bacon
 }

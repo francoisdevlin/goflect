@@ -85,6 +85,9 @@ func promoteToInterface(kind reflect.Kind, value string) (interface{}, error) {
 	case reflect.Uint8:
 		val, err = strconv.ParseUint(value, 10, 8)
 		val = uint8(val.(uint64))
+	case reflect.String:
+		quote, _ := regexp.Compile("^\"|\"$")
+		val = quote.ReplaceAllString(value, "")
 	default:
 		val = value
 	}
