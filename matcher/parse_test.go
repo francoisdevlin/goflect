@@ -64,17 +64,6 @@ func TestParseCodes(t *testing.T) {
 func TestParsing(t *testing.T) {
 	withMatcher := withMatcherFactory(t)
 
-	p := ParseStruct{Fields: map[string]reflect.Kind{
-		"_": reflect.Int,
-	}}
-
-	//This should return an ANY matcher
-	matcher, _ := p.Parse("")
-	_, ok := matcher.(anyMatch)
-	if !ok {
-		t.Error("Expected an ANY matcher")
-	}
-
 	determineResults := func(op fieldOps, matcher Matcher) (A, B, C funcSig) {
 		T, F, E := withMatcher(matcher)
 		switch op {
@@ -95,7 +84,12 @@ func TestParsing(t *testing.T) {
 		}
 	}
 
-	comparisonWorkout := func(parser ParseStruct, smaller, bigger, nonsense interface{}) {
+	comparisonWorkout := func(parser Parser, smaller, bigger, nonsense interface{}) {
+		matcher, _ := parser.Parse("")
+		_, ok := matcher.(anyMatch)
+		if !ok {
+			t.Error("Expected an ANY matcher")
+		}
 		ops := []fieldOps{EQ, NEQ, LT, LTE, GT, GTE}
 		for _, op := range ops {
 			input := fmt.Sprintf("_ %v %v", op, smaller)
@@ -108,65 +102,32 @@ func TestParsing(t *testing.T) {
 	}
 
 	fieldName := "_"
-	p = ParseStruct{Fields: map[string]reflect.Kind{
-		fieldName: reflect.Int,
-	}}
-	comparisonWorkout(p, int(1), int(2), "Bacon")
+	moreWorkouts := func(k reflect.Kind, target, smaller, bigger, nonsense interface{}) {
+		p, _ := NewParser(map[string]reflect.Kind{fieldName: k})
+		comparisonWorkout(p, smaller, bigger, nonsense)
+		p, _ = NewParser(k)
+		comparisonWorkout(p, smaller, bigger, nonsense)
 
-	p = ParseStruct{Fields: map[string]reflect.Kind{
-		fieldName: reflect.Int64,
-	}}
-	comparisonWorkout(p, int64(1), int64(2), "Bacon")
+		p, _ = NewParser(map[string]interface{}{fieldName: target})
+		comparisonWorkout(p, smaller, bigger, nonsense)
+		p, _ = NewParser(target)
+		comparisonWorkout(p, smaller, bigger, nonsense)
+	}
 
-	p = ParseStruct{Fields: map[string]reflect.Kind{
-		fieldName: reflect.Int32,
-	}}
-	comparisonWorkout(p, int32(1), int32(2), "Bacon")
+	moreWorkouts(reflect.Int, int(1), int(1), int(2), "Bacon")
+	moreWorkouts(reflect.Int64, int64(1), int64(1), int64(2), "Bacon")
+	moreWorkouts(reflect.Int32, int32(1), int32(1), int32(2), "Bacon")
+	moreWorkouts(reflect.Int16, int16(1), int16(1), int16(2), "Bacon")
+	moreWorkouts(reflect.Int8, int8(1), int8(1), int8(2), "Bacon")
 
-	p = ParseStruct{Fields: map[string]reflect.Kind{
-		fieldName: reflect.Int16,
-	}}
-	comparisonWorkout(p, int16(1), int16(2), "Bacon")
+	moreWorkouts(reflect.Uint, uint(1), uint(1), uint(2), "Bacon")
+	moreWorkouts(reflect.Uint64, uint64(1), uint64(1), uint64(2), "Bacon")
+	moreWorkouts(reflect.Uint32, uint32(1), uint32(1), uint32(2), "Bacon")
+	moreWorkouts(reflect.Uint16, uint16(1), uint16(1), uint16(2), "Bacon")
+	moreWorkouts(reflect.Uint8, uint8(1), uint8(1), uint8(2), "Bacon")
 
-	p = ParseStruct{Fields: map[string]reflect.Kind{
-		fieldName: reflect.Int8,
-	}}
-	comparisonWorkout(p, int8(1), int8(2), "Bacon")
-
-	p = ParseStruct{Fields: map[string]reflect.Kind{
-		fieldName: reflect.Uint,
-	}}
-	comparisonWorkout(p, uint(1), uint(2), "Bacon")
-
-	p = ParseStruct{Fields: map[string]reflect.Kind{
-		fieldName: reflect.Uint64,
-	}}
-	comparisonWorkout(p, uint64(1), uint64(2), "Bacon")
-
-	p = ParseStruct{Fields: map[string]reflect.Kind{
-		fieldName: reflect.Uint32,
-	}}
-	comparisonWorkout(p, uint32(1), uint32(2), "Bacon")
-
-	p = ParseStruct{Fields: map[string]reflect.Kind{
-		fieldName: reflect.Uint16,
-	}}
-	comparisonWorkout(p, uint16(1), uint16(2), "Bacon")
-
-	p = ParseStruct{Fields: map[string]reflect.Kind{
-		fieldName: reflect.Uint8,
-	}}
-	comparisonWorkout(p, uint8(1), uint8(2), "Bacon")
-
-	p = ParseStruct{Fields: map[string]reflect.Kind{
-		fieldName: reflect.Float64,
-	}}
-	comparisonWorkout(p, float64(1), float64(2), "Bacon")
-
-	p = ParseStruct{Fields: map[string]reflect.Kind{
-		fieldName: reflect.Float32,
-	}}
-	comparisonWorkout(p, float32(1), float32(2), "Bacon")
+	moreWorkouts(reflect.Float64, float64(1), float64(1), float64(2), "Bacon")
+	moreWorkouts(reflect.Float32, float32(1), float32(1), float32(2), "Bacon")
 
 	buildMap := func(value interface{}) map[string]interface{} {
 		return map[string]interface{}{
@@ -174,11 +135,20 @@ func TestParsing(t *testing.T) {
 		}
 	}
 
-	comparisonWorkout = func(parser ParseStruct, smaller, bigger, nonsense interface{}) {
+	comparisonWorkout = func(parser Parser, smaller, bigger, nonsense interface{}) {
+		matcher, _ := parser.Parse("")
+		_, ok := matcher.(anyMatch)
+		if !ok {
+			t.Error("Expected an ANY matcher")
+		}
 		ops := []fieldOps{EQ, NEQ, LT, LTE, GT, GTE}
 		for _, op := range ops {
 			input := fmt.Sprintf("A %v %v", op, smaller)
-			matcher, _ = parser.Parse(input)
+			matcher, err := parser.Parse(input)
+			if err != nil {
+				t.Error(err.Error())
+				return
+			}
 			A, B, C := determineResults(op, matcher)
 			A(fmt.Sprintf("Matching %v,%v for %v", smaller, smaller, op), buildMap(smaller))
 			B(fmt.Sprintf("Matching %v,%v for %v", smaller, bigger, op), buildMap(bigger))
@@ -187,65 +157,28 @@ func TestParsing(t *testing.T) {
 	}
 
 	fieldName = "A"
-	p = ParseStruct{Fields: map[string]reflect.Kind{
-		fieldName: reflect.Int,
-	}}
-	comparisonWorkout(p, int(1), int(2), "Bacon")
+	//Note - We can't test the annonymous values here, they are supposed to fail
+	moreWorkouts = func(k reflect.Kind, target, smaller, bigger, nonsense interface{}) {
+		p, _ := NewParser(map[string]reflect.Kind{fieldName: k})
+		comparisonWorkout(p, smaller, bigger, nonsense)
 
-	p = ParseStruct{Fields: map[string]reflect.Kind{
-		fieldName: reflect.Int64,
-	}}
-	comparisonWorkout(p, int64(1), int64(2), "Bacon")
+		p, _ = NewParser(map[string]interface{}{fieldName: target})
+		comparisonWorkout(p, smaller, bigger, nonsense)
+	}
+	moreWorkouts(reflect.Int, int(1), int(1), int(2), "Bacon")
+	moreWorkouts(reflect.Int64, int64(1), int64(1), int64(2), "Bacon")
+	moreWorkouts(reflect.Int32, int32(1), int32(1), int32(2), "Bacon")
+	moreWorkouts(reflect.Int16, int16(1), int16(1), int16(2), "Bacon")
+	moreWorkouts(reflect.Int8, int8(1), int8(1), int8(2), "Bacon")
 
-	p = ParseStruct{Fields: map[string]reflect.Kind{
-		fieldName: reflect.Int32,
-	}}
-	comparisonWorkout(p, int32(1), int32(2), "Bacon")
+	moreWorkouts(reflect.Uint, uint(1), uint(1), uint(2), "Bacon")
+	moreWorkouts(reflect.Uint64, uint64(1), uint64(1), uint64(2), "Bacon")
+	moreWorkouts(reflect.Uint32, uint32(1), uint32(1), uint32(2), "Bacon")
+	moreWorkouts(reflect.Uint16, uint16(1), uint16(1), uint16(2), "Bacon")
+	moreWorkouts(reflect.Uint8, uint8(1), uint8(1), uint8(2), "Bacon")
 
-	p = ParseStruct{Fields: map[string]reflect.Kind{
-		fieldName: reflect.Int16,
-	}}
-	comparisonWorkout(p, int16(1), int16(2), "Bacon")
-
-	p = ParseStruct{Fields: map[string]reflect.Kind{
-		fieldName: reflect.Int8,
-	}}
-	comparisonWorkout(p, int8(1), int8(2), "Bacon")
-
-	p = ParseStruct{Fields: map[string]reflect.Kind{
-		fieldName: reflect.Uint,
-	}}
-	comparisonWorkout(p, uint(1), uint(2), "Bacon")
-
-	p = ParseStruct{Fields: map[string]reflect.Kind{
-		fieldName: reflect.Uint64,
-	}}
-	comparisonWorkout(p, uint64(1), uint64(2), "Bacon")
-
-	p = ParseStruct{Fields: map[string]reflect.Kind{
-		fieldName: reflect.Uint32,
-	}}
-	comparisonWorkout(p, uint32(1), uint32(2), "Bacon")
-
-	p = ParseStruct{Fields: map[string]reflect.Kind{
-		fieldName: reflect.Uint16,
-	}}
-	comparisonWorkout(p, uint16(1), uint16(2), "Bacon")
-
-	p = ParseStruct{Fields: map[string]reflect.Kind{
-		fieldName: reflect.Uint8,
-	}}
-	comparisonWorkout(p, uint8(1), uint8(2), "Bacon")
-
-	p = ParseStruct{Fields: map[string]reflect.Kind{
-		fieldName: reflect.Float64,
-	}}
-	comparisonWorkout(p, float64(1), float64(2), "Bacon")
-
-	p = ParseStruct{Fields: map[string]reflect.Kind{
-		fieldName: reflect.Float32,
-	}}
-	comparisonWorkout(p, float32(1), float32(2), "Bacon")
+	moreWorkouts(reflect.Float64, float64(1), float64(1), float64(2), "Bacon")
+	moreWorkouts(reflect.Float32, float32(1), float32(1), float32(2), "Bacon")
 
 	//Strings unknown ATM...
 	//p = ParseStruct{Fields: map[string]reflect.Kind{
