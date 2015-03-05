@@ -194,6 +194,15 @@ func Not(matcher Matcher) Matcher {
 		default:
 			return invertMatch{M: matcher}
 		}
+	case *structMatcher:
+		if len(r.Fields) == 1 {
+			for name, value := range r.Fields {
+				r.Fields[name] = Not(value)
+			}
+			return r
+		} else {
+			return invertMatch{M: matcher}
+		}
 	default:
 		return invertMatch{M: matcher}
 	}

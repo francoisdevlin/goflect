@@ -80,7 +80,7 @@ func TestParseCodes(t *testing.T) {
 
 func TestWhitespacePermutations(t *testing.T) {
 
-	//fmt.Println(indicies)
+	//This determine if the indicies have been maximized
 	workTodo := func(size int, entries []int) bool {
 		for _, value := range entries {
 			if value <= size {
@@ -91,6 +91,8 @@ func TestWhitespacePermutations(t *testing.T) {
 		}
 		return false
 	}
+
+	//This takes the next step in the tree
 	next := func(size int, entries []int) []int {
 		for i := len(entries) - 1; i >= 0; i-- {
 			if (entries[i]) >= size {
@@ -525,4 +527,68 @@ func ExampleParser_3() {
 	//Expression 'A = 0 AND NOT (B = 0 OR Name = "Bacon")' does not match '{0 0 }'
 	//Expression 'A = 0 AND NOT (B = 0 OR Name = "Bacon")' matches '{0 1 }'
 	//There was an error parsing the expression: A = C
+}
+
+/*
+This demonstrates how the parser and pretty printer can be combined to go full circle.  This ability to go full circle breaks down if lambda are used in a yielder or matcher.
+
+Some of the expressions are rewritten to be logically equivalent.  This is an optimization done on the internal data structures for performance reasons, not just part of the pretty printer
+*/
+func ExampleParser_4() {
+	printIt := func(parser Parser, expr string, entity interface{}) {
+		match, err := parser.Parse(expr)
+		printer := NewDefaultPrinter()
+		if err != nil {
+			fmt.Println("There was an error parsing the expression:", expr)
+			return
+		}
+		result, err := match.Match(entity)
+		printedExpr, _ := printer.Print(match)
+		if err != nil {
+			fmt.Printf("There was an error matching entity %v for expression %v\n", entity, printedExpr)
+			return
+		}
+		if result {
+			fmt.Printf("Expression '%v' matches '%v'\n", printedExpr, entity)
+		} else {
+			fmt.Printf("Expression '%v' does not match '%v'\n", printedExpr, entity)
+		}
+
+	}
+	//We need to give the parser a context.  In this case it three fields, of type int,int and string
+	p, _ := NewParser(map[string]interface{}{
+		"A":    int(1),
+		"B":    int(1),
+		"Name": "",
+	})
+
+	type Foo struct {
+		A    int
+		B    int
+		Name string
+	}
+
+	//A simple equlity test matching the zero object
+	printIt(p, "A = 0", Foo{})
+
+	//Notice that the parents are plucked when they aren't required
+	printIt(p, "(A = 0)", Foo{})
+
+	//But the parens are respected when they are
+	printIt(p, "A = 0 AND (B = 0 OR Name = \"Bacon\")", Foo{})
+
+	//Expresions that use NOT are rewritten if possible
+	printIt(p, "NOT (A = 0)", Foo{})
+	printIt(p, "NOT (A != B)", Foo{})
+
+	//But preserved when required
+	printIt(p, "NOT (A = 0 AND B =0)", Foo{})
+
+	//Output:
+	//Expression 'A = 0' matches '{0 0 }'
+	//Expression 'A = 0' matches '{0 0 }'
+	//Expression 'A = 0 AND (B = 0 OR Name = "Bacon")' matches '{0 0 }'
+	//Expression 'A != 0' does not match '{0 0 }'
+	//Expression 'A = B' matches '{0 0 }'
+	//Expression 'NOT (A = 0 AND B = 0)' does not match '{0 0 }'
 }

@@ -63,7 +63,9 @@ func printOr(p Printer, r orMatch) (string, error) {
 		case andMatch:
 			needsParens = true
 		case *structMatcher:
-			needsParens = true
+			if len(temp.Fields) > 1 {
+				needsParens = true
+			}
 		default:
 			temp = temp
 		}
