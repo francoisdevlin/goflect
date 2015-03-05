@@ -109,14 +109,14 @@ func TestWhitespacePermutations(t *testing.T) {
 	tryTokens := func(inputTokens, inputWhitespace []string) {
 		size := len(inputWhitespace) - 1
 		indicies := make([]int, len(inputTokens)+1)
+		entries := make([]string, 2*len(inputTokens)+1)
 		for workTodo(size, indicies) {
-			testString := ""
-			testString += inputWhitespace[indicies[0]]
+			entries[0] = inputWhitespace[indicies[0]]
 			for i, token := range inputTokens {
-				testString += token
-				testString += inputWhitespace[indicies[i+1]]
+				entries[2*i+1] = token
+				entries[2*i+2] = inputWhitespace[indicies[i+1]]
 			}
-			//fmt.Println(testString)
+			testString := strings.Join(entries, "")
 			newTokens, err := tokenize(testString)
 			if err != nil {
 				t.Errorf("Unexpected token error (%v) with input %v ", err, testString)
@@ -130,7 +130,7 @@ func TestWhitespacePermutations(t *testing.T) {
 			indicies = next(size, indicies)
 		}
 	}
-	whitespaceNoEmpty := []string{" ", "\t", "\n", ",", " ,\t\n"}
+	whitespaceNoEmpty := []string{" ", ",", " ,\t\n"}
 	whitespace := append(whitespaceNoEmpty, "")
 	tryTokens([]string{"A", "=", "1"}, whitespace)
 	tryTokens([]string{"(", "A", "=", "1", ")"}, whitespace)
