@@ -212,6 +212,39 @@ func ExampleStructMatcher_4() {
 }
 
 /*
+Matchers can also be parsed.  This has obvios advantages for real time user input.  See the parse method for several examples of expressions you can use
+*/
+func ExampleStructMatcher_5() {
+	//We need to give the parser a context.  In this case it three fields, of type int,int and string
+	p, _ := NewParser(map[string]interface{}{
+		"A":    int(1),
+		"B":    int(1),
+		"Name": "",
+	})
+
+	type Foo struct {
+		A    int
+		B    int
+		Name string
+	}
+
+	match, err := p.Parse("A = 1")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	result, err := match.Match(Foo{A: 1})
+	fmt.Println("The result is:", result)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	//Output:
+	//The result is: true
+}
+
+/*
 In addition to being able to construct a WHERE clause from a matcher, it is possible to parse a matcher from a string.  This is obviously great for user input
 */
 func ExamplMatcher_2() {
