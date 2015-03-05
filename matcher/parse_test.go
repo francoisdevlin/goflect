@@ -63,6 +63,7 @@ func TestParseCodes(t *testing.T) {
 	render("( A = 1", UNFINISHED_MESSAGE)
 	render("(( A = 1 )", UNFINISHED_MESSAGE)
 	render("NOT A = 1", UNFINISHED_MESSAGE)
+	render("NOT", UNFINISHED_MESSAGE)
 
 	//Invalid Operations
 	render("_ BACON 1", INVALID_OPERATION)
@@ -591,4 +592,44 @@ func ExampleParser_4() {
 	//Expression 'A != 0' does not match '{0 0 }'
 	//Expression 'A = B' matches '{0 0 }'
 	//Expression 'NOT (A = 0 AND B = 0)' does not match '{0 0 }'
+}
+
+/*
+This example shows the multiple ways to parse a boolean
+*/
+func ExampleParser_5() {
+	printIt := func(parser Parser, expr string, entity interface{}) {
+		match, err := parser.Parse(expr)
+		if err != nil {
+			fmt.Println("There was an error parsing the expression:", expr)
+			return
+		}
+		result, err := match.Match(entity)
+		if err != nil {
+			fmt.Printf("There was an error matching entity %v for expression %v\n", entity, expr)
+			return
+		}
+		if result {
+			fmt.Printf("Expression '%v' matches '%v'\n", expr, entity)
+		} else {
+			fmt.Printf("Expression '%v' does not match '%v'\n", expr, entity)
+		}
+
+	}
+	p, _ := NewParser(true)
+
+	//There are mutliple proper ways to express true an false
+	printIt(p, "_ = true", true)
+	printIt(p, "_ = false", false)
+	printIt(p, "_ = 1", false)
+	printIt(p, "_ = 0", false)
+	printIt(p, "_ != T", false)
+	printIt(p, "_ != F", false)
+	//Output:
+	//Expression '_ = true' matches 'true'
+	//Expression '_ = false' matches 'false'
+	//Expression '_ = 1' does not match 'false'
+	//Expression '_ = 0' matches 'false'
+	//Expression '_ != T' matches 'false'
+	//Expression '_ != F' does not match 'false'
 }

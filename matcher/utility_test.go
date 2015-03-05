@@ -50,6 +50,34 @@ func TestOrMatch(t *testing.T) {
 	matchError("Bacon is right out", "Bacon")
 }
 
+/*
+This shows some basic usage of the NOT compound matcher
+*/
+func ExampleNot_1() {
+	show := func(m Matcher, value interface{}) {
+		printer := defaultPrinter{v: fmt.Sprint(value)}
+		result, err := m.Match(value)
+		statement, _ := printer.Print(m)
+		if err != nil {
+			fmt.Println(statement, ":", "ERROR")
+		} else {
+			fmt.Println(statement, ":", result)
+		}
+	}
+
+	show(Not(Eq(1)), 1)
+	show(Not(Eq(1)), 2)
+	show(Not(And(Gt(1), Lte(3))), 2)
+	show(Not(And(Gt(1), Lte(3))), 4)
+	show(Not(And(Gt(1), Lte(3))), "Bacon")
+	//Output:
+	//1 != 1 : false
+	//2 != 1 : true
+	//NOT (2 > 1 AND 2 <= 3) : false
+	//NOT (4 > 1 AND 4 <= 3) : true
+	//NOT (Bacon > 1 AND Bacon <= 3) : ERROR
+}
+
 func ExampleNot_showCompoundExample() {
 	printAll := func(matchers ...Matcher) {
 		printer := defaultPrinter{}
