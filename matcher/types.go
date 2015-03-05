@@ -10,6 +10,7 @@ The plan is to use matcher objects to define projections in the product.  This c
     A way of validating data is valid for a struct
     A way of providing a filtering mechanism for user interaction
     A consistent rules API mechanism
+    A way of determining set membership, for projects like HOT
 */
 package matcher
 
@@ -52,6 +53,16 @@ type StructMatcher interface {
 	Field(string) Yielder
 }
 
+/*
+This is an interface for parsing a string, and creating a matcher from it.  It requires a context, which is provided to the constructor (see NewParser for more information about this).  It uses the context to determine what symbols are valid, and if it is possible to use the type in the resultant matcher
+*/
+type Parser interface {
+	Parse(string) (Matcher, error)
+}
+
+/*
+The yielder is used to provide dynmaic values in a matcher.  It is needs let expressions such as 'A = B' work properly.  It can also be used to determine how an item compares to a dynamic value, such as a time window (e.g. "Last 5 minutes")
+*/
 type Yielder interface {
 	Yield() (interface{}, error)
 }
