@@ -389,3 +389,100 @@ func TestErrorCodeSerialization(t *testing.T) {
 		}
 	}
 }
+
+func TestValidAutoincStructure(t *testing.T) {
+	noErrors := func(args ...interface{}) {
+		for _, arg := range args {
+			results := ValidateType(arg, NewStructList())
+			for _, err := range results {
+				t.Errorf("Found error, code: '%v', message %v", err.Error.Code, err.Error.Message)
+			}
+		}
+	}
+
+	noErrors(
+		struct {
+			A int `sql:"autoincrement,primary"`
+		}{},
+		struct {
+			A int64 `sql:"autoincrement,primary"`
+		}{},
+		struct {
+			A int32 `sql:"autoincrement,primary"`
+		}{},
+		struct {
+			A int16 `sql:"autoincrement,primary"`
+		}{},
+		struct {
+			A int8 `sql:"autoincrement,primary"`
+		}{},
+		struct {
+			A uint `sql:"autoincrement,primary"`
+		}{},
+		struct {
+			A uint64 `sql:"autoincrement,primary"`
+		}{},
+		struct {
+			A uint32 `sql:"autoincrement,primary"`
+		}{},
+		struct {
+			A uint16 `sql:"autoincrement,primary"`
+		}{},
+		struct {
+			A uint8 `sql:"autoincrement,primary"`
+		}{},
+	)
+}
+
+func TestValidDefaultStructure(t *testing.T) {
+	noErrors := func(args ...interface{}) {
+		for _, arg := range args {
+			results := ValidateType(arg, NewStructList())
+			for _, err := range results {
+				t.Errorf("Found error, code: '%v', message %v", err.Error.Code, err.Error.Message)
+			}
+		}
+	}
+
+	noErrors(
+		struct {
+			A int `default:"1"`
+		}{},
+		struct {
+			A int64 `default:"1"`
+		}{},
+		struct {
+			A int32 `default:"1"`
+		}{},
+		struct {
+			A int16 `default:"1"`
+		}{},
+		struct {
+			A int8 `default:"1"`
+		}{},
+		struct {
+			A uint `default:"1"`
+		}{},
+		struct {
+			A uint64 `default:"1"`
+		}{},
+		struct {
+			A uint32 `default:"1"`
+		}{},
+		struct {
+			A uint16 `default:"1"`
+		}{},
+		struct {
+			A uint8 `default:"1"`
+		}{},
+		struct {
+			A float64 `default:"1"`
+		}{},
+		struct {
+			A float32 `default:"1"`
+		}{},
+		struct {
+			A string `default:"1"`
+		}{},
+	)
+}
