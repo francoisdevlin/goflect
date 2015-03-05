@@ -131,64 +131,6 @@ func uglyGuy(fields []goflect.Info, record interface{}) string {
 	return statement
 }
 
-//func (service sqliteRecordService) Create(record interface{}) error {
-//typ, val := typeAndVal(record)
-
-//fields := goflect.GetInfo(record)
-//statement := ""
-//statement += "INSERT INTO " + typ.Name() + "("
-//columns := make([]string, 0)
-//for _, field := range fields {
-//if field.IsAutoincrement {
-//continue
-//}
-//columns = append(columns, field.Name)
-//}
-//statement += strings.Join(columns, ", ")
-//statement += " ) VALUES ("
-
-//columns = make([]string, 0)
-//for _, field := range fields {
-//if field.IsAutoincrement {
-//continue
-//}
-//fieldVal := val.FieldByName(field.Name)
-//columns = append(columns, wrap(fieldVal, field))
-//}
-//statement += strings.Join(columns, ", ")
-//statement += " )"
-//_, err := service.Conn.Exec(statement)
-//return err
-//}
-
-func (service sqliteRecordService) Update(record interface{}) error {
-	typ, val := typeAndVal(record)
-
-	fields := goflect.GetInfo(record)
-	statement := "UPDATE " + typ.Name() + " SET "
-	columns := make([]string, 0)
-	match := matcher.NewStructMatcher()
-	for _, field := range fields {
-		fieldVal := val.FieldByName(field.Name)
-		if field.IsPrimary {
-			match.AddField(field.Name, matcher.Eq(fieldVal.Interface()))
-		}
-		temp := field.Name + "=" + wrap(fieldVal, field)
-		columns = append(columns, temp)
-	}
-	statement += strings.Join(columns, ", ")
-
-	printer := matcher.NewSqlitePrinter()
-	result, err := printer.Print(match)
-	if err != nil {
-		return err
-	}
-	statement += " WHERE " + result
-
-	_, err = service.Conn.Exec(statement)
-	return err
-}
-
 func (service sqliteRecordService) updateAll(record interface{}, match matcher.Matcher) error {
 	typ, val := typeAndVal(record)
 
@@ -213,29 +155,6 @@ func (service sqliteRecordService) updateAll(record interface{}, match matcher.M
 	return err
 }
 
-func (service sqliteRecordService) Delete(record interface{}) error {
-	typ, val := typeAndVal(record)
-
-	fields := goflect.GetInfo(record)
-	statement := "DELETE FROM " + typ.Name()
-	match := matcher.NewStructMatcher()
-	for _, field := range fields {
-		fieldVal := val.FieldByName(field.Name)
-		if field.IsPrimary {
-			match.AddField(field.Name, matcher.Eq(fieldVal.Interface()))
-		}
-	}
-
-	printer := matcher.NewSqlitePrinter()
-	result, err := printer.Print(match)
-	if err != nil {
-		return err
-	}
-	statement += " WHERE " + result
-	_, err = service.Conn.Exec(statement)
-	return err
-}
-
 func (service sqliteRecordService) deleteAll(record interface{}, match matcher.Matcher) error {
 	typ, _ := typeAndVal(record)
 
@@ -249,10 +168,6 @@ func (service sqliteRecordService) deleteAll(record interface{}, match matcher.M
 	statement += " WHERE " + result
 	_, err = service.Conn.Exec(statement)
 	return err
-}
-
-func (service sqliteRecordService) ReadAll(record interface{}) (func(record interface{}) bool, error) {
-	return service.readAll(record, matcher.Any())
 }
 
 func (service sqliteRecordService) readAll(record interface{}, match matcher.Matcher) (func(record interface{}) bool, error) {
