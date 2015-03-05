@@ -285,13 +285,43 @@ func tokenize(message string) ([]string, error) {
 	return output, nil
 }
 
+/*
+This returns a new parser object that uses the context given.  This context will determine what the symbols type is.  (Is A a string, and int, a float?).  The context itself can be many different types, as a convenience to the developer
+
+	map[string]reflect.Kind - This will bind the symbols to use the Kind specified.  It will allow a struct matcher to be returned
+	map[string]interface{} - This will bind the symbols to use the Kind of the underlying interface.  It will allow a struct matcher to be returned.
+	reflect.Kind - This will bind the symbol "_" to the kind passed in.  It will allow a field matcher to be returned
+	interface{} - This will bind the symbol "_" to the kind of the underlying interface.  It will allow a field matcher to be returned
+
+This currently only works with kinds in the string, bool, flaot, int and uint families.  You may use the DefaultParser function in the goflect package to get a context based on structs
+
+Please read the documentation of go's reflect package to understand how reflect.Kind works
+*/
 func NewParser(context interface{}) (Parser, error) {
 	localContext := make(map[string]reflect.Kind)
 	switch c := context.(type) {
 	case map[string]reflect.Kind:
 		localContext = c
 	case reflect.Kind:
-		localContext["_"] = c
+		switch c {
+		case reflect.Bool,
+			reflect.String,
+			reflect.Float64,
+			reflect.Float32,
+			reflect.Uint,
+			reflect.Uint64,
+			reflect.Uint32,
+			reflect.Uint16,
+			reflect.Uint8,
+			reflect.Int,
+			reflect.Int64,
+			reflect.Int32,
+			reflect.Int16,
+			reflect.Int8:
+			localContext["_"] = c
+		default:
+			return nil, MatchParseError{Code: INVALID_CONTEXT, Message: ("Got kind " + typ.Kind().String())}
+		}
 	case map[string]interface{}:
 		for name, value := range c {
 			typ := reflect.TypeOf(value)

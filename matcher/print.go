@@ -7,10 +7,16 @@ import (
 	"strings"
 )
 
+/*
+This returns a printer that is designed to print the matcher in a format that is usable as a where clause for sqlite.
+*/
 func NewSqlitePrinter() Printer {
 	return sqlitePrinter{}
 }
 
+/*
+This returns a pretty printer that can render the in memory expressions.  It is designed to be compatible with the output of the parser for built in exressions.  Some yields or matcher lambdas will not make the round trip properly
+*/
 func NewDefaultPrinter() Printer {
 	return defaultPrinter{}
 }
