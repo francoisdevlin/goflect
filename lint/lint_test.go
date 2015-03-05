@@ -316,6 +316,58 @@ func ExampleValidateType_defaultMistmatches() {
 	//BAD_DEFAULT_VALUE Unable to convert "-1" to kind uint with field "Value"
 }
 
+/*
+This demonstrated some of the errors that can occur if the validator expression is not parsable
+*/
+func ExampleValidateType_validExprParseErrors() {
+	printErrors := func(args ...interface{}) {
+		for _, arg := range args {
+			results := ValidateType(arg, NewStructList())
+			for _, err := range results {
+				fmt.Println(err.Error.Code, err.Error.Message)
+			}
+		}
+	}
+
+	type MismatchEquality struct {
+		A int `valid:"A=B"`
+		B int64
+	}
+	type IncompleteExpression struct {
+		A int `valid:"A= "`
+		B int
+	}
+	type MismatchedParen struct {
+		A int `valid:"(A=B "`
+		B int
+	}
+	type DanglingParen struct {
+		A int `valid:"(A=B))"`
+		B int
+	}
+	printErrors(
+		&MismatchEquality{},
+		&IncompleteExpression{},
+		&MismatchedParen{},
+		&DanglingParen{},
+		//Can't compare ints an strings
+		struct {
+			A int `valid:"A=\"Bacon\""`
+		}{},
+		//Operators must bu a known set
+		struct {
+			A int `valid:"A==1"`
+		}{},
+	)
+	//Output:
+	//VALIDATOR_PARSE_ERROR Cannot compare fields A and B, they are different kinds on type "MismatchEquality"
+	//VALIDATOR_PARSE_ERROR The message has a trailing entry: = on type "IncompleteExpression"
+	//VALIDATOR_PARSE_ERROR There is an leading paren without its mate on type "MismatchedParen"
+	//VALIDATOR_PARSE_ERROR Unknown Field provided: ) on type "DanglingParen"
+	//VALIDATOR_PARSE_ERROR Could not promote field A to kind int for value '"Bacon"' on type ""
+	//VALIDATOR_PARSE_ERROR Operation type is not supported: == on type ""
+}
+
 func TestErrorCodeSerialization(t *testing.T) {
 	codes := map[ErrorCode]string{
 		NOMINAL_MISMATCH:      "NOMINAL_MISMATCH",

@@ -3,6 +3,7 @@ package lint
 import (
 	"fmt"
 	"git.sevone.com/sdevlin/goflect.git/goflect"
+	"git.sevone.com/sdevlin/goflect.git/matcher"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -82,6 +83,7 @@ func ValidateType(record interface{}, list StructList) []Result {
 		nominalOnce,
 		nominalRequiresPrimary,
 		primaryOnce,
+		validatorStringParseable,
 	}
 
 	output := make([]Result, 0)
@@ -175,6 +177,28 @@ func primaryOnce(fields []goflect.Info) []error {
 			Code:    PRIMARY_MISCOUNT,
 			Message: fmt.Sprintf("There can be only one primary field, but the following are marked, %v", primaryFields),
 		})
+	}
+	return errors
+}
+
+/*
+This checks to ensure that the validator strings are in fact parseable
+*/
+func validatorStringParseable(fields []goflect.Info) []error {
+	errors := make([]error, 0)
+	kinds := make(map[string]reflect.Kind)
+	for _, field := range fields {
+		kinds[field.Name] = field.Kind
+	}
+	parser, _ := matcher.NewParser(kinds)
+	for _, field := range fields {
+		_, err := parser.Parse(field.ValidExpr)
+		if err != nil {
+			errors = append(errors, ValidationError{
+				Code:    VALIDATOR_PARSE_ERROR,
+				Message: err.Error(),
+			})
+		}
 	}
 	return errors
 }
