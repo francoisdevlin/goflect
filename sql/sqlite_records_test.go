@@ -147,7 +147,8 @@ func ExampleRecordService_CreateAll_infoTest() {
 	fmt.Println(info)
 
 	//Output:
-	//{{Name string} {true false true false true false false} {} {This is the name of the field in the struct.  It is authoritative 0 false }}
+	//{{Name string} {true false true false true false false false } {} {This is the name of the field in the struct.  It is authoritative 0 false false  }}
+
 }
 
 /*
