@@ -320,7 +320,7 @@ func NewParser(context interface{}) (Parser, error) {
 			reflect.Int8:
 			localContext["_"] = c
 		default:
-			return nil, MatchParseError{Code: INVALID_CONTEXT, Message: ("Got kind " + typ.Kind().String())}
+			return nil, MatchParseError{Code: INVALID_CONTEXT, Message: ("Got kind " + c.String())}
 		}
 	case map[string]interface{}:
 		for name, value := range c {
