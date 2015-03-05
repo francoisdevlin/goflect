@@ -3,6 +3,7 @@ package matcher
 import (
 	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -75,6 +76,66 @@ func TestParseCodes(t *testing.T) {
 	render("A = C", PROMOTION_ERROR)
 	render("C = A", PROMOTION_ERROR)
 	render("C = \"Fail\"", PROMOTION_ERROR)
+}
+
+func TestWhitespacePermutations(t *testing.T) {
+
+	//fmt.Println(indicies)
+	workTodo := func(size int, entries []int) bool {
+		for _, value := range entries {
+			if value <= size {
+				return true
+			} else {
+				return false
+			}
+		}
+		return false
+	}
+	next := func(size int, entries []int) []int {
+		for i := len(entries) - 1; i >= 0; i-- {
+			if (entries[i]) >= size {
+				if i > 0 {
+					entries[i] = 0
+					entries[i-1]++
+				}
+			} else {
+				entries[i]++
+				return entries
+			}
+		}
+		return entries
+	}
+
+	tryTokens := func(inputTokens, inputWhitespace []string) {
+		size := len(inputWhitespace) - 1
+		indicies := make([]int, len(inputTokens)+1)
+		for workTodo(size, indicies) {
+			testString := ""
+			testString += inputWhitespace[indicies[0]]
+			for i, token := range inputTokens {
+				testString += token
+				testString += inputWhitespace[indicies[i+1]]
+			}
+			//fmt.Println(testString)
+			newTokens, err := tokenize(testString)
+			if err != nil {
+				t.Errorf("Unexpected token error (%v) with input %v ", err, testString)
+			}
+			if len(newTokens) != len(inputTokens) {
+				t.Errorf("Token error, got %v, want %v", newTokens, inputTokens)
+			}
+			if strings.Join(newTokens, " ") != strings.Join(inputTokens, " ") {
+				t.Errorf("Token error, got %v, want %v", newTokens, inputTokens)
+			}
+			indicies = next(size, indicies)
+		}
+	}
+	whitespaceNoEmpty := []string{" ", "\t", "\n", ",", " ,\t\n"}
+	whitespace := append(whitespaceNoEmpty, "")
+	tryTokens([]string{"A", "=", "1"}, whitespace)
+	tryTokens([]string{"(", "A", "=", "1", ")"}, whitespace)
+	tryTokens([]string{"(", "(", "A", "=", "1", ")", ")"}, whitespace)
+	tryTokens([]string{"A", "=", "1", "AND", "B", "=", "1"}, whitespaceNoEmpty)
 }
 
 func TestParsing(t *testing.T) {
