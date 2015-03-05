@@ -100,6 +100,30 @@ func TestValidatorFields(t *testing.T) {
 	}
 }
 
+func TestNestedAnnonymousStruct(t *testing.T) {
+	compare := func(fieldCount int, record interface{}) {
+		fields := GetInfo(record)
+		if len(fields) != fieldCount {
+			t.Error("Got the wrong number of fields", len(fields), fieldCount)
+		}
+	}
+	type T01 struct {
+		I01 int
+	}
+	type T02 struct {
+		T01
+		I02 int
+	}
+	type T03 struct {
+		T02
+		I03 int
+	}
+	compare(01, &T01{})
+	compare(02, &T02{})
+	compare(03, &T03{})
+
+}
+
 func ExampleReflectValue_GetFieldInfo() {
 	type Bar struct {
 		Id int64
