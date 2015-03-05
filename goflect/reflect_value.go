@@ -39,6 +39,9 @@ func (field reflectValue) GetFieldSqlInfo() (output SqlInfo) {
 	output.IsNullable = !(strings.Contains(tags, SQL_NULLABLE) || output.IsUnique)
 	output.IsIndexed = strings.Contains(tags, SQL_INDEX) || output.IsUnique
 	output.IsNominal = strings.Contains(tags, SQL_NOMINAL)
+	output.IsSqlIgnored = strings.Contains(tags, SQL_IGNORE)
+
+	output.SqlColumn = field.Tag.Get(TAG_SQL_COLUMN)
 
 	return output
 }
@@ -55,16 +58,20 @@ There is also a "flag tag", "ui", with the following entries possible
     hidden - This controls if the user can see the field
 */
 func (field reflectValue) GetFieldUiInfo() (output UiInfo) {
-	output.Description = field.Tag.Get("desc")
-	output.Default = field.Tag.Get("default")
-	output.FieldOrder, _ = strconv.ParseInt(field.Tag.Get("order"), 0, 64)
+	output.Description = field.Tag.Get(TAG_DESC)
+	output.Default = field.Tag.Get(TAG_DEFAULT)
+	output.FieldOrder, _ = strconv.ParseInt(field.Tag.Get(TAG_ORDER), 0, 64)
 
-	tags := field.Tag.Get("ui")
-	output.Hidden = strings.Contains(tags, "hidden")
+	tags := field.Tag.Get(TAG_UI)
+	output.IsHidden = strings.Contains(tags, UI_HIDDEN)
+	output.IsRedacted = strings.Contains(tags, UI_REDACTED)
 
 	return output
 }
 
+/*
+This is used to get information our of the valid tag, and into the data structure.
+*/
 func (field reflectValue) GetFieldValidatorInfo() (output ValidatorInfo) {
 	output.ValidExpr = field.Tag.Get(TAG_VALID)
 	return output

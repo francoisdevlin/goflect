@@ -11,7 +11,10 @@ The default matcher is used to determine the default matcher for a given type.  
 func DefaultMatcher(record interface{}) (matcher.Matcher, error) {
 	output := matcher.Any()
 	fields := GetInfo(record)
-	p := DefaultParser(record)
+	p, err := DefaultParser(record)
+	if err != nil {
+		return nil, err
+	}
 	for _, field := range fields {
 		match, err := p.Parse(field.ValidExpr)
 		if err != nil {
@@ -25,7 +28,7 @@ func DefaultMatcher(record interface{}) (matcher.Matcher, error) {
 /*
 This uses the provided record to create a context for the parser.  It the record is a struct, reflection is used.  If the record is a primitive, its type is used and a primitive parser is return instead
 */
-func DefaultParser(record interface{}) matcher.ParseStruct {
+func DefaultParser(record interface{}) (matcher.Parser, error) {
 	typ := reflect.TypeOf(record)
 	if typ.Kind() == reflect.Ptr {
 		typ = typ.Elem()
@@ -39,12 +42,9 @@ func DefaultParser(record interface{}) matcher.ParseStruct {
 		for _, field := range fields {
 			kinds[field.Name] = field.Kind
 		}
-		return matcher.ParseStruct{Fields: kinds}
+		return matcher.NewParser(kinds)
 	} else {
-		kinds := map[string]reflect.Kind{
-			"_": kind,
-		}
-		return matcher.ParseStruct{Fields: kinds}
+		return matcher.NewParser(record)
 	}
 }
 
@@ -52,5 +52,9 @@ func DefaultParser(record interface{}) matcher.ParseStruct {
 This uses default parser to parse the input string, and provide a matcher
 */
 func Parse(record interface{}, input string) (matcher.Matcher, error) {
-	return DefaultParser(record).Parse(input)
+	p, err := DefaultParser(record)
+	if err != nil {
+		return nil, err
+	}
+	return p.Parse(input)
 }

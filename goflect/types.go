@@ -5,12 +5,14 @@ import (
 )
 
 const (
-	TAG_DESC    string = "desc"
-	TAG_SQL            = "sql"
-	TAG_VALID          = "valid"
-	TAG_DEFAULT        = "default"
-	TAG_ORDER          = "order"
-	TAG_UI             = "ui"
+	TAG_DESC       string = "desc"
+	TAG_SQL               = "sql"
+	TAG_SQL_COLUMN        = "sql-column"
+	TAG_VALID             = "valid"
+	TAG_DEFAULT           = "default"
+	TAG_ORDER             = "order"
+	TAG_UI                = "ui"
+	TAG_UI_NAME           = "ui-name"
 )
 
 const (
@@ -21,11 +23,12 @@ const (
 	SQL_NULLABLE         = "not-null"
 	SQL_INDEX            = "index"
 	SQL_NOMINAL          = "nominal"
+	SQL_IGNORE           = "ignored"
 )
 
 const (
-	UI_HIDDEN string = "hidden"
-	UI_REDACT        = "redacted"
+	UI_HIDDEN   string = "hidden"
+	UI_REDACTED        = "redacted"
 )
 
 var (
@@ -34,7 +37,9 @@ var (
 		TAG_DEFAULT,
 		TAG_VALID,
 		TAG_SQL,
+		TAG_SQL_COLUMN,
 		TAG_UI,
+		TAG_UI_NAME,
 		TAG_ORDER,
 	}
 	SQL_FIELDS = []string{
@@ -45,10 +50,11 @@ var (
 		SQL_NOMINAL,
 		SQL_NULLABLE,
 		SQL_INDEX,
+		SQL_IGNORE,
 	}
 	UI_FIELDS = []string{
 		UI_HIDDEN,
-		UI_REDACT,
+		UI_REDACTED,
 	}
 )
 
@@ -61,13 +67,15 @@ type FieldInfo struct {
 }
 
 type SqlInfo struct {
-	IsPrimary       bool `desc:"This indicates if the field is the primary key.  It will imply uniqueness, and all that follows"`
-	IsAutoincrement bool `desc:"This indicates if the field is an integet auto increment.  It implies immutability on the field"`
-	IsUnique        bool `desc:"This indicates if the field must be unique.  It implies not not and and index"`
-	IsNullable      bool `desc:"This controls if a field is nullable."`
-	IsIndexed       bool `desc:"This controls if a field is indexed."`
-	IsNominal       bool `desc:"This indicates the nominal field for a type, which generates dropdowns.  There may be only one per structure"`
-	IsImmutable     bool `desc:"This controls if a field is immutable.  It will make the field write once."`
+	IsPrimary       bool   `desc:"This indicates if the field is the primary key.  It will imply uniqueness, and all that follows"`
+	IsAutoincrement bool   `desc:"This indicates if the field is an integet auto increment.  It implies immutability on the field"`
+	IsUnique        bool   `desc:"This indicates if the field must be unique.  It implies not not and and index"`
+	IsNullable      bool   `desc:"This controls if a field is nullable."`
+	IsIndexed       bool   `desc:"This controls if a field is indexed."`
+	IsNominal       bool   `desc:"This indicates the nominal field for a type, which generates dropdowns.  There may be only one per structure"`
+	IsImmutable     bool   `desc:"This controls if a field is immutable.  It will make the field write once."`
+	IsSqlIgnored    bool   `desc:"This controls if the field is ifnored entirely by all sql operations.  It will not render down to sql queries.  However, it may still be used by in memory transforms"`
+	SqlColumn       string `desc:"This is the actual sql column to use.  Leaving it blank to allow the engine to determine the value based on the Name property"`
 }
 
 type ValidatorInfo struct {
@@ -77,8 +85,10 @@ type ValidatorInfo struct {
 type UiInfo struct {
 	Description string `desc:"This is the user facing description of a field"`
 	FieldOrder  int64  `desc:"This controls the field display order"`
-	Hidden      bool   `desc:"This controls if the user can see the field at all"`
+	IsHidden    bool   `desc:"This controls if the user can see the field at all"`
+	IsRedacted  bool   `desc:"This controls if a field is redacted.  It will show up as stars in user input"`
 	Default     string `desc:"This is the default value of the field in the UI"`
+	DisplayName string `desc:"This is the display name shown to the user.  Leving it blank will allow the engine to determine the value used"`
 }
 
 /*

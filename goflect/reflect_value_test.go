@@ -70,6 +70,22 @@ func TestSqlFields(t *testing.T) {
 		IsNullable: true,
 		IsNominal:  true,
 	}, &T07{})
+
+	type T08 struct {
+		Id int `sql:"ignored"`
+	}
+	compare(SqlInfo{
+		IsNullable:   true,
+		IsSqlIgnored: true,
+	}, &T08{})
+
+	type T09 struct {
+		Id int `sql-column:"Bacon"`
+	}
+	compare(SqlInfo{
+		IsNullable: true,
+		SqlColumn:  "Bacon",
+	}, &T09{})
 }
 
 func TestValidatorFields(t *testing.T) {
@@ -120,6 +136,6 @@ func ExampleReflectValue_GetFieldUiInfo() {
 	}
 
 	info := GetInfo(&Bar{})
-	fmt.Println(info[0].Description, info[0].Default, info[0].Hidden)
+	fmt.Println(info[0].Description, info[0].Default, info[0].IsHidden)
 	//Output: An Id Field 1 true
 }
