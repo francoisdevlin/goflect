@@ -352,7 +352,7 @@ func structTag(message string) []error {
 
 func parseStructTag(message string) (map[string]string, []error) {
 	whitespace, _ := regexp.Compile("^[\\s,]+")
-	symbol, _ := regexp.Compile("^[a-zA-Z_]\\w*")
+	symbol, _ := regexp.Compile("^[a-zA-Z_][a-zA-Z_-]*")
 	operators, _ := regexp.Compile("^:\"")
 	quote, _ := regexp.Compile("^\"(?:\\\\?.)*?\"")
 	errors := make([]error, 0)

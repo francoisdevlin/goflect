@@ -27,7 +27,7 @@ func TestFormatString(t *testing.T) {
 	assertMatch("sql:\"primary\"", "`sql:\"primary\"`", token.Position{Column: 1})
 	assertMatch("sql:\"primary\"", "`sql:\"primary\"`", token.Position{Column: 2})
 	//Description comes first, padded tab
-	assertMatch("desc:\"Bacon\"\n\t sql:\"primary\"", "`sql:\"primary\" desc:\"Bacon\"`", token.Position{Column: 2})
+	assertMatch("desc:\"Bacon\" sql:\"primary\"", "`sql:\"primary\" desc:\"Bacon\"`", token.Position{Column: 2})
 }
 
 /*
@@ -65,8 +65,5 @@ func ExampleFormatStructTag_tagReorder() {
 	output, _ := FormatStructTag(token.Position{}, garbledTag)
 	fmt.Println(output)
 	//Output:
-	//desc:"This is a primary key"
-	//	valid:"_ >= 0"
-	//	sql:"primary"
-	//	ui:"hidden"
+	//desc:"This is a primary key" valid:"_ >= 0" sql:"primary" ui:"hidden"
 }

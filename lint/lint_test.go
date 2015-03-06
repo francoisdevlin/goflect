@@ -486,3 +486,23 @@ func TestValidDefaultStructure(t *testing.T) {
 		}{},
 	)
 }
+
+func TestValidSqlColumnStructure(t *testing.T) {
+	noErrors := func(args ...interface{}) {
+		for _, arg := range args {
+			results := ValidateType(arg, NewStructList())
+			for _, err := range results {
+				t.Errorf("Found error, code: '%v', message %v", err.Error.Code, err.Error.Message)
+			}
+		}
+	}
+
+	noErrors(
+		struct {
+			A int `sql-column:"A"`
+		}{},
+		struct {
+			A int `sql-column:"A_B" desc:"Bacon"`
+		}{},
+	)
+}
