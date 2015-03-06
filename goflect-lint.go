@@ -53,12 +53,12 @@ func main() {
 	}
 }`
 
-type StructCandidateVisitor struct {
+type LintVisitor struct {
 	fset *token.FileSet
 	lint.StructList
 }
 
-func (v *StructCandidateVisitor) Visit(node ast.Node) (w ast.Visitor) {
+func (v *LintVisitor) Visit(node ast.Node) (w ast.Visitor) {
 	if v.Structs == nil {
 		v.Structs = make(map[string]lint.StructInfo)
 	}
@@ -122,7 +122,7 @@ func main() {
 	}
 	importPath := "./" + filepath.Dir(filename)
 	targetPackage := file.Name.Name
-	structs := StructCandidateVisitor{fset: fset}
+	structs := LintVisitor{fset: fset}
 	ast.Walk(&structs, file)
 
 	fset = token.NewFileSet()

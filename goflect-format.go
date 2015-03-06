@@ -14,12 +14,12 @@ import (
 	"os"
 )
 
-type StructCandidateVisitor struct {
+type FormatVisitor struct {
 	fset *token.FileSet
 	lint.StructList
 }
 
-func (v *StructCandidateVisitor) Visit(node ast.Node) (w ast.Visitor) {
+func (v *FormatVisitor) Visit(node ast.Node) (w ast.Visitor) {
 	if v.Structs == nil {
 		v.Structs = make(map[string]lint.StructInfo)
 	}
@@ -69,7 +69,7 @@ func main() {
 		if err != nil {
 			// Whoops!
 		}
-		structs := StructCandidateVisitor{fset: fset}
+		structs := FormatVisitor{fset: fset}
 		ast.Walk(&structs, file)
 		printer.Fprint(buffer, fset, file)
 		ioutil.WriteFile(filename, buffer.Bytes(), os.ModePerm)
