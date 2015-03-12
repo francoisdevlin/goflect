@@ -170,7 +170,7 @@ func (service sqliteRecordService) deleteAll(record interface{}, match matcher.M
 	return err
 }
 
-func (service sqliteRecordService) readAll(record interface{}, match matcher.Matcher) (func(record interface{}) bool, error) {
+func (service sqliteRecordService) readAll(query matcher.Matcher, record ...interface{}) (func(record ...interface{}) bool, error) {
 	typ, _ := typeAndVal(record)
 
 	fields := goflect.GetInfo(record)
@@ -183,7 +183,7 @@ func (service sqliteRecordService) readAll(record interface{}, match matcher.Mat
 	statement += " FROM " + typ.Name()
 
 	printer := matcher.NewSqlitePrinter()
-	result, err := printer.Print(match)
+	result, err := printer.Print(query)
 	if err != nil {
 		return nil, err
 	}
@@ -195,8 +195,9 @@ func (service sqliteRecordService) readAll(record interface{}, match matcher.Mat
 		return nil, err
 	}
 
-	output := func(r interface{}) bool {
-		return nextRow(rows, r)
+	output := func(r ...interface{}) bool {
+		//Ugly hack
+		return nextRow(rows, r[0])
 	}
 
 	return output, nil

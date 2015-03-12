@@ -43,7 +43,7 @@ func (service dispatch) createAll(record interface{}) error {
 	return delegate.createAll(record)
 }
 
-func (service dispatch) readAll(record interface{}, match matcher.Matcher) (func(record interface{}) bool, error) {
+func (service dispatch) readAll(query matcher.Matcher, record ...interface{}) (func(record ...interface{}) bool, error) {
 	delegateId, err := service.dispatcher(record)
 	if err != nil {
 		return nil, err
@@ -52,7 +52,7 @@ func (service dispatch) readAll(record interface{}, match matcher.Matcher) (func
 		return nil, RecordError("Dispatch index out of range")
 	}
 	delegate := service.delegates[delegateId]
-	return delegate.readAll(record, match)
+	return delegate.readAll(query, record)
 }
 
 func (service dispatch) updateAll(record interface{}, match matcher.Matcher) error {

@@ -142,15 +142,15 @@ func (service RecordService) DeleteById(id int64, record interface{}) error {
 /*
 This function can be used to return a set of records that match a set of criteria.  It accepts a matcher that describes a record set.
 */
-func (service RecordService) ReadAllWhere(record interface{}, match matcher.Matcher) (func(record interface{}) bool, error) {
-	return service.delegate.readAll(record, match)
+func (service RecordService) ReadAllWhere(record interface{}, match matcher.Matcher) (func(record ...interface{}) bool, error) {
+	return service.delegate.readAll(match, record)
 }
 
 /*
 This returns all of the records that the service has access to
 */
-func (service RecordService) ReadAll(record interface{}) (func(record interface{}) bool, error) {
-	return service.delegate.readAll(record, matcher.Any())
+func (service RecordService) ReadAll(record interface{}) (func(record ...interface{}) bool, error) {
+	return service.ReadAllWhere(record, matcher.Any())
 }
 
 /***

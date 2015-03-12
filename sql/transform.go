@@ -31,7 +31,7 @@ func (service transform) createAll(record interface{}) error {
 	return service.delegate.createAll(slice.Interface())
 }
 
-func (service transform) readAll(record interface{}, match matcher.Matcher) (func(record interface{}) bool, error) {
+func (service transform) readAll(query matcher.Matcher, record ...interface{}) (func(record ...interface{}) bool, error) {
 	trans, err := service.transformer(record)
 	if err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func (service transform) readAll(record interface{}, match matcher.Matcher) (fun
 	if trans == nil {
 		return nil, RecordError("Tranform returned nil")
 	}
-	return service.delegate.readAll(trans, match)
+	return service.delegate.readAll(query, trans)
 }
 
 func (service transform) updateAll(record interface{}, match matcher.Matcher) error {

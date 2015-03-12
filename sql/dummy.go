@@ -19,13 +19,13 @@ func (service *dummyService) createAll(record interface{}) error {
 	return nil
 }
 
-func (service *dummyService) readAll(record interface{}, match matcher.Matcher) (func(record interface{}) bool, error) {
-	_, err := match.Match(record)
+func (service *dummyService) readAll(query matcher.Matcher, record ...interface{}) (func(record ...interface{}) bool, error) {
+	_, err := query.Match(record)
 	if err != nil {
 		return nil, err
 	}
 	service.Reads++
-	return func(record interface{}) bool { return false }, nil
+	return func(record ...interface{}) bool { return false }, nil
 }
 
 func (service *dummyService) updateAll(record interface{}, match matcher.Matcher) error {

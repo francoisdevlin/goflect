@@ -30,9 +30,8 @@ func (service view) createAll(record interface{}) error {
 	return service.delegate.createAll(record)
 }
 
-func (service view) readAll(record interface{}, match matcher.Matcher) (func(record interface{}) bool, error) {
-	return service.delegate.readAll(record,
-		matcher.And(service.match, match))
+func (service view) readAll(query matcher.Matcher, record ...interface{}) (func(record ...interface{}) bool, error) {
+	return service.delegate.readAll(matcher.And(service.match, query), record)
 }
 
 func (service view) updateAll(record interface{}, match matcher.Matcher) error {

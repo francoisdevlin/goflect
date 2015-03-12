@@ -29,7 +29,7 @@ type Nominal struct {
 
 type privateRecordService interface {
 	createAll(rows interface{}) error
-	readAll(record interface{}, match matcher.Matcher) (func(record interface{}) bool, error)
+	readAll(query matcher.Matcher, record ...interface{}) (func(record ...interface{}) bool, error)
 	updateAll(record interface{}, match matcher.Matcher) error
 	deleteAll(record interface{}, match matcher.Matcher) error
 }
