@@ -8,6 +8,8 @@ const (
 	TAG_DESC       string = "desc"
 	TAG_SQL               = "sql"
 	TAG_SQL_COLUMN        = "sql-column"
+	TAG_SQL_CHILD         = "sql-child"
+	TAG_SQL_EXTEND        = "sql-extend"
 	TAG_VALID             = "valid"
 	TAG_DEFAULT           = "default"
 	TAG_ORDER             = "order"
@@ -38,6 +40,8 @@ var (
 		TAG_VALID,
 		TAG_SQL,
 		TAG_SQL_COLUMN,
+		TAG_SQL_CHILD,
+		TAG_SQL_EXTEND,
 		TAG_UI,
 		TAG_UI_NAME,
 		TAG_ORDER,
@@ -67,15 +71,18 @@ type FieldInfo struct {
 }
 
 type SqlInfo struct {
-	IsPrimary       bool   `desc:"This indicates if the field is the primary key.  It will imply uniqueness, and all that follows"`
-	IsAutoincrement bool   `desc:"This indicates if the field is an integet auto increment.  It implies immutability on the field"`
-	IsUnique        bool   `desc:"This indicates if the field must be unique.  It implies not not and and index"`
-	IsNullable      bool   `desc:"This controls if a field is nullable."`
-	IsIndexed       bool   `desc:"This controls if a field is indexed."`
-	IsNominal       bool   `desc:"This indicates the nominal field for a type, which generates dropdowns.  There may be only one per structure"`
-	IsImmutable     bool   `desc:"This controls if a field is immutable.  It will make the field write once."`
-	IsSqlIgnored    bool   `desc:"This controls if the field is ifnored entirely by all sql operations.  It will not render down to sql queries.  However, it may still be used by in memory transforms"`
+	IsPrimary       bool `desc:"This indicates if the field is the primary key.  It will imply uniqueness, and all that follows"`
+	IsAutoincrement bool `desc:"This indicates if the field is an integet auto increment.  It implies immutability on the field"`
+	IsUnique        bool `desc:"This indicates if the field must be unique.  It implies not not and and index"`
+	IsNullable      bool `desc:"This controls if a field is nullable."`
+	IsIndexed       bool `desc:"This controls if a field is indexed."`
+	IsNominal       bool `desc:"This indicates the nominal field for a type, which generates dropdowns.  There may be only one per structure"`
+	IsImmutable     bool `desc:"This controls if a field is immutable.  It will make the field write once."`
+	IsSqlIgnored    bool `desc:"This controls if the field is ifnored entirely by all sql operations.  It will not render down to sql queries.  However, it may still be used by in memory transforms"`
+	Bacon           string
 	SqlColumn       string `desc:"This is the actual sql column to use.  Leaving it blank to allow the engine to determine the value based on the Name property"`
+	ChildOf         string `desc:"This describes the child relationship that a record has.  It points to a type"`
+	Extends         string `desc:"This describes the extension relationship that a table has"`
 }
 
 type ValidatorInfo struct {

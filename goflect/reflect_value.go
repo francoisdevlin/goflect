@@ -42,6 +42,8 @@ func (field reflectValue) GetFieldSqlInfo() (output SqlInfo) {
 	output.IsSqlIgnored = strings.Contains(tags, SQL_IGNORE)
 
 	output.SqlColumn = field.Tag.Get(TAG_SQL_COLUMN)
+	output.ChildOf = field.Tag.Get(TAG_SQL_CHILD)
+	output.Extends = field.Tag.Get(TAG_SQL_EXTEND)
 
 	return output
 }
