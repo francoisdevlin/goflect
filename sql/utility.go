@@ -158,35 +158,10 @@ These are the constructors
 ***/
 
 /*
-This creates a new dispatch service that will route the request to the appropriate service underneath
-*/
-func NewDispatchService(disp func(interface{}) (int, error), delegs []RecordService) RecordService {
-	services := make([]privateRecordService, len(delegs))
-	for i, service := range delegs {
-		services[i] = service.delegate
-	}
-	return RecordService{delegate: dispatch{dispatcher: disp, delegates: services}}
-}
-
-/*
-This creates a new transform service that will route the request to the appropriate service underneath
-*/
-func NewTransformService(trans func(interface{}) (interface{}, error), deleg RecordService) RecordService {
-	return RecordService{delegate: transform{transformer: trans, delegate: deleg.delegate}}
-}
-
-/*
 This creates a new dummy to use for testing purposes
 */
 func NewDummyService() RecordService {
 	return RecordService{delegate: new(dummyService)}
-}
-
-/*
-This creates a new view based on the underlying service
-*/
-func NewViewService(match matcher.Matcher, delegate RecordService) (RecordService, error) {
-	return RecordService{delegate: view{match: match, delegate: delegate.delegate}}, nil
 }
 
 /*
