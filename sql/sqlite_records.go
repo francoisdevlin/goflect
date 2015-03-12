@@ -2,7 +2,7 @@ package records
 
 import (
 	"database/sql"
-	//"fmt"
+	"fmt"
 	"git.sevone.com/sdevlin/goflect.git/goflect"
 	"git.sevone.com/sdevlin/goflect.git/matcher"
 	"reflect"
@@ -170,17 +170,70 @@ func (service sqliteRecordService) deleteAll(record interface{}, match matcher.M
 	return err
 }
 
-func (service sqliteRecordService) readAll(query matcher.Matcher, record ...interface{}) (func(record ...interface{}) bool, error) {
-	typ, _ := typeAndVal(record)
+type Edge struct {
+	A, B, Table string
+}
 
-	fields := goflect.GetInfo(record)
+func determineEdges(records []interface{}) (output []Edge) {
+	primaryKeys := map[string]string{}
+	for _, record := range records {
+		typ, _ := typeAndVal(record)
+		name := typ.Name()
+		fields := goflect.GetInfo(record)
+		for _, field := range fields {
+			if field.IsPrimary {
+				primaryKeys[name] = field.Name
+			}
+		}
+	}
+	for _, record := range records {
+		typ, _ := typeAndVal(record)
+		name := typ.Name()
+		parent := ""
+		localField := ""
+		fields := goflect.GetInfo(record)
+		for _, field := range fields {
+			if field.ChildOf != "" {
+				parent = field.ChildOf
+				localField = field.Name
+			}
+			if field.Extends != "" {
+				parent = field.Extends
+				localField = field.Name
+			}
+		}
+		if sourceField, hit := primaryKeys[parent]; hit {
+			output = append(output, Edge{A: parent + "." + sourceField, B: name + "." + localField, Table: name})
+		}
+	}
+	return output
+}
+
+func (service sqliteRecordService) readAll(query matcher.Matcher, records ...interface{}) (func(record ...interface{}) bool, error) {
 	statement := "SELECT "
+	//path := make(edge
+	types := make([]reflect.Type, 0, 0)
 	columns := make([]string, 0)
-	for _, field := range fields {
-		columns = append(columns, "`"+field.Name+"`")
+	for _, record := range records {
+		typ, _ := typeAndVal(record)
+
+		fields := goflect.GetInfo(record)
+		for _, field := range fields {
+			columns = append(columns, typ.Name()+".`"+field.Name+"`")
+		}
+		types = append(types, typ)
+
 	}
 	statement += strings.Join(columns, " , ")
-	statement += " FROM " + typ.Name()
+	if len(types) == 1 {
+		statement += " FROM " + types[0].Name()
+	} else {
+		statement += " FROM " + types[0].Name()
+		edges := determineEdges(records)
+		for _, edge := range edges {
+			statement += fmt.Sprintf(" INNER JOIN %v ON %v = %v", edge.Table, edge.A, edge.B)
+		}
+	}
 
 	printer := matcher.NewSqlitePrinter()
 	result, err := printer.Print(query)
@@ -189,15 +242,14 @@ func (service sqliteRecordService) readAll(query matcher.Matcher, record ...inte
 	}
 	statement += " WHERE " + result
 
-	//fmt.Println(statement)
 	rows, err := service.Conn.Query(statement)
 	if err != nil {
+		//fmt.Println(statement)
 		return nil, err
 	}
 
 	output := func(r ...interface{}) bool {
-		//Ugly hack
-		return nextRow(rows, r[0])
+		return nextRow(rows, r...)
 	}
 
 	return output, nil
@@ -226,21 +278,10 @@ func wrap(fieldVal reflect.Value, field goflect.Info) string {
 	return output
 }
 
-func nextRow(rows *sql.Rows, record interface{}) bool {
+func nextRow(rows *sql.Rows, records ...interface{}) bool {
 	next := rows.Next()
 	if next {
-		fields := goflect.GetInfo(record)
-		val := reflect.ValueOf(record)
-		if val.Kind() == reflect.Ptr {
-			val = val.Elem()
-		}
-
-		vals := make([]interface{}, len(fields))
-		addrs := make([]interface{}, len(fields))
-		for i, _ := range vals {
-			addrs[i] = &vals[i]
-		}
-		rows.Scan(addrs...)
+		total := 0
 		coerce := func(v interface{}, fVal reflect.Value) {
 			localVal := reflect.ValueOf(v)
 			if fVal.Type() != localVal.Type() {
@@ -248,14 +289,38 @@ func nextRow(rows *sql.Rows, record interface{}) bool {
 			}
 			fVal.Set(localVal)
 		}
-		for i, field := range fields {
-			fieldVal := val.FieldByName(field.Name)
-			switch field.Kind {
-			case reflect.Bool:
-				coerce(vals[i].(int64) != 0, fieldVal)
-			default:
-				coerce(vals[i], fieldVal)
+
+		for _, record := range records {
+			fields := goflect.GetInfo(record)
+			total += len(fields)
+		}
+
+		vals := make([]interface{}, total)
+		addrs := make([]interface{}, total)
+		for i, _ := range vals {
+			addrs[i] = &vals[i]
+		}
+
+		rows.Scan(addrs...)
+
+		offset := 0
+		for _, record := range records {
+			fields := goflect.GetInfo(record)
+			val := reflect.ValueOf(record)
+			if val.Kind() == reflect.Ptr {
+				val = val.Elem()
 			}
+
+			for i, field := range fields {
+				fieldVal := val.FieldByName(field.Name)
+				switch field.Kind {
+				case reflect.Bool:
+					coerce(vals[offset+i].(int64) != 0, fieldVal)
+				default:
+					coerce(vals[offset+i], fieldVal)
+				}
+			}
+			offset += len(fields)
 		}
 
 	}
