@@ -414,6 +414,10 @@ func TestBasicJoin(t *testing.T) {
 	if err != nil {
 		fmt.Println("Table create error")
 	}
+	err = sqlService.Define(&Peer{})
+	if err != nil {
+		fmt.Println("Table create error")
+	}
 	err = sqlService.Define(&DeviceLocation{})
 	if err != nil {
 		fmt.Println("Table create error")
@@ -427,9 +431,10 @@ func TestBasicJoin(t *testing.T) {
 		fmt.Println("Table create error")
 	}
 
-	//Passing a pointer is important, so that the id can be placed in foo
-	err = service.Create(&Device{Name: "Bacon"})
-	err = service.Create(&Device{Name: "Pizza"})
+	err = service.Create(&Peer{Name: "My Awesome Peer"})
+
+	err = service.Create(&Device{PeerId: 1, Name: "Bacon"})
+	err = service.Create(&Device{PeerId: 1, Name: "Pizza"})
 
 	err = service.Create(&DeviceLocation{DeviceId: 1, Location: "The kitchen"})
 	err = service.Create(&DeviceLocation{DeviceId: 2, Location: "The mall"})
@@ -445,9 +450,7 @@ func TestBasicJoin(t *testing.T) {
 	location := DeviceLocation{}
 	obj := Object{}
 	ind := Indicator{}
-	//printAll(service, &device)
-	//printAll(service, &obj)
-	//printAll(service, &location)
+	peer := Peer{}
 
 	next, err := sqlService.readAll(matcher.Any(), &device, &obj)
 	if err != nil {
@@ -478,6 +481,14 @@ func TestBasicJoin(t *testing.T) {
 	}
 	for next(&device, &obj, &ind) {
 		fmt.Printf("%v,%v,%v\n", device, obj, ind)
+	}
+
+	next, err = sqlService.readAll(matcher.Any(), &device, &peer)
+	if err != nil {
+		t.Errorf("Error executing stuff, %v", err)
+	}
+	for next(&device, &peer) {
+		fmt.Printf("%v,%v\n", device, peer)
 	}
 	//Output:
 	//Bacon

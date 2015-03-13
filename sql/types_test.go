@@ -9,9 +9,15 @@ import (
 
 //Use our types to define a schema
 type (
-	Device struct {
+	Peer struct {
 		Id   int64 `sql:"primary,autoincrement"`
 		Name string
+	}
+
+	Device struct {
+		Id     int64 `sql:"primary,autoincrement"`
+		PeerId int64 `sql-child:"Peer"`
+		Name   string
 	}
 
 	DeviceLocation struct {
@@ -22,6 +28,11 @@ type (
 	Object struct {
 		Id       int64 `sql:"primary,autoincrement"`
 		DeviceId int64 `sql-child:"Device"`
+		Name     string
+	}
+
+	ObjectInfo struct {
+		ObjectId int64 `sql:"primary" sql-extend:"Object"`
 		Name     string
 	}
 
@@ -50,7 +61,7 @@ func printAll(service RecordService, record interface{}) {
 	fmt.Println(typ.Name() + "s")
 	for next(record) {
 		val := reflect.ValueOf(record)
-		fmt.Println(val.Elem().Interface())
+		fmt.Printf("%v\n", val.Elem().Interface())
 	}
 }
 
@@ -126,7 +137,7 @@ func Example_1() {
 
 	//Output:
 	//Devices
-	//{1 Device 1}
+	//{1 0 Device 1}
 }
 
 /*
@@ -175,11 +186,11 @@ func Example_2() {
 
 	//Output:
 	//Devices
-	//{1 Device 1}
-	//{2 Device 2}
-	//{3 Device 3}
+	//{1 0 Device 1}
+	//{2 0 Device 2}
+	//{3 0 Device 3}
 	//Our device
-	//{1 Device 1}
+	//{1 0 Device 1}
 	//No Devices Match Query
 }
 
@@ -217,9 +228,9 @@ func Example_3() {
 
 	//Output:
 	//Device at the start
-	//{1 Device 1}
+	//{1 0 Device 1}
 	//Device at the end
-	//{1 A New Name}
+	//{1 0 A New Name}
 }
 
 /*
@@ -255,7 +266,7 @@ func Example_4() {
 
 	//Output:
 	//Devices
-	//{1 Device 1}
+	//{1 0 Device 1}
 	//Objects
 	//{1 1 Object 1}
 }

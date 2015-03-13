@@ -186,6 +186,9 @@ func determineEdges(records []interface{}) (output []Edge) {
 			}
 		}
 	}
+
+	typ, _ := typeAndVal(records[0])
+	sourceName := typ.Name()
 	for _, record := range records {
 		typ, _ := typeAndVal(record)
 		name := typ.Name()
@@ -203,7 +206,11 @@ func determineEdges(records []interface{}) (output []Edge) {
 			}
 		}
 		if sourceField, hit := primaryKeys[parent]; hit {
-			output = append(output, Edge{A: parent + "." + sourceField, B: name + "." + localField, Table: name})
+			if sourceName != name {
+				output = append(output, Edge{A: parent + "." + sourceField, B: name + "." + localField, Table: name})
+			} else {
+				output = append(output, Edge{A: parent + "." + sourceField, B: name + "." + localField, Table: parent})
+			}
 		}
 	}
 	return output
@@ -244,7 +251,7 @@ func (service sqliteRecordService) readAll(query matcher.Matcher, records ...int
 
 	rows, err := service.Conn.Query(statement)
 	if err != nil {
-		//fmt.Println(statement)
+		fmt.Println(statement)
 		return nil, err
 	}
 
